@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
 import api from './api/axios'
 import Login from './pages/Login'
@@ -15,28 +15,44 @@ import Orders from './pages/Orders'
 import Layout from './components/Layout'
 import Dashboard from './pages/Dashboard'
 import Settings from './pages/Settings'
+import Onboarding from './pages/Onboarding'
 
 const PrivateRoute = ({ children }) => {
     const token = localStorage.getItem('token')
     return token ? children : <Navigate to="/login" />
 }
 
-export default function App() {
-    useEffect(() => {
+function AuthGate({ children }) {
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  useEffect(() => {
     const token = localStorage.getItem('token')
     if (!token) return
 
     api.get('/me')
-        .then(res => {
-            localStorage.setItem('user', JSON.stringify(res.data))
-        })
-        .catch(() => {
-            localStorage.removeItem('token')
-            localStorage.removeItem('user')
-        })
-}, [])
+      .then(res => {
+        const u = res.data
+        localStorage.setItem('user', JSON.stringify(u))
+
+        const onAuthPage = ['/login', '/register', '/onboarding'].includes(location.pathname)
+        if (u.role === 'tenant_admin' && !u.has_store && !onAuthPage) {
+          navigate('/onboarding')
+        }
+      })
+      .catch(() => {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+      })
+  }, [location.pathname])
+
+  return children
+}
+
+export default function App() {
     return (
         <BrowserRouter>
+        <AuthGate>
             <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
@@ -129,7 +145,13 @@ export default function App() {
         </Layout>
     </PrivateRoute>
 } />
+<Route path="/onboarding" element={
+            <PrivateRoute>
+<Onboarding />            
+</PrivateRoute>
+          } />
             </Routes>
+            </AuthGate>
         </BrowserRouter>
     )
 }
