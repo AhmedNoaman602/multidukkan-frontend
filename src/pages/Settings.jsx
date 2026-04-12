@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
+import Modal from '../components/Modal'
 
 export default function Settings() {
     const [activeTab, setActiveTab] = useState('users')
@@ -59,9 +60,9 @@ export default function Settings() {
             const res = await api.post('/users', userForm)
             setUsers([...users, res.data.data])
             setUserForm({ name: '', email: '', password: '', role: 'store_staff', store_id: '' })
-            setShowCreateUser(false)
             setSuccess('User created successfully')
             setTimeout(() => setSuccess(''), 3000)
+            setShowCreateUser(false)
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to create user')
         } finally {
@@ -89,9 +90,9 @@ export default function Settings() {
         const res = await api.post('/stores', storeForm)
         setStores([...stores, res.data.data])
         setStoreForm({ name: '', address: '', phone: '' })
-        setShowCreateStore(false)
         setSuccess('Store created successfully')
         setTimeout(() => setSuccess(''), 3000)
+        setShowCreateStore(false)
     } catch (err) {
         setError(err.response?.data?.message || 'Failed to create store')
     } finally {
@@ -106,9 +107,9 @@ const handleCreateWarehouse = async (e) => {
         const res = await api.post('/warehouses', warehouseForm)
         setWarehouses([...warehouses, res.data.data])
         setWarehouseForm({ name: '', address: '', store_id: '' })
-        setShowCreateWarehouse(false)
         setSuccess('Warehouse created successfully')
         setTimeout(() => setSuccess(''), 3000)
+        setShowCreateWarehouse(false)
     } catch (err) {
         setError(err.response?.data?.message || 'Failed to create warehouse')
     } finally {
@@ -139,13 +140,6 @@ const tabs = [
     return (
         <div className="">
             <h2 className="text-2xl font-bold text-white mb-6">Settings</h2>
-
-            {error && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg mb-6 text-sm">
-                    {error}
-                </div>
-            )}
-
             {success && (
                 <div className="bg-green-500/10 border border-green-500/20 text-green-400 px-4 py-3 rounded-lg mb-6 text-sm">
                     {success}
@@ -183,8 +177,7 @@ const tabs = [
                     </div>
 
                     {showCreateUser && (
-                        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-                            <h4 className="text-white font-medium mb-4">New Team Member</h4>
+                        <Modal open={showCreateUser} onClose={() => setShowCreateUser(false)} error={error} title="New Team Member">
                             <form onSubmit={handleCreateUser} className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm text-gray-400 mb-1">Name</label>
@@ -255,7 +248,7 @@ const tabs = [
                                     </button>
                                 </div>
                             </form>
-                        </div>
+                        </Modal>
                     )}
 
                     <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
@@ -320,8 +313,7 @@ const tabs = [
         </div>
 
         {showCreateStore && (
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-                <h4 className="text-white font-medium mb-4">New Store</h4>
+            <Modal open={showCreateStore} onClose={() => setShowCreateStore(false)} error={error} title="New Store">
                 <form onSubmit={handleCreateStore} className="grid grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm text-gray-400 mb-1">Store Name</label>
@@ -358,7 +350,7 @@ const tabs = [
                         </button>
                     </div>
                 </form>
-            </div>
+            </Modal>
         )}
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
@@ -404,8 +396,7 @@ const tabs = [
         </div>
 
         {showCreateWarehouse && (
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-                <h4 className="text-white font-medium mb-4">New Warehouse</h4>
+            <Modal open={showCreateWarehouse} onClose={() => setShowCreateWarehouse(false)} error={error} title="New Warehouse">
                 <form onSubmit={handleCreateWarehouse} className="grid grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm text-gray-400 mb-1">Warehouse Name</label>
@@ -454,7 +445,7 @@ const tabs = [
                         </button>
                     </div>
                 </form>
-            </div>
+            </Modal>
         )}
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
