@@ -6,18 +6,22 @@ export default function CreateCustomer() {
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
     const [form, setForm] = useState({
-        name: '', phone: '', address: '', price_tier: 'default'
+        name: '', phone: '', address: '', price_tier: ''
     })
     const navigate = useNavigate()
 
     const handleSubmit = async (e) => {
         e.preventDefault()
         setSaving(true)
+        setError('')
         try {
-            await api.post('/customers', form)
+            await api.post('/customers', {
+                ...form,
+                price_tier: form.price_tier || null
+            })
             navigate('/customers')
         } catch (err) {
-            setError('Failed to create customer')
+            setError(err.response?.data?.message || 'Failed to create customer')
         } finally {
             setSaving(false)
         }
@@ -26,10 +30,7 @@ export default function CreateCustomer() {
     return (
         <div className="">
             <div className="flex items-center gap-4 mb-6">
-                <button
-                    onClick={() => navigate(-1)}
-                    className="text-gray-400 hover:text-white transition-colors text-sm"
-                >
+                <button type="button" onClick={() => navigate(-1)} className="text-gray-400 hover:text-white transition-colors text-sm">
                     ← Back
                 </button>
                 <h2 className="text-2xl font-bold text-white">Add New Customer</h2>
@@ -43,7 +44,6 @@ export default function CreateCustomer() {
 
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
                 <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
-
                     <div>
                         <label className="block text-sm text-gray-400 mb-1">Name</label>
                         <input
@@ -77,7 +77,7 @@ export default function CreateCustomer() {
                         <label className="block text-sm text-gray-400 mb-2">Price Tier</label>
                         <div className="grid grid-cols-6 gap-2">
                             {[
-                                { value: 'default', label: 'Default' },
+                                { value: '', label: 'Default' },
                                 { value: 'a', label: 'سعر أ' },
                                 { value: 'b', label: 'سعر ب' },
                                 { value: 'c', label: 'سعر ج' },
@@ -87,12 +87,14 @@ export default function CreateCustomer() {
                                 <button
                                     key={tier.value}
                                     type="button"
-                                    onClick={() => setForm({ ...form, price_tier: tier.value })}
-                                    className={`py-2 rounded-lg text-sm font-medium transition-colors ${
-                                        form.price_tier === tier.value
+                                    onClick={() => {
+                                        setForm({ ...form, price_tier: tier.value })
+                                        document.getElementById('save-customer').focus()
+                                    }}
+                                    className={`py-2 rounded-lg text-sm font-medium transition-colors ${form.price_tier === tier.value
                                             ? 'bg-blue-600 text-white'
                                             : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                                    }`}
+                                        }`}
                                 >
                                     {tier.label}
                                 </button>
@@ -102,9 +104,10 @@ export default function CreateCustomer() {
 
                     <div className="col-span-2 pt-2">
                         <button
+                            id="save-customer"
                             type="submit"
                             disabled={saving}
-                            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+                            className="px-6 py-2.5 bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium rounded-lg transition-colors"
                         >
                             {saving ? 'Saving...' : 'Save Customer'}
                         </button>

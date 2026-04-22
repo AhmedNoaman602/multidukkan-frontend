@@ -15,20 +15,25 @@ export default function CreateOrder() {
     const [items, setItems] = useState([{ product_id: '', quantity: 1, warehouse_id: '', unit_type: 'base' }])
     const navigate = useNavigate()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
+    const [stores, setStores] = useState([])
+    const [storeId, setStoreId] = useState(user.store_id || '')
+    
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [customersRes, productsRes, warehousesRes, inventoryRes] = await Promise.all([
+                const [customersRes, productsRes, warehousesRes, inventoryRes, storesRes] = await Promise.all([
                     api.get('/customers'),
                     api.get('/products'),
                     api.get('/warehouses'),
-                    api.get('/inventory')
+                    api.get('/inventory'),
+                    api.get('/stores')
                 ])
                 setCustomers(customersRes.data.data)
                 setProducts(productsRes.data.data)
                 setWarehouses(warehousesRes.data.data)
                 setInventory(inventoryRes.data.data)
+                setStores(storesRes.data.data)
             } catch (err) {
                 setError('Failed to load data')
             } finally {
@@ -77,7 +82,7 @@ export default function CreateOrder() {
         setError('')
         try {
             await api.post('/orders', {
-                store_id: user.store_id ?? 1,
+                store_id: parseInt(storeId),
                 customer_id: parseInt(customerId),
                 items: items.map(item => ({
                     product_id: parseInt(item.product_id),
@@ -115,7 +120,22 @@ export default function CreateOrder() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-
+{!user.store_id && (
+    <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <label className="block text-sm text-gray-400 mb-2">Store</label>
+        <select
+            value={storeId}
+            onChange={(e) => setStoreId(e.target.value)}
+            required
+            className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
+        >
+            <option value="">Select a store</option>
+            {stores.map(s => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+        </select>
+    </div>
+)}
                 {/* Customer */}
                 <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
                     <label className="block text-sm text-gray-400 mb-2">Customer</label>
@@ -194,7 +214,7 @@ export default function CreateOrder() {
     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
 >
     <option value="">Select warehouse</option>
-    {warehouses.map(w => {
+    {warehouses.filter(w => !storeId || w.store_id === parseInt(storeId)).map(w => {
         const stock = inventory.find(
             inv => inv.warehouse_id === w.id &&
             inv.product_id === parseInt(item.product_id)

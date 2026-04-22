@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
 import api from './api/axios'
 import Login from './pages/Login'
@@ -16,136 +16,143 @@ import Layout from './components/Layout'
 import Dashboard from './pages/Dashboard'
 import Settings from './pages/Settings'
 import Onboarding from './pages/Onboarding'
+import EditProduct from './pages/EditProduct'
+import EditCustomer from './pages/EditCustomer'
 
+// Simple auth check — is the user logged in at all?
+// Does NOT check has_store here. That's AuthGate's job with fresh data.
 const PrivateRoute = ({ children }) => {
-    const token = localStorage.getItem('token')
-    if (!token) return <Navigate to="/login" />
-    const user = JSON.parse(localStorage.getItem('user') || '{}')
-    if (user.role === 'tenant_admin' && !user.has_store) {
-        return <Navigate to="/onboarding" />
-    }
-    return children
-}
-
-const OnboardingRoute = ({ children }) => {
     const token = localStorage.getItem('token')
     return token ? children : <Navigate to="/login" />
 }
 
-export default function App() {
-    useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) return
+// AuthGate runs on every route change.
+// Calls /me to get FRESH user data, then decides if new tenant_admin
+// needs to be sent to /onboarding. Using fresh data avoids the bug
+// where stale localStorage incorrectly redirects existing admins.
+function AuthGate({ children }) {
+    const navigate = useNavigate()
+    const location = useLocation()
 
-    api.get('/me')
-        .then(res => {
-            localStorage.setItem('user', JSON.stringify(res.data))
-        })
-        .catch(() => {
-            localStorage.removeItem('token')
-            localStorage.removeItem('user')
-        })
-}, [])
+    useEffect(() => {
+        const token = localStorage.getItem('token')
+        if (!token) return
+
+        api.get('/me')
+            .then(res => {
+                const u = res.data
+                localStorage.setItem('user', JSON.stringify(u))
+
+                // Don't redirect if already on an auth/onboarding page — prevents infinite loops
+                const onAuthPage = ['/login', '/register', '/onboarding'].includes(location.pathname)
+
+                // Only tenant_admin without a store needs the wizard
+                if (u.role === 'tenant_admin' && !u.has_store && !onAuthPage) {
+                    navigate('/onboarding')
+                }
+            })
+            .catch(() => {
+                // Token invalid/expired — clear and send to login
+                localStorage.removeItem('token')
+                localStorage.removeItem('user')
+            })
+    }, [location.pathname])
+
+    return children
+}
+
+export default function App() {
     return (
         <BrowserRouter>
-            <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/onboarding" element={
-                    <OnboardingRoute>
-                        <Onboarding />
-                    </OnboardingRoute>
-                } />
-                <Route path="/" element={
-     <PrivateRoute>
-        <Navbar />
-        <Layout>
-            <Dashboard />
-          </Layout>
-    </PrivateRoute>
-} />
-<Route path="/dashboard" element={
-    <PrivateRoute>
-            <Navbar />
-           <Layout>
-             <Dashboard />
-        </Layout>
-    </PrivateRoute>
-} />
-                <Route path="/products" element={
-                    <PrivateRoute>
-                        <Navbar />
-                        <Layout>
-                            <Products />
-                        </Layout>
-                    </PrivateRoute>
-                } />
-                <Route path="/products/create" element={
-                    <PrivateRoute>
-                        <Navbar />
-                        <Layout>
-                            <CreateProduct />
-                        </Layout>
-                    </PrivateRoute>
-                } />
-                <Route path="/customers" element={
-                    <PrivateRoute>
-                        <Navbar />
-                        <Layout>
-                            <Customers />
-                        </Layout>
-                    </PrivateRoute>
-                } />
-                <Route path="/customers/create" element={
-                    <PrivateRoute>
-                        <Navbar />
-                        <Layout>
-                            <CreateCustomer />
-                        </Layout>
-                    </PrivateRoute>
-                } />
-                <Route path="/orders" element={
-                    <PrivateRoute>
-                        <Navbar />
-                        <Layout>
-                            <Orders />
-                        </Layout>
-                    </PrivateRoute>
-                } />
-                <Route path="/orders/create" element={
-                    <PrivateRoute>
-                        <Navbar />
-                        <Layout>
-                            <CreateOrder />
-                        </Layout>
-                    </PrivateRoute>
-                } />
-                <Route path="/customers/:id/balance" element={
-                    <PrivateRoute>
-                        <Navbar />
-                        <Layout>
-                            <CustomerBalance />
-                        </Layout>
-                    </PrivateRoute>
-                } />
-                <Route path="/inventory" element={
-                    <PrivateRoute>
-                        <Navbar />
-                        <Layout>
-                            <Inventory />
-                        </Layout>
-                    </PrivateRoute>
-                } />
-
-<Route path="/settings" element={
-    <PrivateRoute>
-        <Navbar />
-        <Layout>
-            <Settings />
-        </Layout>
-    </PrivateRoute>
-} />
-            </Routes>
+            <AuthGate>
+                <Routes>
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/onboarding" element={
+                        <PrivateRoute>
+                            <Onboarding />
+                        </PrivateRoute>
+                    } />
+                    <Route path="/" element={
+                        <PrivateRoute>
+                            <Navbar />
+                            <Layout><Dashboard /></Layout>
+                        </PrivateRoute>
+                    } />
+                    <Route path="/dashboard" element={
+                        <PrivateRoute>
+                            <Navbar />
+                            <Layout><Dashboard /></Layout>
+                        </PrivateRoute>
+                    } />
+                    <Route path="/products" element={
+                        <PrivateRoute>
+                            <Navbar />
+                            <Layout><Products /></Layout>
+                        </PrivateRoute>
+                    } />
+                    <Route path="/products/create" element={
+                        <PrivateRoute>
+                            <Navbar />
+                            <Layout><CreateProduct /></Layout>
+                        </PrivateRoute>
+                    } />
+                    <Route path="/products/:id/edit" element={
+                        <PrivateRoute>
+                            <Navbar />
+                            <Layout><EditProduct /></Layout>
+                        </PrivateRoute>
+                    } />
+                    <Route path="/customers" element={
+                        <PrivateRoute>
+                            <Navbar />
+                            <Layout><Customers /></Layout>
+                        </PrivateRoute>
+                    } />
+                    <Route path="/customers/create" element={
+                        <PrivateRoute>
+                            <Navbar />
+                            <Layout><CreateCustomer /></Layout>
+                        </PrivateRoute>
+                    } />
+                    <Route path="/customers/:id/edit" element={
+                        <PrivateRoute>
+                            <Navbar />
+                            <Layout><EditCustomer /></Layout>
+                        </PrivateRoute>
+                    } />
+                    <Route path="/orders" element={
+                        <PrivateRoute>
+                            <Navbar />
+                            <Layout><Orders /></Layout>
+                        </PrivateRoute>
+                    } />
+                    <Route path="/orders/create" element={
+                        <PrivateRoute>
+                            <Navbar />
+                            <Layout><CreateOrder /></Layout>
+                        </PrivateRoute>
+                    } />
+                    <Route path="/customers/:id/balance" element={
+                        <PrivateRoute>
+                            <Navbar />
+                            <Layout><CustomerBalance /></Layout>
+                        </PrivateRoute>
+                    } />
+                    <Route path="/inventory" element={
+                        <PrivateRoute>
+                            <Navbar />
+                            <Layout><Inventory /></Layout>
+                        </PrivateRoute>
+                    } />
+                    <Route path="/settings" element={
+                        <PrivateRoute>
+                            <Navbar />
+                            <Layout><Settings /></Layout>
+                        </PrivateRoute>
+                    } />
+                </Routes>
+            </AuthGate>
         </BrowserRouter>
     )
 }

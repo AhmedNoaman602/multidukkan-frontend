@@ -24,7 +24,7 @@ export default function Onboarding() {
     const [storeForm, setStoreForm] = useState({ name: '', address: '', phone: '' })
     const [warehouseForm, setWarehouseForm] = useState({ name: '', address: '' })
     const [productForm, setProductForm] = useState({ name: '', sku: '', price: '', unit: 'حبة' })
-    const [customerForm, setCustomerForm] = useState({ name: '', phone: '', price_tier: 'default' })
+    const [customerForm, setCustomerForm] = useState({ name: '', phone: '', price_tier: '' })
     const [teamForm, setTeamForm] = useState({ name: '', email: '', password: '', role: 'store_manager' })
 
     const handleNext = async () => {
@@ -47,7 +47,10 @@ export default function Onboarding() {
                 })
                 setStep(5)
             } else if (step === 5) {
-                await api.post('/customers', customerForm)
+                await api.post('/customers', {
+                    ...customerForm,
+                price_tier:customerForm.price_tier || null
+                })
                 setStep(6)
             } else if (step === 6) {
                 await api.post('/users', { ...teamForm, store_id: createdStoreId })
@@ -55,7 +58,7 @@ export default function Onboarding() {
             } else if (step === 7) {
                 const res = await api.get('/me')
                 localStorage.setItem('user', JSON.stringify(res.data))
-                navigate('/dashboard')
+                window.location.href = '/dashboard'
                 return
             }
         } catch (err) {
@@ -142,7 +145,7 @@ export default function Onboarding() {
                                 />
                             </div>
                             <div>
-                                <label className={labelClass}>Address</label>
+                                <label className={labelClass}>Address *</label>
                                 <input
                                     value={storeForm.address}
                                     onChange={(e) => setStoreForm({ ...storeForm, address: e.target.value })}
@@ -177,7 +180,7 @@ export default function Onboarding() {
                                 />
                             </div>
                             <div>
-                                <label className={labelClass}>Location</label>
+                                <label className={labelClass}>Address</label>
                                 <input
                                     value={warehouseForm.address}
                                     onChange={(e) => setWarehouseForm({ ...warehouseForm, address: e.target.value })}
@@ -269,7 +272,7 @@ export default function Onboarding() {
                                     onChange={(e) => setCustomerForm({ ...customerForm, price_tier: e.target.value })}
                                     className={inputClass}
                                 >
-                                    <option value="default">Default</option>
+                                    <option value="">Default</option>
                                     <option value="a">A</option>
                                     <option value="b">B</option>
                                     <option value="c">C</option>

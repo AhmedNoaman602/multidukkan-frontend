@@ -1,6 +1,17 @@
+import { useEffect } from 'react'
 export default function Modal({ open, onClose, title, children, error, success }) {
-  if (!open) return null;
-  return (
+    useEffect(() => {
+        if (!open) return
+        const handleEsc = (e) => {
+            if (e.key === 'Escape') onClose()
+        }
+        window.addEventListener('keydown', handleEsc)
+        return () => window.removeEventListener('keydown', handleEsc)
+    }, [open, onClose])
+
+    if (!open) return null  
+    return (
+    
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 w-full max-w-md mx-4" onClick={e => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-4">

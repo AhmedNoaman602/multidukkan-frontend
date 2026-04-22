@@ -228,7 +228,10 @@ const tabs = [
     </label>
     <select
         value={userForm.store_id}
-        onChange={(e) => setUserForm({ ...userForm, store_id: e.target.value })}
+        onChange={(e) => {
+            setUserForm({ ...userForm, store_id: e.target.value })
+            document.getElementById('save-user').focus()
+        }}
         required
         className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
     >
@@ -240,6 +243,7 @@ const tabs = [
 </div>
                                 <div className="col-span-2">
                                     <button
+                                        id="save-user"
                                         type="submit"
                                         disabled={saving}
                                         className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
@@ -333,10 +337,11 @@ const tabs = [
                         />
                     </div>
                     <div className="col-span-2">
-                        <label className="block text-sm text-gray-400 mb-1">Address</label>
+                        <label className="block text-sm text-gray-400 mb-1">Address*</label>
                         <input
                             value={storeForm.address}
                             onChange={(e) => setStoreForm({ ...storeForm, address: e.target.value })}
+                            required
                             className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                         />
                     </div>
