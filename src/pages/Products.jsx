@@ -96,7 +96,7 @@ export default function Products() {
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>
-                            {['Name', 'SKU', 'Default', 'سعر أ', 'سعر ب', 'سعر ج', 'سعر د', 'سعر هـ', 'Unit'].map(h => (
+                            {['Name', 'SKU', 'Default', 'سعر أ', 'سعر ب', 'سعر ج', 'سعر د', 'سعر هـ', 'Unit', 'Actions'].map(h => (
                                 <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                                     {h}
                                 </th>
@@ -115,6 +115,16 @@ export default function Products() {
                                     </td>
                                 ))}
                                 <td className="px-4 py-3 text-gray-400 text-sm">{product.unit}</td>
+                                <td className="px-4 py-3">
+                                    {user.role !== 'store_staff' && (
+                                        <button
+                                            onClick={() => navigate(`/products/${product.id}/edit`)}
+                                            className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium rounded-lg hover:bg-blue-500/20 transition-colors"
+                                        >
+                                            Edit
+                                        </button>
+                                    )}
+                                </td>
                             </tr>
                         ))}
                     </tbody>
