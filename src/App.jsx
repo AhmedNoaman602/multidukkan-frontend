@@ -18,7 +18,7 @@ import Settings from './pages/Settings'
 import Onboarding from './pages/Onboarding'
 import EditProduct from './pages/EditProduct'
 import EditCustomer from './pages/EditCustomer'
-
+import Reports from './pages/Reports'
 // Simple auth check — is the user logged in at all?
 // Does NOT check has_store here. That's AuthGate's job with fresh data.
 const PrivateRoute = ({ children }) => {
@@ -143,6 +143,12 @@ export default function App() {
                         <PrivateRoute>
                             <Navbar />
                             <Layout><Inventory /></Layout>
+                        </PrivateRoute>
+                    } />
+                    <Route path="/reports" element={
+                        <PrivateRoute>
+                            <Navbar />
+                            <Layout><Reports /></Layout>
                         </PrivateRoute>
                     } />
                     <Route path="/settings" element={

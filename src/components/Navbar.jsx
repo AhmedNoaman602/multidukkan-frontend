@@ -39,14 +39,17 @@ export default function Navbar() {
                             </Link>
                             
                         ))}
-                        {(user.role === 'tenant_admin' || user.role === 'store_manager') && (
-    <Link
-        to="/settings"
-        className="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
-    >
-        Settings
-    </Link>
-)}
+                        {/* Reports — admin and manager only */}
+                        {user.role === 'tenant_admin' && (
+                            <Link to="/reports" className="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-colors">
+                                Reports
+                            </Link>
+                        )}
+                        {user.role === 'tenant_admin' && (
+                            <Link to="/settings" className="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-colors">
+                                Settings
+                            </Link>
+                        )}
                     </div>
 
                    <div className="flex items-center gap-3">
