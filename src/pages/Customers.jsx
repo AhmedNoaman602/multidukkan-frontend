@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import Modal from '../components/Modal'
+import SearchInput from '../components/SearchInput'
 
 export default function Customers() {
     const [customers, setCustomers] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
+    const [search, setSearch] = useState('')
     const [deleteTarget, setDeleteTarget] = useState(null)
     const [deleting, setDeleting] = useState(false)
     const navigate = useNavigate()
@@ -37,20 +39,32 @@ export default function Customers() {
         }
     }
 
+    const filtered = customers.filter(c =>
+        c.name.toLowerCase().includes(search.toLowerCase()) ||
+        c.phone.includes(search)
+    )
+
     if (loading) return <LoadingSpinner />
 
     return (
         <div>
             <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-white">Customers</h2>
-                {user.role !== 'store_staff' && (
-                    <button
-                        onClick={() => navigate('/customers/create')}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
-                    >
-                        + Add Customer
-                    </button>
-                )}
+                <div className="flex items-center gap-3">
+                    <SearchInput
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Search by name or phone..."
+                    />
+                    {user.role !== 'store_staff' && (
+                        <button
+                            onClick={() => navigate('/customers/create')}
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+                        >
+                            + Add Customer
+                        </button>
+                    )}
+                </div>
             </div>
 
             {error && (
@@ -71,7 +85,7 @@ export default function Customers() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-800">
-                        {customers.map(customer => (
+                        {filtered.map(customer => (
                             <tr key={customer.id} className="hover:bg-gray-800/50 transition-colors">
                                 <td className="px-4 py-3 text-white text-sm font-medium">
                                     {customer.name}
@@ -101,7 +115,6 @@ export default function Customers() {
                                         >
                                             Balance
                                         </button>
-
                                         {user.role !== 'store_staff' && (
                                             <button
                                                 onClick={() => navigate(`/customers/${customer.id}/edit`)}
@@ -110,7 +123,6 @@ export default function Customers() {
                                                 Edit
                                             </button>
                                         )}
-
                                         {user.role === 'tenant_admin' && (
                                             <button
                                                 onClick={() => setDeleteTarget(customer)}
@@ -126,14 +138,13 @@ export default function Customers() {
                     </tbody>
                 </table>
 
-                {customers.length === 0 && (
+                {filtered.length === 0 && (
                     <div className="text-center py-16 text-gray-500">
-                        No customers yet. Add your first customer.
+                        {search ? `No customers matching "${search}"` : 'No customers yet. Add your first customer.'}
                     </div>
                 )}
             </div>
 
-            {/* Delete confirmation modal */}
             <Modal
                 open={!!deleteTarget}
                 onClose={() => setDeleteTarget(null)}

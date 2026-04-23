@@ -2,11 +2,14 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
+import SearchInput from '../components/SearchInput'
 
 export default function Orders() {
     const [orders, setOrders] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
+    const [search, setSearch] = useState('')
+    const [yearFilter, setYearFilter] = useState('')
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -16,18 +19,56 @@ export default function Orders() {
             .finally(() => setLoading(false))
     }, [])
 
+    // Build year options from actual orders
+    const years = [...new Set(orders.map(o =>
+        new Date(o.created_at).getFullYear()
+    ))].sort((a, b) => b - a)
+
+    const filtered = orders.filter(order => {
+        const matchesSearch =
+            order.customer_name?.toLowerCase().includes(search.toLowerCase()) ||
+            String(order.id).includes(search)
+
+        const matchesYear = yearFilter
+            ? new Date(order.created_at).getFullYear() === parseInt(yearFilter)
+            : true
+
+        return matchesSearch && matchesYear
+    })
+
     if (loading) return <LoadingSpinner />
 
     return (
         <div>
             <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-white">Orders</h2>
-                <button
-                    onClick={() => navigate('/orders/create')}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
-                >
-                    + New Order
-                </button>
+                <div className="flex items-center gap-3">
+                    {/* Year filter */}
+                    <select
+                        value={yearFilter}
+                        onChange={(e) => setYearFilter(e.target.value)}
+                        className="px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                    >
+                        <option value="">All Years</option>
+                        {years.map(y => (
+                            <option key={y} value={y}>{y}</option>
+                        ))}
+                    </select>
+
+                    {/* Search */}
+                    <SearchInput
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Search by customer or #..."
+                    />
+
+                    <button
+                        onClick={() => navigate('/orders/create')}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+                    >
+                        + New Order
+                    </button>
+                </div>
             </div>
 
             {error && (
@@ -48,7 +89,7 @@ export default function Orders() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-800">
-                        {orders.map(order => (
+                        {filtered.map(order => (
                             <tr key={order.id} className="hover:bg-gray-800/50 transition-colors">
                                 <td className="px-4 py-3 text-gray-400 text-sm">#{order.id}</td>
                                 <td className="px-4 py-3 text-white text-sm font-medium">{order.customer_name}</td>
@@ -71,9 +112,9 @@ export default function Orders() {
                     </tbody>
                 </table>
 
-                {orders.length === 0 && (
+                {filtered.length === 0 && (
                     <div className="text-center py-16 text-gray-500">
-                        No orders yet.
+                        {search || yearFilter ? 'No orders match your filters.' : 'No orders yet.'}
                     </div>
                 )}
             </div>
