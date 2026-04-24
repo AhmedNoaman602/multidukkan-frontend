@@ -3,6 +3,7 @@ import api from '../api/axios'
 import { useNavigate } from 'react-router-dom'
 import LoadingSpinner from '../components/LoadingSpinner'
 import SearchInput from '../components/SearchInput'
+import Modal from '../components/Modal'
 
 export default function Products() {
     const navigate = useNavigate()
@@ -10,6 +11,8 @@ export default function Products() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [search, setSearch] = useState('')
+    const [deleteTarget , setDeleteTarget] = useState(null)
+    const [deleting, setDeleting] = useState(false)
     const user = JSON.parse(localStorage.getItem('user') || '{}')
 
     const fetchData = async () => {
@@ -24,6 +27,21 @@ export default function Products() {
     }
 
     useEffect(() => { fetchData() }, [])
+
+    const handleDelete = async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+        await api.delete(`/products/${deleteTarget.id}`)
+        setProducts(products.filter(p => p.id !== deleteTarget.id))
+        setDeleteTarget(null)
+    } catch (err) {
+        setError(err.response?.data?.message || 'Failed to delete product')
+        setDeleteTarget(null)
+    } finally {
+        setDeleting(false)
+    }
+}
 
     const filtered = products.filter(p =>
         p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -84,15 +102,25 @@ export default function Products() {
                                 ))}
                                 <td className="px-4 py-3 text-gray-400 text-sm">{product.unit}</td>
                                 <td className="px-4 py-3">
-                                    {user.role !== 'store_staff' && (
-                                        <button
-                                            onClick={() => navigate(`/products/${product.id}/edit`)}
-                                            className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium rounded-lg hover:bg-blue-500/20 transition-colors"
-                                        >
-                                            Edit
-                                        </button>
-                                    )}
-                                </td>
+    <div className="flex gap-2">
+        {user.role !== 'store_staff' && (
+            <button
+                onClick={() => navigate(`/products/${product.id}/edit`)}
+                className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium rounded-lg hover:bg-blue-500/20 transition-colors"
+            >
+                Edit
+            </button>
+        )}
+        {user.role === 'tenant_admin' && (
+            <button
+                onClick={() => setDeleteTarget(product)}
+                className="px-3 py-1 bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium rounded-lg hover:bg-red-500/20 transition-colors"
+            >
+                Delete
+            </button>
+        )}
+    </div>
+</td>
                             </tr>
                         ))}
                     </tbody>
@@ -104,6 +132,41 @@ export default function Products() {
                     </div>
                 )}
             </div>
+            <Modal
+                            open={!!deleteTarget}
+                            onClose={() => setDeleteTarget(null)}
+                            title="Delete Product"
+                        >
+                            {deleteTarget && (
+                                <form onSubmit={(e) => { e.preventDefault(); handleDelete(); }}>
+                                    <div className="space-y-4">
+                                        <p className="text-gray-300 text-sm">
+                                            Are you sure you want to delete{' '}
+                                            <span className="text-white font-semibold">
+                                                {deleteTarget.name}
+                                            </span>
+                                            ? This action cannot be undone.
+                                        </p>
+                                        <div className="flex justify-end gap-2 pt-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => setDeleteTarget(null)}
+                                                className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                disabled={deleting}
+                                                className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+                                            >
+                                                {deleting ? 'Deleting...' : 'Yes, Delete'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            )}
+                        </Modal>
         </div>
     )
 }
