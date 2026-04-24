@@ -23,8 +23,11 @@ export default function Onboarding() {
 
     const [storeForm, setStoreForm] = useState({ name: '', address: '', phone: '' })
     const [warehouseForm, setWarehouseForm] = useState({ name: '', address: '' })
-    const [productForm, setProductForm] = useState({ name: '', sku: '', price: '', unit: 'حبة' })
-    const [customerForm, setCustomerForm] = useState({ name: '', phone: '', price_tier: '' })
+    const [createdWarehouseId , setCreatedWarehouseId] = useState(null);
+const [productForm, setProductForm] = useState({ 
+    name: '', sku: '', price: '', unit: 'حبة', quantity: 0 
+})    
+const [customerForm, setCustomerForm] = useState({ name: '', phone: '', price_tier: '' })
     const [teamForm, setTeamForm] = useState({ name: '', email: '', password: '', role: 'store_manager' })
 
     const handleNext = async () => {
@@ -38,15 +41,18 @@ export default function Onboarding() {
                 setCreatedStoreId(res.data.data.id)
                 setStep(3)
             } else if (step === 3) {
-                await api.post('/warehouses', { ...warehouseForm, store_id: createdStoreId })
-                setStep(4)
-            } else if (step === 4) {
-                await api.post('/products', {
-                    ...productForm,
-                    price: parseFloat(productForm.price)
-                })
-                setStep(5)
-            } else if (step === 5) {
+      const res = await api.post('/warehouses', { ...warehouseForm, store_id: createdStoreId })
+     setCreatedWarehouseId(res.data.data.id)
+     setStep(4)
+} else if (step === 4) {
+    await api.post('/products', {
+        ...productForm,
+        price: parseFloat(productForm.price),
+        warehouse_id: createdWarehouseId,
+        quantity: parseInt(productForm.quantity) || 0,
+    })
+    setStep(5)
+} else if (step === 5) {
                 await api.post('/customers', {
                     ...customerForm,
                 price_tier:customerForm.price_tier || null
@@ -153,7 +159,7 @@ export default function Onboarding() {
                                 />
                             </div>
                             <div>
-                                <label className={labelClass}>Phone</label>
+                                <label className={labelClass}>Phone *</label>
                                 <input
                                     value={storeForm.phone}
                                     onChange={(e) => setStoreForm({ ...storeForm, phone: e.target.value })}
@@ -239,6 +245,17 @@ export default function Onboarding() {
                                     <option value="box">box</option>
                                 </select>
                             </div>
+                            <div className="col-span-2">
+    <label className={labelClass}>Initial Quantity</label>
+    <input
+        type="number"
+        min="0"
+        value={productForm.quantity}
+        onChange={(e) => setProductForm({ ...productForm, quantity: e.target.value })}
+        placeholder="0"
+        className={inputClass}
+    />
+</div>
                         </div>
                     </div>
                 )
