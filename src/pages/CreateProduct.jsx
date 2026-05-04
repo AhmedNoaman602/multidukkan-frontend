@@ -8,37 +8,53 @@ export default function CreateProduct() {
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
     const [form, setForm] = useState({
-        name: '', sku: '', price: '', unit: 'حبة',
+        name: '', sku: '', price: '', unit: 'حتة',
         price_a: '', price_b: '', price_c: '', price_d: '', price_e: '',
         secondary_unit: '', conversion_factor: '',
-        warehouse_id: '', quantity: 0, threshold: 10
     })
+    const [stocks, setStocks] = useState([
+    { warehouse_id: '', quantity: 0, threshold: 10 , unit_type:'base' }
+])
     const navigate = useNavigate()
 
     useEffect(() => {
         api.get('/warehouses').then(res => setWarehouses(res.data.data))
     }, [])
+const addStock = () => setStocks([...stocks, { warehouse_id: '', quantity: 0, threshold: 10, unit_type: 'base' }])
+const removeStock = (i) => setStocks(stocks.filter((_, idx) => idx !== i))
+const updateStock = (i, field, value) => {
+    const updated = [...stocks]
+    updated[i][field] = value
+    setStocks(updated)
+}
 
-    const handleSubmit = async (e) => {
-        e.preventDefault()
-        setSaving(true)
-        try {
-            const actualQuantity = stockUnit === 'secondary' && form.conversion_factor
-                ? parseInt(form.quantity) * parseInt(form.conversion_factor)
-                : parseInt(form.quantity)
+const usedWarehouseIds = stocks.map(s => parseInt(s.warehouse_id)).filter(Boolean)
 
-            await api.post('/products', {
-                ...form,
-                price: parseFloat(form.price),
-                quantity: actualQuantity
-            })
-            navigate('/products')
-        } catch (err) {
-            setError('Failed to create product')
-        } finally {
-            setSaving(false)
-        }
+   const handleSubmit = async (e) => {
+    e.preventDefault()
+    setSaving(true)
+    setError('')
+    try {
+        await api.post('/products', {
+            ...form,
+            price: parseFloat(form.price),
+           stocks: stocks
+    .filter(s => s.warehouse_id)
+    .map(s => ({
+        warehouse_id: parseInt(s.warehouse_id),
+        quantity: s.unit_type === 'secondary' && form.conversion_factor
+            ? parseInt(s.quantity) * parseInt(form.conversion_factor)
+            : parseInt(s.quantity) || 0,
+        threshold: parseInt(s.threshold) || 10,
+    }))
+        })
+        navigate('/products')
+    } catch (err) {
+        setError(err.response?.data?.message || 'Failed to create product')
+    } finally {
+        setSaving(false)
     }
+}
 
     return (
         <div className="">
@@ -99,14 +115,8 @@ export default function CreateProduct() {
                             onChange={(e) => setForm({ ...form, unit: e.target.value })}
                             className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                         >
-                            <option value="حبة">حبة</option>
-                            <option value="كيس">كيس</option>
+                            <option value="حبة">حتة</option>
                             <option value="لفة">لفة</option>
-                            <option value="دستة">دستة</option>
-                            <option value="كرتونة">كرتونة</option>
-                            <option value="pcs">pcs</option>
-                            <option value="kg">kg</option>
-                            <option value="box">box</option>
                         </select>
                     </div>
 
@@ -149,72 +159,99 @@ export default function CreateProduct() {
                         )}
                     </div>
 
-                    <div>
-                        <label className="block text-sm text-gray-400 mb-1">Warehouse</label>
-                        <select
-                            value={form.warehouse_id}
-                            onChange={(e) => setForm({ ...form, warehouse_id: e.target.value })}
-                            required
-                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
-                        >
-                            <option value="">Select warehouse</option>
-                            {warehouses.map(w => (
+                    {/* Warehouse Stock — full width */}
+<div className="col-span-2">
+    <div className="flex items-center justify-between mb-3">
+        <label className="text-sm text-gray-400">Warehouse Stock</label>
+        <button
+            type="button"
+            onClick={addStock}
+            className="px-3 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors"
+        >
+            + Add Warehouse
+        </button>
+    </div>
+
+    <div className="space-y-3">
+        {stocks.map((stock, i) => (
+            <div key={i} className="grid grid-cols-7 gap-3 items-end bg-gray-800 p-3 rounded-lg">
+                <div className="col-span-3">
+                    <label className="block text-xs text-gray-400 mb-1">Warehouse</label>
+                    <select
+                        value={stock.warehouse_id}
+                        onChange={(e) => updateStock(i, 'warehouse_id', e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
+                    >
+                        <option value="">Select warehouse</option>
+                        {warehouses
+                            .filter(w => !usedWarehouseIds.includes(w.id) || w.id === parseInt(stock.warehouse_id))
+                            .map(w => (
                                 <option key={w.id} value={w.id}>{w.name}</option>
-                            ))}
-                        </select>
-                    </div>
+                            ))
+                        }
+                    </select>
+                </div>
 
-                    {form.secondary_unit && form.conversion_factor && (
-                        <div>
-                            <label className="block text-sm text-gray-400 mb-2">Add stock as</label>
-                            <div className="flex gap-2">
-                                {['base', 'secondary'].map(u => (
-                                    <button
-                                        key={u}
-                                        type="button"
-                                        onClick={() => setStockUnit(u)}
-                                        className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                                            stockUnit === u
-                                                ? 'bg-blue-600 text-white'
-                                                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                                        }`}
-                                    >
-                                        {u === 'base' ? form.unit : form.secondary_unit}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+                <div className="col-span-2">
+                    <label className="block text-xs text-gray-400 mb-1">Quantity</label>
+                    <input
+                        type="number"
+                        min="0"
+                        value={stock.quantity}
+                        onChange={(e) => updateStock(i, 'quantity', e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
+                    />
+                </div>
+
+                <div className="col-span-1">
+                    <label className="block text-xs text-gray-400 mb-1">Threshold</label>
+                    <input
+                        type="number"
+                        min="0"
+                        value={stock.threshold}
+                        onChange={(e) => updateStock(i, 'threshold', e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
+                    />
+                </div>
+                {form.secondary_unit && form.conversion_factor && (
+    <div className="col-span-7 flex gap-2 mt-1">
+        {['base', 'secondary'].map(u => (
+            <button
+                key={u}
+                type="button"
+                onClick={() => updateStock(i, 'unit_type', u)}
+                className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                    stock.unit_type === u
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                }`}
+            >
+                {u === 'base' ? form.unit : form.secondary_unit}
+            </button>
+        ))}
+        {stock.unit_type === 'secondary' && form.conversion_factor && stock.quantity > 0 && (
+            <span className="text-xs text-blue-400 self-center ml-2">
+                = {parseInt(stock.quantity) * parseInt(form.conversion_factor)} {form.unit}
+            </span>
+        )}
+    </div>
+)}
+
+                <div className="col-span-1 flex justify-end">
+                    {stocks.length > 1 && (
+                        <button
+                            type="button"
+                            onClick={() => removeStock(i)}
+                            className="px-3 py-2 text-red-400 hover:text-red-300 text-sm transition-colors"
+                        >
+                            ✕
+                        </button>
                     )}
-
-                    <div>
-                        <label className="block text-sm text-gray-400 mb-1">
-                            Quantity (in {stockUnit === 'secondary' ? form.secondary_unit : form.unit})
-                        </label>
-                        <input
-                            type="number"
-                            min="0"
-                            value={form.quantity}
-                            onChange={(e) => setForm({ ...form, quantity: e.target.value })}
-                            required
-                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
-                        />
-                        {stockUnit === 'secondary' && form.conversion_factor && form.quantity > 0 && (
-                            <p className="text-xs text-blue-400 mt-1">
-                                = {form.quantity * parseInt(form.conversion_factor)} {form.unit}
-                            </p>
-                        )}
-                    </div>
-
-                    <div>
-                        <label className="block text-sm text-gray-400 mb-1">Low Stock Alert</label>
-                        <input
-                            type="number"
-                            min="0"
-                            value={form.threshold}
-                            onChange={(e) => setForm({ ...form, threshold: e.target.value })}
-                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
-                        />
-                    </div>
+                </div>
+            </div>
+        ))}
+    </div>
+</div>
 
                     <div className="col-span-2 pt-2">
                         <button

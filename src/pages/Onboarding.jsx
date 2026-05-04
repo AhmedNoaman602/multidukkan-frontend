@@ -25,7 +25,7 @@ export default function Onboarding() {
     const [warehouseForm, setWarehouseForm] = useState({ name: '', address: '' })
     const [createdWarehouseId , setCreatedWarehouseId] = useState(null);
 const [productForm, setProductForm] = useState({ 
-    name: '', sku: '', price: '', unit: 'حبة', quantity: 0 
+    name: '', sku: '', price: '', unit: 'حتة', quantity: 0 
 })    
 const [customerForm, setCustomerForm] = useState({ name: '', phone: '', price_tier: '' })
     const [teamForm, setTeamForm] = useState({ name: '', email: '', password: '', role: 'store_manager' })
@@ -48,8 +48,13 @@ const [customerForm, setCustomerForm] = useState({ name: '', phone: '', price_ti
     await api.post('/products', {
         ...productForm,
         price: parseFloat(productForm.price),
-        warehouse_id: createdWarehouseId,
-        quantity: parseInt(productForm.quantity) || 0,
+        stocks: createdWarehouseId && parseInt(productForm.quantity) > 0
+        ? [{
+            warehouse_id: parseInt(createdWarehouseId),
+            quantity: parseInt(productForm.quantity) || 0,
+            threshold: 10,
+          }]
+        : []
     })
     setStep(5)
 } else if (step === 5) {
@@ -235,14 +240,8 @@ const [customerForm, setCustomerForm] = useState({ name: '', phone: '', price_ti
                                     onChange={(e) => setProductForm({ ...productForm, unit: e.target.value })}
                                     className={inputClass}
                                 >
-                                    <option value="حبة">حبة</option>
-                                    <option value="كيس">كيس</option>
+                                    <option value="حبة">حتة</option>
                                     <option value="لفة">لفة</option>
-                                    <option value="دستة">دستة</option>
-                                    <option value="كرتونة">كرتونة</option>
-                                    <option value="pcs">pcs</option>
-                                    <option value="kg">kg</option>
-                                    <option value="box">box</option>
                                 </select>
                             </div>
                             <div className="col-span-2">

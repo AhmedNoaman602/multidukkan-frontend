@@ -66,7 +66,7 @@ export default function Register() {
                                 value={form.business_name}
                                 onChange={(e) => setForm({ ...form, business_name: e.target.value })}
                                 required
-                                placeholder="Abu Ahmed Store"
+                                placeholder="Ahmed Store"
                                 className="w-full px-4 py-2.5 bg-white/[0.04] border border-slate-700/60 text-white rounded-lg focus:outline-none focus:border-blue-500/60 focus:ring-1 focus:ring-blue-500/40 placeholder-slate-500 transition-all duration-200"
                             />
                         </div>

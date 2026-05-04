@@ -10,7 +10,7 @@ export default function EditProduct() {
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
     const [form, setForm] = useState({
-        name: '', sku: '', price: '', unit: 'حبة',
+        name: '', sku: '', price: '', unit: 'حتة',
         price_a: '', price_b: '', price_c: '', price_d: '', price_e: '',
         secondary_unit: '', conversion_factor: '',
     })
@@ -23,7 +23,7 @@ export default function EditProduct() {
                     name: p.name || '',
                     sku: p.sku || '',
                     price: p.price || '',
-                    unit: p.unit || 'حبة',
+                    unit: p.unit || 'حتة',
                     price_a: p.price_a || '',
                     price_b: p.price_b || '',
                     price_c: p.price_c || '',
@@ -124,14 +124,8 @@ export default function EditProduct() {
                             onChange={(e) => setForm({ ...form, unit: e.target.value })}
                             className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                         >
-                            <option value="حبة">حبة</option>
-                            <option value="كيس">كيس</option>
+                            <option value="حبة">حتة</option>
                             <option value="لفة">لفة</option>
-                            <option value="دستة">دستة</option>
-                            <option value="كرتونة">كرتونة</option>
-                            <option value="pcs">pcs</option>
-                            <option value="kg">kg</option>
-                            <option value="box">box</option>
                         </select>
                     </div>
 

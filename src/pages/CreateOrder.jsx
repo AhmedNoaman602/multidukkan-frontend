@@ -17,7 +17,14 @@ export default function CreateOrder() {
     const user = JSON.parse(localStorage.getItem('user') || '{}')
     const [stores, setStores] = useState([])
     const [storeId, setStoreId] = useState(user.store_id || '')
+    const [discount, setDiscount] = useState(0)
     
+    const invalidQty = items.some(item => !Number.isInteger(Number(item.quantity)))
+if (invalidQty) {
+    setError('Quantity must be a whole number.')
+    setSaving(false)
+    return
+}
 
     useEffect(() => {
         const fetchData = async () => {
@@ -45,11 +52,14 @@ export default function CreateOrder() {
 
     const addItem = () => setItems([...items, { product_id: '', quantity: 1, warehouse_id: '', unit_type: 'base' }])
     const removeItem = (index) => setItems(items.filter((_, i) => i !== index))
-    const updateItem = (index, field, value) => {
-        const updated = [...items]
-        updated[index][field] = value
-        setItems(updated)
+  const updateItem = (index, field, value) => {
+    const updated = [...items]
+    if (field === 'quantity' && value !== '') {
+        value = String(Math.floor(Number(value)) || 1)
     }
+    updated[index][field] = value
+    setItems(updated)
+}
 
     const selectedCustomer = customers.find(c => c.id === parseInt(customerId))
 
@@ -75,6 +85,26 @@ export default function CreateOrder() {
             return total + (getUnitPrice(product, item.unit_type) * item.quantity)
         }, 0)
     }
+    const getAvailableStock = (warehouseId, productId, currentIndex) => {
+    const inventoryRow = inventory.find(
+        inv => inv.warehouse_id === warehouseId && inv.product_id === productId
+    )
+    const available = inventoryRow ? inventoryRow.quantity : 0
+
+    // Subtract quantities already committed in other rows for same product+warehouse
+    const committed = items.reduce((sum, item, idx) => {
+        if (
+            idx !== currentIndex &&
+            parseInt(item.product_id) === productId &&
+            parseInt(item.warehouse_id) === warehouseId
+        ) {
+            return sum + (parseInt(item.quantity) || 0)
+        }
+        return sum
+    }, 0)
+
+    return Math.max(0, available - committed)
+}
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -84,6 +114,7 @@ export default function CreateOrder() {
             await api.post('/orders', {
                 store_id: parseInt(storeId),
                 customer_id: parseInt(customerId),
+                discount: parseFloat(discount) || 0,
                 items: items.map(item => ({
                     product_id: parseInt(item.product_id),
                     quantity: parseInt(item.quantity),
@@ -195,6 +226,7 @@ export default function CreateOrder() {
                                             <input
                                                 type="number"
                                                 min="1"
+                                                step="1"
                                                 value={item.quantity}
                                                 onChange={(e) => updateItem(index, 'quantity', e.target.value)}
                                                 required
@@ -219,7 +251,7 @@ export default function CreateOrder() {
             inv => inv.warehouse_id === w.id &&
             inv.product_id === parseInt(item.product_id)
         )
-        const qty = stock ? stock.quantity : 0
+const qty = getAvailableStock(w.id, parseInt(item.product_id), index)
         return (
             <option key={w.id} value={w.id}>
                 {w.name} — {qty} متاح
@@ -285,18 +317,37 @@ export default function CreateOrder() {
 
                 {/* Total + Submit */}
                 <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 flex items-center justify-between">
-                    <div>
-                        <p className="text-gray-400 text-sm">Order Total</p>
-                        <p className="text-3xl font-bold text-white">{getTotal()} EGP</p>
-                    </div>
-                    <button
-                        type="submit"
-                        disabled={saving}
-                        className="px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium rounded-lg transition-colors"
-                    >
-                        {saving ? 'Creating...' : 'Create Order'}
-                    </button>
-                </div>
+    <div>
+        <p className="text-gray-400 text-sm">Order Total</p>
+        <p className="text-xl text-gray-400 line-through">{getTotal()} EGP</p>
+        <p className="text-3xl font-bold text-white">
+            {Math.max(0, getTotal() - (parseFloat(discount) || 0))} EGP
+        </p>
+        {discount > 0 && (
+            <p className="text-green-400 text-xs mt-1">Discount: {discount} EGP</p>
+        )}
+    </div>
+    <div className="flex flex-col items-end gap-3">
+        <div className="flex items-center gap-2">
+            <label className="text-gray-400 text-sm">Discount (EGP)</label>
+            <input
+                type="number"
+                min="0"
+                value={discount}
+                onChange={(e) => setDiscount(e.target.value)}
+                className="w-28 px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
+                placeholder="0"
+            />
+        </div>
+        <button
+            type="submit"
+            disabled={saving}
+            className="px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium rounded-lg transition-colors"
+        >
+            {saving ? 'Creating...' : 'Create Order'}
+        </button>
+    </div>
+</div>
             </form>
         </div>
     )

@@ -99,6 +99,20 @@ export default function Settings() {
         setSaving(false)
     }
 }
+
+const handleDeleteStore = async (storeId) => {
+    if (!confirm('Are you sure you want to delete this store?')) return
+    try {
+        await api.delete(`/stores/${storeId}`)
+        setStores(stores.filter(s => s.id !== storeId))
+        setSuccess('Store deleted')
+        setTimeout(() => setSuccess(''), 3000)
+    } catch (err) {
+        setError(err.response?.data?.message || 'Failed to delete store')
+    }
+}
+
+
 const handleCreateWarehouse = async (e) => {
     e.preventDefault()
     setSaving(true)
@@ -117,6 +131,19 @@ const handleCreateWarehouse = async (e) => {
     }
 }
 
+const handleDeleteWarehouse = async (warehouseId) => {
+    if (!confirm('Are you sure you want to delete this warehouse?')) return
+    try {
+        await api.delete(`/warehouses/${warehouseId}`)
+        setWarehouses(warehouses.filter(w => w.id !== warehouseId))
+        setSuccess('Warehouse deleted')
+        setTimeout(() => setSuccess(''), 3000)
+    } catch (err) {
+        setError(err.response?.data?.message || 'Failed to delete warehouse')
+    }
+}
+
+
     if (loading) return <LoadingSpinner />
 
     // const tabs = [
@@ -124,10 +151,10 @@ const handleCreateWarehouse = async (e) => {
     //     { key: 'stores', label: 'Stores' },
     // ]
 const tabs = [
-    { key: 'users', label: 'Users & Roles' },
     ...(user.role === 'tenant_admin' ? [
         { key: 'stores', label: 'Stores' },
     ] : []),
+    { key: 'users', label: 'Users & Roles' },   
     { key: 'warehouses', label: 'Warehouses' },
 ]
 
@@ -362,7 +389,7 @@ const tabs = [
             <table className="w-full">
                 <thead className="bg-gray-800">
                     <tr>
-                        {['Name', 'Address', 'Phone'].map(h => (
+                        {['Name', 'Address', 'Phone', 'Actions'].map(h => (
                             <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                                 {h}
                             </th>
@@ -375,6 +402,16 @@ const tabs = [
                             <td className="px-4 py-3 text-white text-sm font-medium">{s.name}</td>
                             <td className="px-4 py-3 text-gray-400 text-sm">{s.address || '—'}</td>
                             <td className="px-4 py-3 text-gray-400 text-sm">{s.phone || '—'}</td>
+                            <td className="px-4 py-3 text-gray-400 text-sm">
+                                <button
+                                    onClick={() => {
+                                        handleDeleteStore(s.id)
+                                    }}
+                                    className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-medium rounded-lg transition-colors"
+                                >
+                                    Delete
+                                </button>
+                            </td>
                         </tr>
                     ))}
                 </tbody>
@@ -457,7 +494,7 @@ const tabs = [
             <table className="w-full">
                 <thead className="bg-gray-800">
                     <tr>
-                        {['Name', 'Store', 'Address'].map(h => (
+                        {['Name', 'Store', 'Address', 'Actions'].map(h => (
                             <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                                 {h}
                             </th>
@@ -472,6 +509,16 @@ const tabs = [
                                 {stores.find(s => s.id === parseInt(w.store_id))?.name || '—'}
                             </td>
                             <td className="px-4 py-3 text-gray-400 text-sm">{w.address || '—'}</td>
+                            <td className="px-4 py-3 text-gray-400 text-sm">
+                                <button
+                                    onClick={() => {
+                                        handleDeleteWarehouse(w.id)
+                                    }}
+                                    className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-medium rounded-lg transition-colors"
+                                >
+                                    Delete
+                                </button>
+                            </td>
                         </tr>
                     ))}
                 </tbody>

@@ -10,6 +10,7 @@ export default function Orders() {
     const [error, setError] = useState('')
     const [search, setSearch] = useState('')
     const [yearFilter, setYearFilter] = useState('')
+    const [expandedOrderId, setExpandedOrderId] = useState(null)
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -35,6 +36,10 @@ export default function Orders() {
 
         return matchesSearch && matchesYear
     })
+
+    const toggleOrder = (orderId) => {
+    setExpandedOrderId(expandedOrderId === orderId ? null : orderId)
+}
 
     if (loading) return <LoadingSpinner />
 
@@ -81,7 +86,7 @@ export default function Orders() {
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>
-                            {['#', 'Customer', 'Items', 'Total', 'Status', 'Date'].map(h => (
+                            {['#', 'Customer', 'Items', 'Total', 'Status', 'Date',''].map(h => (
                                 <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                                     {h}
                                 </th>
@@ -89,27 +94,72 @@ export default function Orders() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-800">
-                        {filtered.map(order => (
-                            <tr key={order.id} className="hover:bg-gray-800/50 transition-colors">
-                                <td className="px-4 py-3 text-gray-400 text-sm">#{order.id}</td>
-                                <td className="px-4 py-3 text-white text-sm font-medium">{order.customer_name}</td>
-                                <td className="px-4 py-3 text-gray-400 text-sm">{order.items_count} items</td>
-                                <td className="px-4 py-3 text-white text-sm">{order.total} EGP</td>
-                                <td className="px-4 py-3">
-                                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                                        order.status === 'paid'
-                                            ? 'bg-green-500/20 text-green-400'
-                                            : 'bg-red-500/20 text-red-400'
-                                    }`}>
-                                        {order.status}
-                                    </span>
-                                </td>
-                                <td className="px-4 py-3 text-gray-400 text-sm">
-                                    {new Date(order.created_at).toLocaleDateString()}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
+    {filtered.map(order => (
+        <>
+            <tr
+                key={order.id}
+                onClick={() => toggleOrder(order.id)}
+                className="hover:bg-gray-800/50 transition-colors cursor-pointer"
+            >
+                <td className="px-4 py-3 text-gray-400 text-sm">#{order.id}</td>
+                <td className="px-4 py-3 text-white text-sm font-medium">{order.customer_name}</td>
+                <td className="px-4 py-3 text-gray-400 text-sm">{order.items_count} items</td>
+                <td className="px-4 py-3 text-white text-sm">{order.total} EGP</td>
+                <td className="px-4 py-3">
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        order.status === 'paid'
+                            ? 'bg-green-500/20 text-green-400'
+                            : 'bg-red-500/20 text-red-400'
+                    }`}>
+                        {order.status}
+                    </span>
+                </td>
+                <td className="px-4 py-3 text-gray-400 text-sm">
+                    {new Date(order.created_at).toLocaleDateString()}
+                </td>
+                <td className="px-4 py-3 text-gray-400 text-sm">
+                    {expandedOrderId === order.id ? '▲' : '▼'}
+                </td>
+            </tr>
+
+            {expandedOrderId === order.id && (
+                <tr key={`${order.id}-details`} className="bg-gray-800/30">
+                    <td colSpan={7} className="px-6 py-4">
+                        <div className="space-y-2">
+                            <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">Order Items</p>
+                            {order.items && order.items.length > 0 ? (
+                                <table className="w-full">
+                                    <thead>
+                                        <tr>
+                                            {['Product', 'Qty', 'Unit Price', 'Total'].map(h => (
+                                                <th key={h} className="text-left text-xs text-gray-500 pb-2">{h}</th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-700">
+                                        {order.items.map((item, i) => (
+                                            <tr key={i}>
+                                                <td className="py-2 text-white text-sm">{item.product_name}</td>
+                                                <td className="py-2 text-gray-400 text-sm">{item.quantity}</td>
+                                                <td className="py-2 text-gray-400 text-sm">{item.unit_price} EGP</td>
+                                                <td className="py-2 text-white text-sm font-medium">{item.total} EGP</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            ) : (
+                                <p className="text-gray-500 text-sm">No items</p>
+                            )}
+                            {order.notes && (
+                                <p className="text-gray-500 text-xs mt-2">Note: {order.notes}</p>
+                            )}
+                        </div>
+                    </td>
+                </tr>
+            )}
+        </>
+    ))}
+</tbody>
                 </table>
 
                 {filtered.length === 0 && (

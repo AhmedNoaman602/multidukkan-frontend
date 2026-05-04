@@ -1,6 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
-import logo from '../assets/multidukkan-logo.png'
 
 export default function Navbar() {
     const navigate = useNavigate()
