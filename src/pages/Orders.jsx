@@ -28,7 +28,7 @@ export default function Orders() {
     const filtered = orders.filter(order => {
         const matchesSearch =
             order.customer_name?.toLowerCase().includes(search.toLowerCase()) ||
-            String(order.id).includes(search)
+            (order.invoice_number || '').toLowerCase().includes(search.toLowerCase());
 
         const matchesYear = yearFilter
             ? new Date(order.created_at).getFullYear() === parseInt(yearFilter)
@@ -64,7 +64,7 @@ export default function Orders() {
                     <SearchInput
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        placeholder="Search by customer or #..."
+                        placeholder="Search by customer or invoice number..."
                     />
 
                     <button
@@ -86,7 +86,7 @@ export default function Orders() {
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>
-                            {['#', 'Customer', 'Items', 'Total', 'Status', 'Date',''].map(h => (
+                            {['Invoice', 'Customer', 'Items', 'Total', 'Status', 'Date',''].map(h => (
                                 <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                                     {h}
                                 </th>
@@ -101,7 +101,9 @@ export default function Orders() {
                 onClick={() => toggleOrder(order.id)}
                 className="hover:bg-gray-800/50 transition-colors cursor-pointer"
             >
-                <td className="px-4 py-3 text-gray-400 text-sm">#{order.id}</td>
+                <td className="px-4 py-3 text-gray-400 text-sm font-mono">
+                    {order.invoice_number || `#${order.id}`}
+                </td>
                 <td className="px-4 py-3 text-white text-sm font-medium">{order.customer_name}</td>
                 <td className="px-4 py-3 text-gray-400 text-sm">{order.items_count} items</td>
                 <td className="px-4 py-3 text-white text-sm">{order.total} EGP</td>
