@@ -41,7 +41,7 @@ export default function Customers() {
 
     const filtered = customers.filter(c =>
         c.name.toLowerCase().includes(search.toLowerCase()) ||
-        c.phone.includes(search)
+        c.phone.includes(search) || c.code?.toLowerCase().includes(search.toLowerCase())
     )
 
     if (loading) return <LoadingSpinner />
@@ -54,7 +54,7 @@ export default function Customers() {
                     <SearchInput
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        placeholder="Search by name or phone..."
+                        placeholder="Search by name, customer code, or phone..."
                     />
                     {user.role !== 'store_staff' && (
                         <button
@@ -77,7 +77,7 @@ export default function Customers() {
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>
-                            {['Name', 'Phone', 'Address', 'Price Tier', 'Actions'].map(h => (
+                            {['Code', 'Name', 'Phone', 'Address', 'Price Tier', 'Actions'].map(h => (
                                 <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                                     {h}
                                 </th>
@@ -87,6 +87,9 @@ export default function Customers() {
                     <tbody className="divide-y divide-gray-800">
                         {filtered.map(customer => (
                             <tr key={customer.id} className="hover:bg-gray-800/50 transition-colors">
+                                <td className="px-4 py-3 text-white text-sm font-medium">
+                                    {customer.code}
+                                </td>
                                 <td className="px-4 py-3 text-white text-sm font-medium">
                                     {customer.name}
                                 </td>
