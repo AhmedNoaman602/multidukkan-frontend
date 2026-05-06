@@ -16,9 +16,11 @@ export default function CreateProduct() {
     { warehouse_id: '', quantity: 0, threshold: 10 , unit_type:'base' }
 ])
     const navigate = useNavigate()
+    const [units, setUnits] = useState([])
 
     useEffect(() => {
         api.get('/warehouses').then(res => setWarehouses(res.data.data))
+        api.get('/units').then(res => setUnits(res.data.data))
     }, [])
 const addStock = () => setStocks([...stocks, { warehouse_id: '', quantity: 0, threshold: 10, unit_type: 'base' }])
 const removeStock = (i) => setStocks(stocks.filter((_, idx) => idx !== i))
@@ -115,8 +117,9 @@ const usedWarehouseIds = stocks.map(s => parseInt(s.warehouse_id)).filter(Boolea
                             onChange={(e) => setForm({ ...form, unit: e.target.value })}
                             className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                         >
-                            <option value="حبة">حتة</option>
-                            <option value="لفة">لفة</option>
+                            {units.map(u => (
+                                 <option key={u.id} value={u.name}>{u.name}</option>
+                                ))}
                         </select>
                     </div>
 

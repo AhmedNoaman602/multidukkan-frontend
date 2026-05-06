@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState , useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 
@@ -24,9 +24,14 @@ export default function Onboarding() {
     const [storeForm, setStoreForm] = useState({ name: '', address: '', phone: '' })
     const [warehouseForm, setWarehouseForm] = useState({ name: '', address: '' })
     const [createdWarehouseId , setCreatedWarehouseId] = useState(null);
+    const [units, setUnits] = useState([])
+useEffect(() => {
+    api.get('/units').then(res => setUnits(res.data.data))
+}, [])
 const [productForm, setProductForm] = useState({ 
-    name: '', sku: '', price: '', unit: 'حتة', quantity: 0 
+    name: '', sku: '', price: '', unit: units[0]?.name || '', quantity: 0 
 })    
+
 const [customerForm, setCustomerForm] = useState({ name: '', phone: '', price_tier: '' })
     const [teamForm, setTeamForm] = useState({ name: '', email: '', password: '', role: 'store_manager' })
 
@@ -240,8 +245,9 @@ const [customerForm, setCustomerForm] = useState({ name: '', phone: '', price_ti
                                     onChange={(e) => setProductForm({ ...productForm, unit: e.target.value })}
                                     className={inputClass}
                                 >
-                                    <option value="حبة">حتة</option>
-                                    <option value="لفة">لفة</option>
+                                    {units.map(u => (
+                                        <option key={u.id} value={u.name}>{u.name}</option>
+                                    ))}
                                 </select>
                             </div>
                             <div className="col-span-2">
