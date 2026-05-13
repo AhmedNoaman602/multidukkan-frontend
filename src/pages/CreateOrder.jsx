@@ -19,12 +19,7 @@ export default function CreateOrder() {
     const [storeId, setStoreId] = useState(user.store_id || '')
     const [discount, setDiscount] = useState(0)
     
-    const invalidQty = items.some(item => !Number.isInteger(Number(item.quantity)))
-if (invalidQty) {
-    setError('Quantity must be a whole number.')
-    setSaving(false)
-    return
-}
+    
 
     useEffect(() => {
         const fetchData = async () => {
@@ -110,6 +105,17 @@ if (invalidQty) {
         e.preventDefault()
         setSaving(true)
         setError('')
+        const invalidQty = items.some(item => !Number.isInteger(Number(item.quantity)))
+        if (invalidQty) {
+            setError('Quantity must be a whole number.')
+            setSaving(false)
+            return
+        }
+        if (!storeId) {
+            setError('Please select a store.')
+            setSaving(false)
+            return
+        }
         try {
             await api.post('/orders', {
                 store_id: parseInt(storeId),
@@ -247,11 +253,7 @@ if (invalidQty) {
 >
     <option value="">Select warehouse</option>
     {warehouses.filter(w => !storeId || w.store_id === parseInt(storeId)).map(w => {
-        const stock = inventory.find(
-            inv => inv.warehouse_id === w.id &&
-            inv.product_id === parseInt(item.product_id)
-        )
-const qty = getAvailableStock(w.id, parseInt(item.product_id), index)
+     const qty = getAvailableStock(w.id, parseInt(item.product_id), index)
         return (
             <option key={w.id} value={w.id}>
                 {w.name} — {qty} متاح
