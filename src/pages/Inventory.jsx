@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import Modal from '../components/Modal'
+import SearchInput from '../components/SearchInput'
 
 export default function Inventory() {
     const [inventory, setInventory] = useState([])
@@ -14,7 +15,8 @@ export default function Inventory() {
     const [adjustDirection, setAdjustDirection] = useState('in')
     const [adjustLoading, setAdjustLoading] = useState(false)
     const [adjustError, setAdjustError] = useState('')
-
+    const [search, setSearch] = useState('')
+    const [selectedWarehouse, setSelectedWarehouse] = useState('')
     const user = JSON.parse(localStorage.getItem('user') || '{}')
     const canAdjust = user.role !== 'store_staff'
     const isAdmin = user.role === 'tenant_admin'
@@ -79,10 +81,16 @@ export default function Inventory() {
             : adjustingItem.quantity - qty
     }
 
-    // Filter inventory by selected store
-    const filteredInventory = selectedStore
-        ? inventory.filter(item => String(item.store_id) === String(selectedStore))
-        : inventory
+    const filteredInventory = inventory
+        .filter(item => !selectedStore || String(item.store_id) === String(selectedStore))
+        .filter(item => !search || item.product_name.toLowerCase().includes(search.toLowerCase()) || item.warehouse_name.toLowerCase().includes(search.toLowerCase()))
+        .filter(item => !selectedWarehouse || String(item.warehouse_id) === String(selectedWarehouse))
+
+        const storeFilteredInventory = inventory.filter(item => !selectedStore || String(item.store_id) === String(selectedStore))
+        
+    const warehouses = [
+        ...new Map(storeFilteredInventory.map(item => [item.warehouse_id, { id: item.warehouse_id, name: item.warehouse_name }])).values()
+    ]
 
     if (loading) return <LoadingSpinner />
 
@@ -91,9 +99,14 @@ export default function Inventory() {
             <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-white">Inventory</h2>
 
-                {/* Store filter — admin only */}
-                {isAdmin && stores.length > 0 && (
-                    <select
+                <div className="flex items-center gap-3">
+                    <SearchInput
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Search by product name..."
+                    />
+                    {isAdmin && stores.length > 0 && (
+                        <select
                         value={selectedStore}
                         onChange={(e) => setSelectedStore(e.target.value)}
                         className="px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg text-sm focus:outline-none focus:border-blue-500"
@@ -104,7 +117,24 @@ export default function Inventory() {
                         ))}
                     </select>
                 )}
+                </div>
             </div>
+
+            <div className="flex gap-2 mb-4 border-b border-gray-800 pb-3">
+    {[{ key: '', label: 'All Warehouses' }, ...warehouses.map(w => ({ key: w.id, label: w.name }))].map(tab => (
+        <button
+            key={tab.key}
+            onClick={() => setSelectedWarehouse(tab.key)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                String(selectedWarehouse) === String(tab.key)
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700'
+            }`}
+        >
+            {tab.label}
+        </button>
+    ))}
+</div>
 
             {error && (
                 <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg mb-6 text-sm">
