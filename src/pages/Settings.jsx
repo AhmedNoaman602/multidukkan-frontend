@@ -179,22 +179,7 @@ const handleDeleteUnit = async (unitId) => {
     }
 }
     
-
-
     if (loading) return <LoadingSpinner />
-
-    // const tabs = [
-    //     { key: 'users', label: 'Users & Roles' },
-    //     { key: 'stores', label: 'Stores' },
-    // ]
-const tabs = [
-    ...(user.role === 'tenant_admin' ? [
-        { key: 'stores', label: 'Stores' },
-    ] : []),
-    { key: 'users', label: 'Users & Roles' },   
-    { key: 'warehouses', label: 'Warehouses' },
-    {key:'units', label:'Units'},
-]
 
     const roleColors = {
         tenant_admin: 'bg-purple-500/20 text-purple-400',
