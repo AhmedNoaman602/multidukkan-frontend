@@ -19,6 +19,15 @@ import Onboarding from './pages/Onboarding'
 import EditProduct from './pages/EditProduct'
 import EditCustomer from './pages/EditCustomer'
 import Reports from './pages/Reports'
+import Suppliers from './pages/Suppliers'
+import CreateSupplier from './pages/CreateSupplier'
+import SupplierBalance from './pages/SupplierBalance'
+import PurchaseOrders from './pages/PurchaseOrders'
+import CreatePurchaseOrder from './pages/CreatePurchaseOrder'
+import OrderInvoice from './pages/OrderInvoice'
+import PurchaseOrderInvoice from './pages/PurchaseOrderInvoice'
+import OrderDetail from './pages/OrderDetail'
+import PurchaseOrderDetail from './pages/PurchaseOrderDetail'
 // Simple auth check — is the user logged in at all?
 // Does NOT check has_store here. That's AuthGate's job with fresh data.
 const PrivateRoute = ({ children }) => {
@@ -133,6 +142,17 @@ export default function App() {
                             <Layout><CreateOrder /></Layout>
                         </PrivateRoute>
                     } />
+                    <Route path="/orders/:id/invoice" element={
+                        <PrivateRoute>
+                            <OrderInvoice />
+                        </PrivateRoute>
+                    } />
+                    <Route path="/orders/:id" element={
+                        <PrivateRoute>
+                            <Navbar />
+                            <Layout><OrderDetail /></Layout>
+                        </PrivateRoute>
+                    } />
                     <Route path="/customers/:id/balance" element={
                         <PrivateRoute>
                             <Navbar />
@@ -151,12 +171,53 @@ export default function App() {
                             <Layout><Reports /></Layout>
                         </PrivateRoute>
                     } />
+                    <Route path="/suppliers" element={
+                        <PrivateRoute>
+                            <Navbar />
+                            <Layout><Suppliers /></Layout>
+                        </PrivateRoute>
+                    } />
+                    <Route path="/suppliers/create" element={
+                        <PrivateRoute>
+                            <Navbar />
+                            <Layout><CreateSupplier /></Layout>
+                        </PrivateRoute>
+                    } />
+                    <Route path="/suppliers/:id/balance" element={
+                        <PrivateRoute>
+                            <Navbar />
+                            <Layout><SupplierBalance /></Layout>
+                        </PrivateRoute>
+                    } />
+                    <Route path="/purchase-orders" element={
+                        <PrivateRoute>
+                            <Navbar />
+                            <Layout><PurchaseOrders /></Layout>
+                        </PrivateRoute>
+                    } />
+                    <Route path="/purchase-orders/create" element={
+                        <PrivateRoute>
+                            <Navbar />
+                            <Layout><CreatePurchaseOrder /></Layout>
+                        </PrivateRoute>
+                    } />
+                    <Route path="/purchase-orders/:id/invoice" element={
+                        <PrivateRoute>
+                            <PurchaseOrderInvoice />
+                        </PrivateRoute>
+                    } />
+                    <Route path="/purchase-orders/:id" element={
+                        <PrivateRoute>
+                            <Navbar />
+                            <Layout><PurchaseOrderDetail /></Layout>
+                        </PrivateRoute>
+                    } />
                     <Route path="/settings" element={
                         <PrivateRoute>
                             <Navbar />
                             <Layout><Settings /></Layout>
                         </PrivateRoute>
-                    } />
+                    } />    
                 </Routes>
             </AuthGate>
         </BrowserRouter>
