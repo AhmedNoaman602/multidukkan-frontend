@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import SearchInput from '../components/SearchInput'
+import Modal from '../components/Modal'
 
 export default function PurchaseOrders() {
     const [purchaseOrders, setPurchaseOrders] = useState([])
@@ -11,6 +12,12 @@ export default function PurchaseOrders() {
     const [search, setSearch] = useState('')
     const [yearFilter, setYearFilter] = useState('')
     const [expandedOrderId, setExpandedOrderId] = useState(null)
+    const [payTarget, setPayTarget] = useState(null)
+const [payForm, setPayForm] = useState({ amount: '', method: 'cash' })
+const [paying, setPaying] = useState(false)
+const [payError, setPayError] = useState('')
+const [paySuccess, setPaySuccess] = useState('')
+
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -27,7 +34,7 @@ export default function PurchaseOrders() {
 
     const filtered = purchaseOrders.filter(order => {
         const matchesSearch =
-            order.customer_name?.toLowerCase().includes(search.toLowerCase()) ||
+            order.supplier_name?.toLowerCase().includes(search.toLowerCase()) ||
             (order.invoice_number || '').toLowerCase().includes(search.toLowerCase());
 
         const matchesYear = yearFilter
@@ -39,6 +46,31 @@ export default function PurchaseOrders() {
 
     const toggleOrder = (orderId) => {
     setExpandedOrderId(expandedOrderId === orderId ? null : orderId)
+}
+
+const handlePay = async (e) => {
+    e.preventDefault()
+    setPaying(true)
+    setPayError('')
+    try {
+        await api.post('/supplier-payments', {
+            supplier_id:       payTarget.supplier_id,
+            purchase_order_id: payTarget.id,
+            amount:            parseFloat(payForm.amount),
+            method:            payForm.method,
+        })
+        setPaySuccess('Payment processed successfully!')
+        setTimeout(() => {
+            setPayTarget(null)
+            setPaySuccess('')
+            setPayForm({ amount: '', method: 'cash' })
+            api.get('/purchase-orders').then(res => setPurchaseOrders(res.data.data))
+        }, 1500)
+    } catch (err) {
+        setPayError(err.response?.data?.message || 'Failed to process payment')
+    } finally {
+        setPaying(false)
+    }
 }
 
     if (loading) return <LoadingSpinner />
@@ -86,7 +118,7 @@ export default function PurchaseOrders() {
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>
-                            {['Invoice', 'Supplier', 'Items', 'Total', 'Status', 'Date',''].map(h => (
+                            {['Invoice', 'Supplier', 'Items', 'Total', 'Status', 'Date','Actions'].map(h => (
                                 <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                                     {h}
                                 </th>
@@ -97,10 +129,10 @@ export default function PurchaseOrders() {
     {filtered.map(order => (
         <>
             <tr
-                key={order.id}
-                onClick={() => toggleOrder(order.id)}
-                className="hover:bg-gray-800/50 transition-colors cursor-pointer"
-            >
+    key={order.id}
+    onClick={() => navigate(`/purchase-orders/${order.id}`)}
+    className="hover:bg-gray-800/50 transition-colors cursor-pointer"
+>
                 <td className="px-4 py-3 text-gray-400 text-sm font-mono">
                     {order.invoice_number || `#${order.id}`}
                 </td>
@@ -119,46 +151,32 @@ export default function PurchaseOrders() {
                 <td className="px-4 py-3 text-gray-400 text-sm">
                     {new Date(order.created_at).toLocaleDateString()}
                 </td>
-                <td className="px-4 py-3 text-gray-400 text-sm">
-                    {expandedOrderId === order.id ? '▲' : '▼'}
-                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
+    <div className="flex items-center gap-2">
+        <button
+            onClick={(e) => {
+                e.stopPropagation()
+                window.open(`/purchase-orders/${order.id}/invoice`, '_blank')
+            }}
+            className="px-3 py-1 bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-medium rounded-lg hover:bg-green-500/20 transition-colors"
+        >
+            Invoice
+        </button>
+        {order.status === 'unpaid' && (
+            <button
+                onClick={(e) => {
+                    e.stopPropagation()
+                    setPayTarget(order)
+                    setPayForm({ amount: order.amount_remaining, method: 'cash' })
+                }}
+                className="px-3 py-1 bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-medium rounded-lg hover:bg-purple-500/20 transition-colors"
+            >
+                Pay
+            </button>
+        )}
+    </div>
+</td>
             </tr>
-
-            {expandedOrderId === order.id && (
-                <tr key={`${order.id}-details`} className="bg-gray-800/30">
-                    <td colSpan={7} className="px-6 py-4">
-                        <div className="space-y-2">
-                            <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">Order Items</p>
-                            {order.items && order.items.length > 0 ? (
-                                <table className="w-full">
-                                    <thead>
-                                        <tr>
-                                            {['Product', 'Qty', 'Unit Price', 'Total'].map(h => (
-                                                <th key={h} className="text-left text-xs text-gray-500 pb-2">{h}</th>
-                                            ))}
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-700">
-                                        {order.items.map((item, i) => (
-                                            <tr key={i}>
-                                                <td className="py-2 text-white text-sm">{item.product_name}</td>
-                                                <td className="py-2 text-gray-400 text-sm">{item.quantity}</td>
-                                                <td className="py-2 text-gray-400 text-sm">{item.unit_price} EGP</td>
-                                                <td className="py-2 text-white text-sm font-medium">{item.total} EGP</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            ) : (
-                                <p className="text-gray-500 text-sm">No items</p>
-                            )}
-                            {order.notes && (
-                                <p className="text-gray-500 text-xs mt-2">Note: {order.notes}</p>
-                            )}
-                        </div>
-                    </td>
-                </tr>
-            )}
         </>
     ))}
 </tbody>
@@ -170,6 +188,63 @@ export default function PurchaseOrders() {
                     </div>
                 )}
             </div>
+            <Modal
+    open={!!payTarget}
+    onClose={() => {
+        setPayTarget(null)
+        setPayError('')
+        setPaySuccess('')
+        setPayForm({ amount: '', method: 'cash' })
+    }}
+    title={`Pay — ${payTarget?.invoice_number}`}
+    error={payError}
+    success={paySuccess}
+>
+    {payTarget && (
+        <form onSubmit={handlePay} className="space-y-4">
+            <div>
+                <label className="block text-sm text-gray-400 mb-1">Amount</label>
+                <input
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    value={payForm.amount}
+                    onChange={(e) => setPayForm({ ...payForm, amount: e.target.value })}
+                    required
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-purple-500 text-sm"
+                />
+            </div>
+            <div>
+                <label className="block text-sm text-gray-400 mb-1">Method</label>
+                <select
+                    value={payForm.method}
+                    onChange={(e) => setPayForm({ ...payForm, method: e.target.value })}
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-purple-500 text-sm"
+                >
+                    <option value="cash">Cash</option>
+                    <option value="bank_transfer">Bank Transfer</option>
+                    <option value="check">Check</option>
+                </select>
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+                <button
+                    type="button"
+                    onClick={() => setPayTarget(null)}
+                    className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
+                >
+                    Cancel
+                </button>
+                <button
+                    type="submit"
+                    disabled={paying || !payForm.amount}
+                    className="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                    {paying ? 'Processing...' : 'Confirm Payment'}
+                </button>
+            </div>
+        </form>
+    )}
+</Modal>
         </div>
     )
 }
