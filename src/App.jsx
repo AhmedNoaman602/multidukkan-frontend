@@ -28,6 +28,7 @@ import OrderInvoice from './pages/OrderInvoice'
 import PurchaseOrderInvoice from './pages/PurchaseOrderInvoice'
 import OrderDetail from './pages/OrderDetail'
 import PurchaseOrderDetail from './pages/PurchaseOrderDetail'
+import ScrollToTop from './components/ScrollToTop'
 // Simple auth check — is the user logged in at all?
 // Does NOT check has_store here. That's AuthGate's job with fresh data.
 const PrivateRoute = ({ children }) => {
@@ -73,6 +74,7 @@ function AuthGate({ children }) {
 export default function App() {
     return (
         <BrowserRouter>
+        <ScrollToTop />
             <AuthGate>
                 <Routes>
                     <Route path="/login" element={<Login />} />
