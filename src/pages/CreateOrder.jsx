@@ -45,7 +45,12 @@ export default function CreateOrder() {
         fetchData()
     }, [])
 
-    const addItem = () => setItems([...items, { product_id: '', quantity: 1, warehouse_id: '', unit_type: 'base' }])
+    const addItem = () => {
+        setItems([...items, { product_id: '', quantity: 1, warehouse_id: '', unit_type: 'base' }])
+        setTimeout(() => {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
+        }, 50)
+    }
     const removeItem = (index) => setItems(items.filter((_, i) => i !== index))
   const updateItem = (index, field, value) => {
     const updated = [...items]
@@ -193,13 +198,6 @@ export default function CreateOrder() {
                 <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-white font-semibold">Order Items</h3>
-                        <button
-                            type="button"
-                            onClick={addItem}
-                            className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm rounded-lg transition-colors"
-                        >
-                            + Add Item
-                        </button>
                     </div>
 
                     <div className="space-y-4">
@@ -314,6 +312,13 @@ export default function CreateOrder() {
                                 </div>
                             )
                         })}
+                         <button
+        type="button"
+        onClick={addItem}
+        className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm rounded-lg transition-colors border border-dashed border-gray-700"
+    >
+        + Add Item
+    </button>
                     </div>
                 </div>
 
