@@ -18,6 +18,7 @@ import Settings from './pages/Settings'
 import Onboarding from './pages/Onboarding'
 import EditProduct from './pages/EditProduct'
 import EditCustomer from './pages/EditCustomer'
+import EditSupplier from './pages/EditSupplier'
 import Reports from './pages/Reports'
 import Suppliers from './pages/Suppliers'
 import CreateSupplier from './pages/CreateSupplier'
@@ -189,6 +190,12 @@ export default function App() {
                         <PrivateRoute>
                             <Navbar />
                             <Layout><SupplierBalance /></Layout>
+                        </PrivateRoute>
+                    } />
+                    <Route path="/suppliers/:id/edit" element={
+                        <PrivateRoute>
+                            <Navbar />
+                            <Layout><EditSupplier /></Layout>
                         </PrivateRoute>
                     } />
                     <Route path="/purchase-orders" element={
