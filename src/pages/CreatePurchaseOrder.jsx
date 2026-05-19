@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
+import BackButton from '../components/BackButton'
 
 export default function CreatePurchaseOrder() {
     const [warehouses, setWarehouses] = useState([])
     const [inventory, setInventory] = useState([])
     const [suppliers, setSuppliers] = useState([])
+    const [supplierProducts, setSupplierProducts] = useState([])
     const [products, setProducts] = useState([])
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
@@ -23,7 +25,7 @@ export default function CreatePurchaseOrder() {
             try {
                 const [suppliersRes, productsRes, warehousesRes, inventoryRes, storesRes] = await Promise.all([
                     api.get('/suppliers'),
-                    api.get('/products'),
+                    api.get('/products?per_page=all'),
                     api.get('/warehouses'),
                     api.get('/inventory'),
                     api.get('/stores')
@@ -42,7 +44,26 @@ export default function CreatePurchaseOrder() {
         fetchData()
     }, [])
 
-    const addItem = () => setItems([...items, { product_id: '', quantity: 1, warehouse_id: '', unit_type: 'base' }])
+    useEffect(() => {
+    if (!supplierId) {
+        setSupplierProducts([])
+        return
+    }
+
+    api.get(`/suppliers/${supplierId}/products`)
+        .then(res => setSupplierProducts(res.data.data))
+        .catch(() => setSupplierProducts([]))
+
+    // Reset items when supplier changes to avoid stale product selections
+    setItems([{ product_id: '', quantity: 1, warehouse_id: '', unit_type: 'base' }])
+}, [supplierId])
+
+    const addItem = () => {
+        setItems([...items, { product_id: '', quantity: 1, warehouse_id: '', unit_type: 'base' }])
+        setTimeout(() => {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
+        }, 50)
+    }
     const removeItem = (index) => setItems(items.filter((_, i) => i !== index))
   const updateItem = (index, field, value) => {
     const updated = [...items]
@@ -132,15 +153,14 @@ export default function CreatePurchaseOrder() {
 
     if (loading) return <LoadingSpinner />
 
+    const filteredProducts = supplierId && supplierProducts.length > 0
+    ? supplierProducts
+    : products
+
     return (
         <div className="">
             <div className="flex items-center gap-4 mb-6">
-                <button
-                    onClick={() => navigate(-1)}
-                    className="text-gray-400 hover:text-white transition-colors text-sm"
-                >
-                    ← Back
-                </button>
+                <BackButton label="Back to Purchase Orders" to="/purchase-orders"/>
                 <h2 className="text-2xl font-bold text-white">Create New Purchase Order</h2>
             </div>
 
@@ -156,6 +176,7 @@ export default function CreatePurchaseOrder() {
         <label className="block text-sm text-gray-400 mb-2">Store</label>
         <select
             value={storeId}
+            required
             onChange={(e) => setStoreId(e.target.value)}
             className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
         >
@@ -186,13 +207,6 @@ export default function CreatePurchaseOrder() {
                 <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-white font-semibold">Order Items</h3>
-                        <button
-                            type="button"
-                            onClick={addItem}
-                            className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm rounded-lg transition-colors"
-                        >
-                            + Add Item
-                        </button>
                     </div>
 
                     <div className="space-y-4">
@@ -211,7 +225,7 @@ export default function CreatePurchaseOrder() {
                                                 className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                                             >
                                                 <option value="">Select product</option>
-                                                {products.map(p => (
+                                                {filteredProducts.map(p => (
                                                     <option key={p.id} value={p.id}>
                                                         {p.name} — {getDisplayPrice(p)} EGP
                                                     </option>
@@ -244,16 +258,12 @@ export default function CreatePurchaseOrder() {
     required
     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
 >
-    <option value="">Select warehouse</option>
-    {warehouses.filter(w => !storeId || w.store_id === parseInt(storeId)).map(w => {
-        
-const qty = getAvailableStock(w.id, parseInt(item.product_id), index)
-        return (
-            <option key={w.id} value={w.id}>
-                {w.name} — {qty} متاح
-            </option>
-        )
-    })}
+      <option value="">Select warehouse</option>
+    {warehouses.filter(w => !storeId || w.store_id === parseInt(storeId)).map(w => (
+    <option key={w.id} value={w.id}>
+          {w.name}
+       </option>
+))}
 </select>
                                         </div>
 
@@ -308,6 +318,13 @@ const qty = getAvailableStock(w.id, parseInt(item.product_id), index)
                                 </div>
                             )
                         })}
+                        <button
+                            type="button"
+                            onClick={addItem}
+                            className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm rounded-lg transition-colors border border-dashed border-gray-700"
+                        >
+                            + Add Item
+                        </button>
                     </div>
                 </div>
 
