@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
+import BackButton from '../components/BackButton'
 
 export default function EditCustomer() {
     const { id } = useParams()
@@ -50,13 +51,7 @@ export default function EditCustomer() {
     return (
         <div className="">
             <div className="flex items-center gap-4 mb-6">
-                <button
-                    type="button"
-                    onClick={() => navigate(-1)}
-                    className="text-gray-400 hover:text-white transition-colors text-sm"
-                >
-                    ← Back
-                </button>
+                <BackButton label="Back to Customers" to="/customers"/>
                 <h2 className="text-2xl font-bold text-white">Edit Customer</h2>
             </div>
 

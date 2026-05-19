@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
+import BackButton from '../components/BackButton'
 
 export default function CreateCustomer() {
     const [saving, setSaving] = useState(false)
@@ -30,9 +31,7 @@ export default function CreateCustomer() {
     return (
         <div className="">
             <div className="flex items-center gap-4 mb-6">
-                <button type="button" onClick={() => navigate(-1)} className="text-gray-400 hover:text-white transition-colors text-sm">
-                    ← Back
-                </button>
+                <BackButton label="Back to Customers" to="/customers"/>
                 <h2 className="text-2xl font-bold text-white">Add New Customer</h2>
             </div>
 

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
+import BackButton from '../components/BackButton'
 
 export default function CreateSupplier() {
     const [saving, setSaving] = useState(false)
@@ -30,9 +31,7 @@ export default function CreateSupplier() {
     return (
         <div className="">
             <div className="flex items-center gap-4 mb-6">
-                <button type="button" onClick={() => navigate(-1)} className="text-gray-400 hover:text-white transition-colors text-sm">
-                    ← Back
-                </button>
+                <BackButton label="Back to Suppliers" to="/suppliers"/>
                 <h2 className="text-2xl font-bold text-white">Add New Supplier</h2>
             </div>
 
@@ -81,6 +80,15 @@ export default function CreateSupplier() {
                             className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                         />
                     </div>
+                    <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-1">Notes</label>
+                        <input
+                            value={form.notes}
+                            onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
+                        />
+                    </div>
+
                     <div>
                         <label className="block text-sm text-gray-400 mb-1">Area</label>
                         <input

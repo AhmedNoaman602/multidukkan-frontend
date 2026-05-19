@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 
 export default function Navbar() {
@@ -31,25 +31,48 @@ export default function Navbar() {
                             { to: '/suppliers', label: 'Suppliers' },
                             { to: '/purchase-orders', label: 'Purchase Orders' },
                         ].map(link => (
-                            <Link
+                            <NavLink
                                 key={link.to}
                                 to={link.to}
-                                className="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
-                            >
+                                className={({ isActive }) =>
+                                    `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                                        isActive
+                                            ? 'bg-blue-600 text-white'
+                                            : 'text-gray-300 hover:text-white hover:bg-gray-700'
+                                    }`
+                                }                            >
                                 {link.label}
-                            </Link>
+                            </NavLink>
                             
                         ))}
                         {/* Reports — admin and manager only */}
                         {(user.role === 'tenant_admin') && (
-                            <Link to="/reports" className="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-colors">
+                            <NavLink
+                                to="/reports"
+                                className={({ isActive }) =>
+                                `px-3 py-2 rounded-md text-sm font-medium ${
+                                    isActive
+                                        ? 'bg-blue-600 text-white'
+                                        : 'text-gray-300 hover:text-white hover:bg-gray-700'
+                                }`
+                                }
+                            >
                                 Reports
-                            </Link>
+                            </NavLink>
                         )}
                         {(user.role === 'tenant_admin' || user.role === 'store_manager') && (
-                            <Link to="/settings" className="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-colors">
+                            <NavLink
+                                to="/settings"
+                                className={({ isActive }) =>
+                                    `px-3 py-2 rounded-md text-sm font-medium ${
+                                        isActive
+                                            ? 'bg-blue-600 text-white'
+                                            : 'text-gray-300 hover:text-white hover:bg-gray-700'
+                                    }`
+                                }
+                            >
                                 Settings
-                            </Link>
+                            </NavLink>
                         )}
                     </div>
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
+import BackButton from '../components/BackButton'
 
 export default function PurchaseOrderDetail() {
     const { id } = useParams()
@@ -40,12 +41,7 @@ export default function PurchaseOrderDetail() {
         <div className="max-w-4xl">
             {/* Back + actions */}
             <div className="flex items-center justify-between mb-6">
-                <button
-                    onClick={() => navigate('/purchase-orders')}
-                    className="text-gray-400 hover:text-white transition-colors text-sm"
-                >
-                    ← Back to Purchase Orders
-                </button>
+                <BackButton label="Back"/>
                 <div className="flex gap-2">
                     <button
                         onClick={() => window.open(`/purchase-orders/${id}/invoice`, '_blank')}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
+import BackButton from '../components/BackButton'
 
 export default function CreateProduct() {
     const [warehouses, setWarehouses] = useState([])
@@ -61,12 +62,7 @@ const usedWarehouseIds = stocks.map(s => parseInt(s.warehouse_id)).filter(Boolea
     return (
         <div className="">
             <div className="flex items-center gap-4 mb-6">
-                <button
-                    onClick={() => navigate(-1)}
-                    className="text-gray-400 hover:text-white transition-colors text-sm"
-                >
-                    ← Back
-                </button>
+                <BackButton label="Back to Products" to="/products"/>
                 <h2 className="text-2xl font-bold text-white">Add New Product</h2>
             </div>
 
