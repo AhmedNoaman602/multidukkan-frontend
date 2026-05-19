@@ -13,28 +13,34 @@ export default function Products() {
     const [search, setSearch] = useState('')
     const [deleteTarget , setDeleteTarget] = useState(null)
     const [deleting, setDeleting] = useState(false)
+    const [page , setPage] = useState(1)
+    const [lastPage , setLastPage] = useState(1)
     const user = JSON.parse(localStorage.getItem('user') || '{}')
 
     const fetchData = async () => {
         try {
-            const res = await api.get('/products')
+            const res = await api.get('/products' ,{params: {page , search}})
             setProducts(res.data.data)
+            setLastPage(res.data.meta.last_page)
         } catch (err) {
             setError('Failed to load products')
         } finally {
             setLoading(false)
         }
     }
-
-    useEffect(() => { fetchData() }, [])
+    const handleSearch = (value) => {
+        setSearch(value)
+        setPage(1)
+    }
+    useEffect(() => { fetchData() }, [page , search])
 
     const handleDelete = async () => {
     if (!deleteTarget) return
     setDeleting(true)
     try {
         await api.delete(`/products/${deleteTarget.id}`)
-        setProducts(products.filter(p => p.id !== deleteTarget.id))
         setDeleteTarget(null)
+        fetchData()
     } catch (err) {
         setError(err.response?.data?.message || 'Failed to delete product')
         setDeleteTarget(null)
@@ -42,11 +48,6 @@ export default function Products() {
         setDeleting(false)
     }
 }
-
-    const filtered = products.filter(p =>
-        p.name.toLowerCase().includes(search.toLowerCase()) ||
-        p.sku.toLowerCase().includes(search.toLowerCase())
-    )
 
     if (loading) return <LoadingSpinner />
 
@@ -58,7 +59,7 @@ export default function Products() {
                 <div className="flex items-center gap-3">
                     <SearchInput
                         value={search}
-                        onChange={(e) => setSearch(e.target.value)}
+                        onChange={(e) => handleSearch(e.target.value)}
                         placeholder="Search by name or SKU..."
                     />
                     {user.role === 'tenant_admin' && (
@@ -90,7 +91,7 @@ export default function Products() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-800">
-                        {filtered.map(product => (
+                        {products.map(product => (
                             <tr key={product.id} className="hover:bg-gray-800/50 transition-colors">
                                 <td className="px-4 py-3 text-white text-sm">{product.name}</td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">{product.sku}</td>
@@ -126,12 +127,31 @@ export default function Products() {
                     </tbody>
                 </table>
 
-                {filtered.length === 0 && (
+                {products.length === 0 && (
                     <div className="text-center py-16 text-gray-500">
                         {search ? `No products matching "${search}"` : 'No products yet. Add your first product.'}
                     </div>
                 )}
             </div>
+            {lastPage > 1 && (
+    <div className="flex justify-between items-center mt-4">
+        <button
+            onClick={() => setPage(p => p - 1)}
+            disabled={page === 1}
+            className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
+        >
+            ← Previous
+        </button>
+        <span className="text-gray-400 text-sm">Page {page} of {lastPage}</span>
+        <button
+            onClick={() => setPage(p => p + 1)}
+            disabled={page === lastPage}
+            className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
+        >
+            Next →
+        </button>
+    </div>
+)}
             <Modal
                             open={!!deleteTarget}
                             onClose={() => setDeleteTarget(null)}
