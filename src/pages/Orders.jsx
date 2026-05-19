@@ -4,6 +4,7 @@ import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import SearchInput from '../components/SearchInput'
 import Modal from '../components/Modal'
+import StatBoxes from '../components/StatBoxes'
 
 export default function Orders() {
     const [orders, setOrders] = useState([])
@@ -11,42 +12,32 @@ export default function Orders() {
     const [error, setError] = useState('')
     const [search, setSearch] = useState('')
     const [yearFilter, setYearFilter] = useState('')
-    const [expandedOrderId, setExpandedOrderId] = useState(null)
     const [payTarget, setPayTarget] = useState(null)
     const [payForm, setPayForm] = useState({ amount: '', method: 'cash' })
     const [paying, setPaying] = useState(false)
     const [payError, setPayError] = useState('')
     const [paySuccess, setPaySuccess] = useState('')
-
+    const [page, setPage] = useState(1)
+    const [lastPage, setLastPage] = useState(1)
+    const [years, setYears] = useState([])
+    const[stats, setStats] = useState([])
     const navigate = useNavigate()
 
-    useEffect(() => {
-        api.get('/orders')
-            .then(res => setOrders(res.data.data))
-            .catch(() => setError('Failed to load orders'))
-            .finally(() => setLoading(false))
-    }, [])
-
-    // Build year options from actual orders
-    const years = [...new Set(orders.map(o =>
-        new Date(o.created_at).getFullYear()
-    ))].sort((a, b) => b - a)
-
-    const filtered = orders.filter(order => {
-        const matchesSearch =
-            order.customer_name?.toLowerCase().includes(search.toLowerCase()) ||
-            (order.invoice_number || '').toLowerCase().includes(search.toLowerCase());
-
-        const matchesYear = yearFilter
-            ? new Date(order.created_at).getFullYear() === parseInt(yearFilter)
-            : true
-
-        return matchesSearch && matchesYear
-    })
-
-    const toggleOrder = (orderId) => {
-    setExpandedOrderId(expandedOrderId === orderId ? null : orderId)
+    const fetchOrders = () => {
+    api.get('/orders', { params: { page, search, year: yearFilter } })
+        .then(res => {
+            setOrders(res.data.data)
+            setLastPage(res.data.meta.last_page)
+            setYears(res.data.years)
+            setStats(res.data.stats)
+        })
+        .catch(() => setError('Failed to load orders'))
+        .finally(() => setLoading(false))
 }
+
+    useEffect(() => {
+        fetchOrders()
+    }, [page , search , yearFilter])
 
 const handlePay = async (e) => {
     e.preventDefault()
@@ -64,7 +55,7 @@ const handlePay = async (e) => {
             setPayTarget(null)
             setPaySuccess('')
             setPayForm({ amount: '', method: 'cash' })
-            api.get('/orders').then(res => setOrders(res.data.data))
+            fetchOrders()
         }, 1500)
     } catch (err) {
         setPayError(err.response?.data?.message || 'Failed to process payment')
@@ -73,6 +64,10 @@ const handlePay = async (e) => {
     }
 }
 
+const handleSearch = (value) => {
+    setSearch(value)
+    setPage(1)
+}
     if (loading) return <LoadingSpinner />
 
     return (
@@ -95,7 +90,7 @@ const handlePay = async (e) => {
                     {/* Search */}
                     <SearchInput
                         value={search}
-                        onChange={(e) => setSearch(e.target.value)}
+                        onChange={(e) => handleSearch(e.target.value)}
                         placeholder="Search by customer or invoice number..."
                     />
 
@@ -114,6 +109,17 @@ const handlePay = async (e) => {
                 </div>
             )}
 
+            {
+                stats && (
+                    <StatBoxes stats={[
+                        { label: 'Total Orders',   value: stats.total_orders,              color: 'white'  },
+                        { label: 'Total Revenue',  value: `${stats.total_revenue} EGP`,    color: 'white'  },
+                        { label: 'Paid',           value: `${stats.paid_amount} EGP`,      color: 'green'  },
+                        { label: 'Unpaid',         value: `${stats.unpaid_amount} EGP`,    color: 'red'    },
+                    ]} />
+                )
+            }
+
             <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
                 <table className="w-full">
                     <thead className="bg-gray-800">
@@ -126,8 +132,8 @@ const handlePay = async (e) => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-800">
-    {filtered.map(order => (
-        <>
+    {orders.map(order => (
+        
             <tr
                 key={order.id}
                 onClick={() => navigate(`/orders/${order.id}`)}
@@ -178,17 +184,38 @@ const handlePay = async (e) => {
 </td>
                 
             </tr>
-        </>
     ))}
 </tbody>
                 </table>
 
-                {filtered.length === 0 && (
+                {orders.length === 0 && (
                     <div className="text-center py-16 text-gray-500">
                         {search || yearFilter ? 'No orders match your filters.' : 'No orders yet.'}
                     </div>
                 )}
             </div>
+
+
+{lastPage > 1 && (
+    <div className="flex justify-between items-center mt-4">
+        <button
+            onClick={() => setPage(p => p - 1)}
+            disabled={page === 1}
+            className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
+        >
+            ← Previous
+        </button>
+        <span className="text-gray-400 text-sm">Page {page} of {lastPage}</span>
+        <button
+            onClick={() => setPage(p => p + 1)}
+            disabled={page === lastPage}
+            className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
+        >
+            Next →
+        </button>
+    </div>
+)}
+
             <Modal
     open={!!payTarget}
     onClose={() => {
