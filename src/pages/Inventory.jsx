@@ -4,10 +4,13 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import Modal from '../components/Modal'
 import SearchInput from '../components/SearchInput'
 
+
 export default function Inventory() {
     const [inventory, setInventory] = useState([])
     const [stores, setStores] = useState([])
     const [selectedStore, setSelectedStore] = useState('')
+    const [page, setPage] = useState(1)
+    const [lastPage, setLastPage] = useState(1)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [adjustingItem, setAdjustingItem] = useState(null)
@@ -17,18 +20,24 @@ export default function Inventory() {
     const [adjustError, setAdjustError] = useState('')
     const [search, setSearch] = useState('')
     const [selectedWarehouse, setSelectedWarehouse] = useState('')
+    const [warehousesList, setWarehousesList] = useState([])
     const user = JSON.parse(localStorage.getItem('user') || '{}')
     const canAdjust = user.role !== 'store_staff'
     const isAdmin = user.role === 'tenant_admin'
 
     const fetchInventory = async () => {
         try {
-            const [inventoryRes, storesRes] = await Promise.all([
-                api.get('/inventory'),
-                api.get('/stores'),
+            const [inventoryRes, storesRes, warehousesRes] = await Promise.all([
+                api.get('/inventory', { 
+                    params: { page, search, warehouse_id: selectedWarehouse } 
+                }),               
+                 api.get('/stores'),
+                 api.get('/warehouses'),
             ])
             setInventory(inventoryRes.data.data)
+            setLastPage(inventoryRes.data.meta.last_page)
             setStores(storesRes.data.data)
+            setWarehousesList(warehousesRes.data.data)
         } catch (err) {
             setError('Failed to load inventory')
         } finally {
@@ -36,7 +45,7 @@ export default function Inventory() {
         }
     }
 
-    useEffect(() => { fetchInventory() }, [])
+    useEffect(() => { fetchInventory() }, [page,search,selectedWarehouse])
 
     const openAdjustModal = (item, direction) => {
         setAdjustingItem(item)
@@ -81,16 +90,12 @@ export default function Inventory() {
             : adjustingItem.quantity - qty
     }
 
-    const filteredInventory = inventory
-        .filter(item => !selectedStore || String(item.store_id) === String(selectedStore))
-        .filter(item => !search || item.product_name.toLowerCase().includes(search.toLowerCase()) || item.warehouse_name.toLowerCase().includes(search.toLowerCase()))
-        .filter(item => !selectedWarehouse || String(item.warehouse_id) === String(selectedWarehouse))
+    const filteredInventory = inventory.filter(item => !selectedStore || String(item.store_id) === String(selectedStore))
 
-        const storeFilteredInventory = inventory.filter(item => !selectedStore || String(item.store_id) === String(selectedStore))
-        
-    const warehouses = [
-        ...new Map(storeFilteredInventory.map(item => [item.warehouse_id, { id: item.warehouse_id, name: item.warehouse_name }])).values()
-    ]
+ const handleSearch = (value) => {
+    setSearch(value)
+    setPage(1)
+}
 
     if (loading) return <LoadingSpinner />
 
@@ -102,7 +107,7 @@ export default function Inventory() {
                 <div className="flex items-center gap-3">
                     <SearchInput
                         value={search}
-                        onChange={(e) => setSearch(e.target.value)}
+                        onChange={(e) => handleSearch(e.target.value)}
                         placeholder="Search by product name..."
                     />
                     {isAdmin && stores.length > 0 && (
@@ -121,10 +126,10 @@ export default function Inventory() {
             </div>
 
             <div className="flex gap-2 mb-4 border-b border-gray-800 pb-3">
-    {[{ key: '', label: 'All Warehouses' }, ...warehouses.map(w => ({ key: w.id, label: w.name }))].map(tab => (
+    {[{ key: '', label: 'All Warehouses' }, ...warehousesList.map(w => ({ key: w.id, label: w.name }))].map(tab => (
         <button
             key={tab.key}
-            onClick={() => setSelectedWarehouse(tab.key)}
+            onClick={() => { setSelectedWarehouse(tab.key) ; setPage(1) }}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 String(selectedWarehouse) === String(tab.key)
                     ? 'bg-blue-600 text-white'
@@ -227,6 +232,26 @@ export default function Inventory() {
                     </div>
                 )}
             </div>
+
+            {lastPage > 1 && (
+    <div className="flex justify-between items-center mt-4">
+        <button
+            onClick={() => setPage(p => p - 1)}
+            disabled={page === 1}
+            className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
+        >
+            ← Previous
+        </button>
+        <span className="text-gray-400 text-sm">Page {page} of {lastPage}</span>
+        <button
+            onClick={() => setPage(p => p + 1)}
+            disabled={page === lastPage}
+            className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
+        >
+            Next →
+        </button>
+    </div>
+)}
 
             <Modal
                 open={!!adjustingItem}
