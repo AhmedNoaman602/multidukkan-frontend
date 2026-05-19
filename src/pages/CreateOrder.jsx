@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
+import BackButton from '../components/BackButton'
 
 export default function CreateOrder() {
     const [warehouses, setWarehouses] = useState([])
@@ -26,9 +27,9 @@ export default function CreateOrder() {
             try {
                 const [customersRes, productsRes, warehousesRes, inventoryRes, storesRes] = await Promise.all([
                     api.get('/customers'),
-                    api.get('/products'),
+                    api.get('/products?per_page=all'),
                     api.get('/warehouses'),
-                    api.get('/inventory'),
+                    api.get('/inventory?per_page=all'),
                     api.get('/stores')
                 ])
                 setCustomers(customersRes.data.data)
@@ -146,12 +147,7 @@ export default function CreateOrder() {
     return (
         <div className="">
             <div className="flex items-center gap-4 mb-6">
-                <button
-                    onClick={() => navigate(-1)}
-                    className="text-gray-400 hover:text-white transition-colors text-sm"
-                >
-                    ← Back
-                </button>
+                <BackButton label="Back to Orders" to="/orders"/>
                 <h2 className="text-2xl font-bold text-white">Create New Order</h2>
             </div>
 
