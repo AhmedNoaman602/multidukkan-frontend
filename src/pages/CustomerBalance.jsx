@@ -14,8 +14,14 @@ export default function CustomerBalance() {
     const [orders, setOrders] = useState([])
     const [saving, setSaving] = useState(false)
     const [success, setSuccess] = useState('')
+
+    // Payment modal
     const [paymentModal, setPaymentModal] = useState(false)
-    const [autoForm, setAutoForm] = useState({ amount: '', method: 'cash' })
+    const [autoForm, setAutoForm] = useState({ amount: '', method: 'cash', order_id: '' })
+
+    // Refund modal
+    const [refundModal, setRefundModal] = useState(false)
+    const [refundForm, setRefundForm] = useState({ amount: '', method: 'cash', order_id: '' })
 
     const fetchData = async () => {
         try {
@@ -39,22 +45,58 @@ export default function CustomerBalance() {
     useEffect(() => { fetchData() }, [id])
 
     const handleAutoPayment = async (e) => {
+    e.preventDefault()
+    setSaving(true)
+    setError('')
+    try {
+        if (autoForm.order_id) {
+            // Specific order selected — direct payment
+            await api.post('/payments', {
+                order_id:    parseInt(autoForm.order_id),
+                customer_id: parseInt(id),
+                amount:      parseFloat(autoForm.amount),
+                method:      autoForm.method,
+            })
+        } else {
+            // No order selected — FIFO auto
+            await api.post('/payments/auto', {
+                customer_id: parseInt(id),
+                amount:      parseFloat(autoForm.amount),
+                method:      autoForm.method,
+            })
+        }
+        setSuccess('Payment received successfully!')
+        setPaymentModal(false)
+        setAutoForm({ amount: '', method: 'cash', order_id: '' })
+        setTimeout(() => setSuccess(''), 4000)
+        fetchData()
+    } catch (err) {
+        setError(err.response?.data?.message || 'Failed to process payment')
+    } finally {
+        setSaving(false)
+    }
+}
+
+    const handleRefund = async (e) => {
         e.preventDefault()
         setSaving(true)
         setError('')
         try {
-            const res = await api.post('/payments/auto', {
-                customer_id: parseInt(id),
-                amount: parseFloat(autoForm.amount),
-                method: autoForm.method,
+            await api.post(`/customers/${id}/refund`, {
+                amount: parseFloat(refundForm.amount),
+                method: refundForm.method,
+                ...(refundForm.order_id && { order_id: parseInt(refundForm.order_id) }),
             })
-            setSuccess(res.data.message)
-            setPaymentModal(false)
-            setAutoForm({ amount: '', method: 'cash' })
+            setSuccess('Refund issued successfully!')
+            setRefundModal(false)
+            setRefundForm({ amount: '', method: 'cash', order_id: '' })
             setTimeout(() => setSuccess(''), 4000)
             fetchData()
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to process payment')
+            setError(err.response?.data?.errors?.amount?.[0]
+                || err.response?.data?.errors?.payment_id?.[0]
+                || err.response?.data?.message
+                || 'Failed to issue refund')
         } finally {
             setSaving(false)
         }
@@ -67,6 +109,7 @@ export default function CustomerBalance() {
     const isOwed = balance.balance > 0
     const isCredit = balance.balance < 0
     const unpaidOrders = orders.filter(o => o.status === 'unpaid')
+    const paidOrders = orders.filter(o => (o.total - o.amount_remaining) > 0)
 
     const typeStyles = {
         ORDER_CHARGE:    'bg-red-500/20 text-red-400',
@@ -75,6 +118,7 @@ export default function CustomerBalance() {
         CREDIT_APPLY:    'bg-blue-500/20 text-blue-400',
         CREDIT:          'bg-teal-500/20 text-teal-400',
         CREDIT_CONSUMED: 'bg-purple-500/20 text-purple-400',
+        REFUND:          'bg-orange-500/20 text-orange-400',
     }
 
     return (
@@ -98,12 +142,20 @@ export default function CustomerBalance() {
                              'Fully settled'}
                         </p>
                     </div>
-                    <button
-                        onClick={() => setPaymentModal(true)}
-                        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors"
-                    >
-                        💰 Receive Payment
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setRefundModal(true)}
+                            className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-lg transition-colors"
+                        >
+                            ↩ Issue Refund
+                        </button>
+                        <button
+                            onClick={() => setPaymentModal(true)}
+                            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors"
+                        >
+                            💰 Receive Payment
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -140,9 +192,7 @@ export default function CustomerBalance() {
                                     onClick={() => navigate(`/orders/${order.id}`)}
                                     className="hover:bg-gray-800/50 transition-colors cursor-pointer"
                                 >
-                                    <td className="px-4 py-3 text-gray-400 text-sm font-mono">
-                                        {order.invoice_number}
-                                    </td>
+                                    <td className="px-4 py-3 text-gray-400 text-sm font-mono">{order.invoice_number}</td>
                                     <td className="px-4 py-3 text-white text-sm">{order.total} EGP</td>
                                     <td className="px-4 py-3 text-green-400 text-sm">{paid} EGP</td>
                                     <td className="px-4 py-3 text-red-400 text-sm">{order.amount_remaining} EGP</td>
@@ -224,6 +274,27 @@ export default function CustomerBalance() {
                     )}
 
                     <form onSubmit={handleAutoPayment} className="space-y-4">
+                        {unpaidOrders.length > 0 && (
+                            <div>
+                                <label className="block text-sm text-gray-400 mb-1">
+                                    Pay Specific Order
+                                    <span className="text-gray-600 ml-1">(optional — leave blank for auto)</span>
+                                </label>
+                                <select
+                                    value={autoForm.order_id}
+                                    onChange={(e) => setAutoForm({ ...autoForm, order_id: e.target.value })}
+                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-purple-500 text-sm"
+                                >
+                                    <option value="">Pay oldest first (auto)</option>
+                                    {unpaidOrders.map(o => (
+                                        <option key={o.id} value={o.id}>
+                                            {o.invoice_number} — {o.amount_remaining ?? o.total} EGP
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm text-gray-400 mb-1">Amount</label>
@@ -266,6 +337,110 @@ export default function CustomerBalance() {
                                 className="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
                             >
                                 {saving ? 'Processing...' : 'Receive Payment'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </Modal>
+
+            {/* Refund Modal */}
+            <Modal open={refundModal} onClose={() => setRefundModal(false)} title="↩ Issue Refund">
+                <div className="space-y-4">
+                    {paidOrders.length === 0 ? (
+                        <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                            <p className="text-yellow-400 text-sm">
+                                No payments found. Refund will apply against available credit.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="space-y-1">
+                            {paidOrders.map((o, i) => {
+                                const paid = o.total - o.amount_remaining
+                                return (
+                                    <div key={o.id} className="flex justify-between text-xs text-gray-400 bg-gray-800 px-3 py-2 rounded-lg">
+                                        <span>#{i + 1} — {o.invoice_number}</span>
+                                        <span className="text-green-400">{paid} EGP paid</span>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    )}
+
+                    <form onSubmit={handleRefund} className="space-y-4">
+                        {paidOrders.length > 0 && (
+                            <div>
+                                <label className="block text-sm text-gray-400 mb-1">
+                                    Refund Specific Order
+                                    <span className="text-gray-600 ml-1">(optional — leave blank for general refund)</span>
+                                </label>
+                                <select
+                                    value={refundForm.order_id}
+                                    onChange={(e) => {
+                                        const order = paidOrders.find(o => o.id === parseInt(e.target.value))
+                                        const paid = order ? order.total - order.amount_remaining : ''
+                                        setRefundForm({
+                                            ...refundForm,
+                                            order_id: e.target.value,
+                                            amount: e.target.value ? String(paid) : '',
+                                        })
+                                    }}
+                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-orange-500 text-sm"
+                                >
+                                    <option value="">Select an order (optional)</option>
+                                    {paidOrders.map(o => {
+                                        const paid = o.total - o.amount_remaining
+                                        return (
+                                            <option key={o.id} value={o.id}>
+                                                {o.invoice_number} — {paid} EGP paid
+                                            </option>
+                                        )
+                                    })}
+                                </select>
+                            </div>
+                        )}
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm text-gray-400 mb-1">Amount</label>
+                                <input
+                                    type="number"
+                                    value={refundForm.amount}
+                                    onChange={(e) => setRefundForm({ ...refundForm, amount: e.target.value })}
+                                    required
+                                    min="0.01"
+                                    step="0.01"
+                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-orange-500 text-sm"
+                                    placeholder="e.g. 150"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm text-gray-400 mb-1">Method</label>
+                                <select
+                                    value={refundForm.method}
+                                    onChange={(e) => setRefundForm({ ...refundForm, method: e.target.value })}
+                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-orange-500 text-sm"
+                                >
+                                    <option value="cash">Cash</option>
+                                    <option value="bank_transfer">Bank Transfer</option>
+                                    <option value="check">Check</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end gap-2 pt-2">
+                            <button
+                                type="button"
+                                onClick={() => setRefundModal(false)}
+                                className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={saving || !refundForm.amount}
+                                className="px-6 py-2 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+                            >
+                                {saving ? 'Processing...' : 'Issue Refund'}
                             </button>
                         </div>
                     </form>
