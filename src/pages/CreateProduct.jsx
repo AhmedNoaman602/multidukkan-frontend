@@ -8,8 +8,10 @@ export default function CreateProduct() {
     const [stockUnit, setStockUnit] = useState('base')
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
+    const [generatingDesc, setGeneratingDesc] = useState(false)
+const [description, setDescription] = useState('')
     const [form, setForm] = useState({
-        name: '', sku: '', price: '', unit: 'حتة',
+        name: '', sku: '', price: '', unit: 'حتة',   description: '',
         price_a: '', price_b: '', price_c: '', price_d: '', price_e: '',
         secondary_unit: '', conversion_factor: '',
     })
@@ -59,6 +61,28 @@ const usedWarehouseIds = stocks.map(s => parseInt(s.warehouse_id)).filter(Boolea
     }
 }
 
+const handleGenerateDescription = async () => {
+    if (!form.name || !form.price || !form.unit) {
+        setError('Please fill in name, price and unit first.')
+        return
+    }
+    setGeneratingDesc(true)
+    setError('')
+    try {
+        const res = await api.post('/ai/describe-product', {
+            name:  form.name,
+            unit:  form.unit,
+            price: parseFloat(form.price),
+        })
+        setDescription(res.data.description)
+        setForm({ ...form, description: res.data.description })
+    } catch {
+        setError('Failed to generate description')
+    } finally {
+        setGeneratingDesc(false)
+    }
+}
+
     return (
         <div className="">
             <div className="flex items-center gap-4 mb-6">
@@ -94,6 +118,27 @@ const usedWarehouseIds = stocks.map(s => parseInt(s.warehouse_id)).filter(Boolea
                             className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                         />
                     </div>
+
+                    <div className="col-span-2">
+    <div className="flex items-center justify-between mb-1">
+        <label className="block text-sm text-gray-400">Description</label>
+        <button
+            type="button"
+            onClick={handleGenerateDescription}
+            disabled={generatingDesc || !form.name || !form.price}
+            className="px-3 py-1 bg-purple-600/20 border border-purple-500/30 text-purple-400 hover:bg-purple-600/30 disabled:opacity-40 text-xs font-medium rounded-lg transition-colors"
+        >
+            {generatingDesc ? 'Generating...' : '✨ Generate with AI'}
+        </button>
+    </div>
+    <textarea
+        value={form.description || ''}
+        onChange={(e) => setForm({ ...form, description: e.target.value })}
+        rows={3}
+        placeholder="Product description (or generate with AI above)"
+        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm resize-none placeholder-gray-600"
+    />
+</div>
 
                     <div>
                         <label className="block text-sm text-gray-400 mb-1">Default Price</label>
