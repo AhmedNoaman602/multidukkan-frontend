@@ -1,8 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import BackButton from '../components/BackButton'
+import ProductSearchInput from '../components/ProductSearchInput'
+import CustomerSearchInput from '../components/CustomerSearchInput'
+
+const STORAGE_KEY = 'createOrderDraft'
 
 export default function CreateOrder() {
     const [warehouses, setWarehouses] = useState([])
@@ -12,16 +16,37 @@ export default function CreateOrder() {
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
-    const [customerId, setCustomerId] = useState('')
-    const [items, setItems] = useState([{ product_id: '', quantity: 1, warehouse_id: '', unit_type: 'base' }])
+    const [stores, setStores] = useState([])
+    const [flashIndex, setFlashIndex] = useState(-1)
     const navigate = useNavigate()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
-    const [stores, setStores] = useState([])
-    const [storeId, setStoreId] = useState(user.store_id || '')
-    const [discount, setDiscount] = useState(0)
-    
-    
+    const productSearchRef = useRef(null)
 
+    // ---- Form state (restored from draft) ----
+    const draft = (() => {
+        try { return JSON.parse(sessionStorage.getItem(STORAGE_KEY)) || {} }
+        catch { return {} }
+    })()
+
+    const [storeId, setStoreId] = useState(draft.storeId || '')
+    const [customerId, setCustomerId] = useState(draft.customerId || '')
+    const [items, setItems] = useState(draft.items || [])
+    const [discountValue, setDiscountValue] = useState(draft.discountValue || 0)
+    const [discountType, setDiscountType] = useState(draft.discountType || 'amount')
+    const [orderDate , setOrderDate] = useState(
+        draft.orderDate || new Date().toISOString().split('T')[0]
+    )
+    // Set store from user or saved default
+    useEffect(() => {
+        if (user.store_id) {
+            setStoreId(String(user.store_id))
+        } else if (!draft.storeId) {
+            const saved = localStorage.getItem('default_store_id')
+            if (saved) setStoreId(saved)
+        }
+    }, [])
+
+    // Fetch data
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -30,14 +55,14 @@ export default function CreateOrder() {
                     api.get('/products?per_page=all'),
                     api.get('/warehouses'),
                     api.get('/inventory?per_page=all'),
-                    api.get('/stores')
+                    api.get('/stores'),
                 ])
                 setCustomers(customersRes.data.data)
                 setProducts(productsRes.data.data)
                 setWarehouses(warehousesRes.data.data)
                 setInventory(inventoryRes.data.data)
                 setStores(storesRes.data.data)
-            } catch (err) {
+            } catch {
                 setError('Failed to load data')
             } finally {
                 setLoading(false)
@@ -46,21 +71,41 @@ export default function CreateOrder() {
         fetchData()
     }, [])
 
-    const addItem = () => {
-        setItems([...items, { product_id: '', quantity: 1, warehouse_id: '', unit_type: 'base' }])
-        setTimeout(() => {
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
-        }, 50)
+    // Auto-select store if only one
+    useEffect(() => {
+        if (stores.length === 1 && !user.store_id && !storeId) {
+            const id = String(stores[0].id)
+            setStoreId(id)
+            localStorage.setItem('default_store_id', id)
+        }
+    }, [stores])
+
+    // ---- Persist draft on every change ----
+    useEffect(() => {
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
+            storeId, customerId, items, discountValue, discountType,orderDate,
+        }))
+    }, [storeId, customerId, items, discountValue, discountType])
+
+    // ---- Flash new item highlight ----
+    useEffect(() => {
+        if (flashIndex >= 0) {
+            const timer = setTimeout(() => setFlashIndex(-1), 600)
+            return () => clearTimeout(timer)
+        }
+    }, [flashIndex])
+
+    // ---- Focus product search after customer selected ----
+    useEffect(() => {
+        if (customerId && productSearchRef.current) {
+            setTimeout(() => productSearchRef.current?.focus(), 100)
+        }
+    }, [customerId])
+
+    const handleStoreChange = (id) => {
+        setStoreId(id)
+        localStorage.setItem('default_store_id', id)
     }
-    const removeItem = (index) => setItems(items.filter((_, i) => i !== index))
-  const updateItem = (index, field, value) => {
-    const updated = [...items]
-    if (field === 'quantity' && value !== '') {
-        value = String(Math.floor(Number(value)) || 1)
-    }
-    updated[index][field] = value
-    setItems(updated)
-}
 
     const selectedCustomer = customers.find(c => c.id === parseInt(customerId))
 
@@ -79,61 +124,96 @@ export default function CreateOrder() {
             : base
     }
 
-    const getTotal = () => {
-        return items.reduce((total, item) => {
-            const product = products.find(p => p.id === parseInt(item.product_id))
-            if (!product || !item.quantity) return total
-            return total + (getUnitPrice(product, item.unit_type) * item.quantity)
-        }, 0)
-    }
     const getAvailableStock = (warehouseId, productId, currentIndex) => {
-    const inventoryRow = inventory.find(
-        inv => inv.warehouse_id === warehouseId && inv.product_id === productId
-    )
-    const available = inventoryRow ? inventoryRow.quantity : 0
+        const inventoryRow = inventory.find(
+            inv => inv.warehouse_id === warehouseId && inv.product_id === productId
+        )
+        const available = inventoryRow ? inventoryRow.quantity : 0
+        const committed = items.reduce((sum, item, idx) => {
+            if (idx !== currentIndex && parseInt(item.product_id) === productId && parseInt(item.warehouse_id) === warehouseId)
+                return sum + (parseInt(item.quantity) || 0)
+            return sum
+        }, 0)
+        return Math.max(0, available - committed)
+    }
 
-    // Subtract quantities already committed in other rows for same product+warehouse
-    const committed = items.reduce((sum, item, idx) => {
-        if (
-            idx !== currentIndex &&
-            parseInt(item.product_id) === productId &&
-            parseInt(item.warehouse_id) === warehouseId
-        ) {
-            return sum + (parseInt(item.quantity) || 0)
-        }
-        return sum
+    const subtotal = items.reduce((total, item) => {
+        const product = products.find(p => p.id === parseInt(item.product_id))
+        if (!product || !item.quantity) return total
+        return total + getUnitPrice(product, item.unit_type) * item.quantity
     }, 0)
 
-    return Math.max(0, available - committed)
-}
+    const discountAmount = discountType === 'percent'
+        ? Math.round(subtotal * (parseFloat(discountValue) || 0) / 100 * 100) / 100
+        : parseFloat(discountValue) || 0
+
+    const grandTotal = Math.max(0, subtotal - discountAmount)
+
+    const handleProductSelect = useCallback((product) => {
+        setItems(prev => {
+            const next = [...prev, {
+                product_id: String(product.id),
+                quantity: 1,
+                warehouse_id: '',
+                unit_type: 'base',
+            }]
+            setFlashIndex(next.length - 1)
+            // Focus the qty input of the new row after render
+            setTimeout(() => {
+                const el = document.querySelector(`[data-qty="${next.length - 1}"]`)
+                if (el) { el.focus(); el.select() }
+            }, 50)
+            return next
+        })
+    }, [])
+
+    const removeItem = (index) => setItems(items.filter((_, i) => i !== index))
+
+    const updateItem = (index, field, value) => {
+        const updated = [...items]
+        if (field === 'quantity' && value !== '') value = String(Math.floor(Number(value)) || 1)
+        updated[index][field] = value
+        setItems(updated)
+    }
+
+    // Enter on qty → focus warehouse
+    const handleQtyKeyDown = (e, index) => {
+        if (e.key === 'Enter') {
+            e.preventDefault()
+            const wh = document.querySelector(`[data-wh="${index}"]`)
+            if (wh) wh.focus()
+        }
+    }
+
+    // After warehouse select → focus back to product search
+    const handleWhChange = (index, value) => {
+        updateItem(index, 'warehouse_id', value)
+        if (value && productSearchRef.current) {
+            setTimeout(() => productSearchRef.current?.focus(), 50)
+        }
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
+        if (items.length === 0) { setError('Add at least one item.'); return }
+        if (!storeId) { setError('Please select a store.'); return }
+        if (!customerId) { setError('Please select a customer.'); return }
         setSaving(true)
         setError('')
-        const invalidQty = items.some(item => !Number.isInteger(Number(item.quantity)))
-        if (invalidQty) {
-            setError('Quantity must be a whole number.')
-            setSaving(false)
-            return
-        }
-        if (!storeId) {
-            setError('Please select a store.')
-            setSaving(false)
-            return
-        }
         try {
             await api.post('/orders', {
                 store_id: parseInt(storeId),
                 customer_id: parseInt(customerId),
-                discount: parseFloat(discount) || 0,
+                discount: discountAmount,
+                order_date:orderDate,
                 items: items.map(item => ({
                     product_id: parseInt(item.product_id),
                     quantity: parseInt(item.quantity),
                     warehouse_id: item.warehouse_id ? parseInt(item.warehouse_id) : null,
-                    unit_type: item.unit_type ?? 'base'
+                    unit_type: item.unit_type ?? 'base',
                 }))
             })
+            sessionStorage.removeItem(STORAGE_KEY)
             navigate('/orders')
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to create order')
@@ -145,212 +225,252 @@ export default function CreateOrder() {
     if (loading) return <LoadingSpinner />
 
     return (
-        <div className="">
-            <div className="flex items-center gap-4 mb-6">
-                <BackButton label="Back to Orders" to="/orders"/>
+        <div>
+            <div className="flex items-center gap-4 mb-5">
+                <BackButton label="Back to Orders" to="/orders" />
                 <h2 className="text-2xl font-bold text-white">Create New Order</h2>
             </div>
 
             {error && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg mb-6 text-sm">
+                <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg mb-4 text-sm">
                     {error}
                 </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-{!user.store_id && (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-        <label className="block text-sm text-gray-400 mb-2">Store</label>
-        <select
-            value={storeId}
-            onChange={(e) => setStoreId(e.target.value)}
-            required
-            className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
-        >
-            <option value="">Select a store</option>
-            {stores.map(s => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-            ))}
-        </select>
-    </div>
-)}
-                {/* Customer */}
-                <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-                    <label className="block text-sm text-gray-400 mb-2">Customer</label>
-                    <select
-                        value={customerId}
-                        onChange={(e) => setCustomerId(e.target.value)}
-                        required
-                        className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
-                    >
-                        <option value="">Select a customer</option>
-                        {customers.map(c => (
-                            <option key={c.id} value={c.id}>{c.name} — {c.phone}</option>
-                        ))}
-                    </select>
+            <form onSubmit={handleSubmit}>
+                {/* Store + Customer row */}
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                    {!user.store_id && (
+                        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+                            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wider">Store</label>
+                            <select
+                                value={storeId}
+                                onChange={e => handleStoreChange(e.target.value)}
+                                required
+                                className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
+                            >
+                                <option value="">Select a store</option>
+                                {stores.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                            </select>
+                        </div>
+                    )}
+                    <div className={`bg-gray-900 border border-gray-800 rounded-xl p-4 ${user.store_id ? 'col-span-2' : ''}`}>
+                        <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wider">Customer</label>
+                        <CustomerSearchInput
+                            customers={customers}
+                            value={customerId}
+                            onSelect={setCustomerId}
+                        />
+                    </div>
+                    <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+    <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wider">
+        Order Date
+    </label>
+    <input
+        type="date"
+        value={orderDate}
+        max={new Date().toISOString().split('T')[0]}
+        onChange={e => setOrderDate(e.target.value)}
+        className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
+    />
+</div>
                 </div>
 
-                {/* Items */}
-                <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-white font-semibold">Order Items</h3>
+                {/* Main: items table (left) + sticky panel (right) */}
+                <div className="flex gap-4 items-start">
+
+                    {/* Items table */}
+                    <div className="flex-1 bg-gray-900 border border-gray-800 rounded-xl overflow-hidden min-w-0">
+                        <div className="px-4 py-2.5 border-b border-gray-800 flex items-center justify-between">
+                            <h3 className="text-white text-sm font-semibold">
+                                Items
+                                {items.length > 0 && <span className="ml-1.5 text-gray-500 font-normal">({items.length})</span>}
+                            </h3>
+                            {items.length > 0 && (
+                                <span className="text-xs text-gray-500">Enter = next field</span>
+                            )}
+                        </div>
+
+                        {items.length === 0 ? (
+                            <div className="text-center py-10 text-gray-500 text-sm">
+                                Search or browse products to add items →
+                            </div>
+                        ) : (
+                            <table className="w-full">
+                                <thead className="bg-gray-800">
+                                    <tr>
+                                        {['Product', 'Qty', 'Warehouse', 'Unit', 'Total', ''].map(h => (
+                                            <th key={h} className="px-2.5 py-1.5 text-left text-[11px] font-medium text-gray-400 uppercase tracking-wider">{h}</th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-800/60">
+                                    {items.map((item, index) => {
+                                        const product = products.find(p => p.id === parseInt(item.product_id))
+                                        const lineTotal = product
+                                            ? getUnitPrice(product, item.unit_type) * (parseInt(item.quantity) || 0)
+                                            : 0
+                                        const isFlash = flashIndex === index
+
+                                        return (
+                                            <tr
+                                                key={index}
+                                                className={`transition-colors duration-500 ${isFlash ? 'bg-blue-600/15' : 'hover:bg-gray-800/30'}`}
+                                            >
+                                                <td className="px-2.5 py-1.5">
+                                                    <p className="text-white text-sm leading-tight">{product?.name ?? '—'}</p>
+                                                    {product?.sku && <p className="text-gray-500 text-[10px]">{product.sku}</p>}
+                                                </td>
+                                                <td className="px-2.5 py-1.5">
+                                                    <input
+                                                        type="number"
+                                                        min="1"
+                                                        step="1"
+                                                        data-qty={index}
+                                                        value={item.quantity}
+                                                        onChange={e => updateItem(index, 'quantity', e.target.value)}
+                                                        onKeyDown={e => handleQtyKeyDown(e, index)}
+                                                        className="w-14 px-1.5 py-1 bg-gray-800 border border-gray-700 text-white rounded text-sm text-center focus:outline-none focus:border-blue-500"
+                                                    />
+                                                </td>
+                                                <td className="px-2.5 py-1.5">
+                                                    <select
+                                                        data-wh={index}
+                                                        value={item.warehouse_id}
+                                                        onChange={e => handleWhChange(index, e.target.value)}
+                                                        required
+                                                        className="w-full px-1.5 py-1 bg-gray-800 border border-gray-700 text-white rounded text-xs focus:outline-none focus:border-blue-500"
+                                                    >
+                                                        <option value="">Select</option>
+                                                        {warehouses
+                                                            .filter(w => !storeId || w.store_id === parseInt(storeId))
+                                                            .map(w => {
+                                                                const qty = getAvailableStock(w.id, parseInt(item.product_id), index)
+                                                                return <option key={w.id} value={w.id}>{w.name} ({qty})</option>
+                                                            })}
+                                                    </select>
+                                                </td>
+                                                <td className="px-2.5 py-1.5">
+                                                    {product?.secondary_unit ? (
+                                                        <div className="flex gap-0.5">
+                                                            {['base', 'secondary'].map(u => (
+                                                                <button
+                                                                    key={u}
+                                                                    type="button"
+                                                                    onClick={() => updateItem(index, 'unit_type', u)}
+                                                                    className={`px-1.5 py-0.5 rounded text-[11px] font-medium transition-colors ${
+                                                                        item.unit_type === u ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400'
+                                                                    }`}
+                                                                >
+                                                                    {u === 'base' ? product.unit : product.secondary_unit}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-gray-500 text-xs">{product?.unit ?? '—'}</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-2.5 py-1.5 text-white text-sm font-medium whitespace-nowrap">
+                                                    {lineTotal} <span className="text-gray-500 text-[10px]">EGP</span>
+                                                </td>
+                                                <td className="px-2.5 py-1.5">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeItem(index)}
+                                                        className="text-gray-600 hover:text-red-400 transition-colors text-xs"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        )
+                                    })}
+                                </tbody>
+                            </table>
+                        )}
                     </div>
 
-                    <div className="space-y-4">
-                        {items.map((item, index) => {
-                            const product = products.find(p => p.id === parseInt(item.product_id))
-                            return (
-                                <div key={index} className="p-4 bg-gray-800 rounded-lg space-y-3">
-                                    <div className="grid grid-cols-2 gap-3">
-                                        {/* Product */}
-                                        <div>
-                                            <label className="block text-xs text-gray-400 mb-1">Product</label>
-                                            <select
-                                                value={item.product_id}
-                                                onChange={(e) => updateItem(index, 'product_id', e.target.value)}
-                                                required
-                                                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
-                                            >
-                                                <option value="">Select product</option>
-                                                {products.map(p => (
-                                                    <option key={p.id} value={p.id}>
-                                                        {p.name} — {getPriceForCustomer(p)} EGP
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
+                    {/* Sticky right panel */}
+                    <div className="w-[340px] shrink-0 sticky top-4 space-y-3">
 
-                                        {/* Quantity */}
-                                        <div>
-                                            <label className="block text-xs text-gray-400 mb-1">Quantity</label>
-                                            <input
-                                                type="number"
-                                                min="1"
-                                                step="1"
-                                                value={item.quantity}
-                                                onChange={(e) => updateItem(index, 'quantity', e.target.value)}
-                                                required
-                                                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
-                                            />
-                                        </div>
-                                    </div>
+                        {/* Product search */}
+                        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+                            <p className="text-[11px] text-gray-400 mb-2 uppercase tracking-wider font-medium">Add Product</p>
+                            <ProductSearchInput
+                                products={products}
+                                onSelect={handleProductSelect}
+                                placeholder="Name or SKU..."
+                                inputRef={productSearchRef}
+                            />
+                        </div>
 
-                                    <div className="grid grid-cols-2 gap-3">
-                                        {/* Warehouse */}
-                                        <div>
-                                            <label className="block text-xs text-gray-400 mb-1">Warehouse</label>
-                                           <select
-    value={item.warehouse_id}
-    onChange={(e) => updateItem(index, 'warehouse_id', e.target.value)}
-    required
-    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
->
-    <option value="">Select warehouse</option>
-    {warehouses.filter(w => !storeId || w.store_id === parseInt(storeId)).map(w => {
-     const qty = getAvailableStock(w.id, parseInt(item.product_id), index)
-        return (
-            <option key={w.id} value={w.id}>
-                {w.name} — {qty} متاح
-            </option>
-        )
-    })}
-</select>
-                                        </div>
+                        {/* Summary */}
+                        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-2.5">
+                            <p className="text-[11px] text-gray-400 uppercase tracking-wider font-medium">Summary</p>
 
-                                        {/* Unit type */}
-                                        <div>
-                                            {product?.secondary_unit && (
-                                                <>
-                                                    <label className="block text-xs text-gray-400 mb-1">Unit</label>
-                                                    <div className="flex gap-2">
-                                                        {['base', 'secondary'].map(u => (
-                                                            <button
-                                                                key={u}
-                                                                type="button"
-                                                                onClick={() => updateItem(index, 'unit_type', u)}
-                                                                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                                                    item.unit_type === u
-                                                                        ? 'bg-blue-600 text-white'
-                                                                        : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-                                                                }`}
-                                                            >
-                                                                {u === 'base' ? product.unit : product.secondary_unit}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </>
-                                            )}
-                                        </div>
-                                    </div>
+                            <div className="flex justify-between text-sm text-gray-400">
+                                <span>Items</span>
+                                <span className="text-white">{items.length}</span>
+                            </div>
 
-                                    {/* Item total + remove */}
-                                    <div className="flex items-center justify-between pt-1">
-                                        <span className="text-sm text-gray-400">
-                                            {product ? (
-                                                <>
-                                                    {getUnitPrice(product, item.unit_type)} × {item.quantity} =
-                                                    <span className="text-white font-medium ml-1">
-                                                        {getUnitPrice(product, item.unit_type) * item.quantity} EGP
-                                                    </span>
-                                                </>
-                                            ) : '—'}
-                                        </span>
-                                        {items.length > 1 && (
+                            <div className="flex justify-between text-sm text-gray-400">
+                                <span>Subtotal</span>
+                                <span className="text-white">{subtotal} EGP</span>
+                            </div>
+
+                            {/* Discount */}
+                            <div className="space-y-1.5">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-400">Discount</span>
+                                    <div className="flex rounded-lg overflow-hidden border border-gray-700">
+                                        {['amount', 'percent'].map(t => (
                                             <button
+                                                key={t}
                                                 type="button"
-                                                onClick={() => removeItem(index)}
-                                                className="text-red-400 hover:text-red-300 text-sm transition-colors"
+                                                onClick={() => setDiscountType(t)}
+                                                className={`px-2 py-0.5 text-xs font-medium transition-colors ${
+                                                    discountType === t ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                                                }`}
                                             >
-                                                Remove
+                                                {t === 'amount' ? 'EGP' : '%'}
                                             </button>
-                                        )}
+                                        ))}
                                     </div>
                                 </div>
-                            )
-                        })}
-                         <button
-        type="button"
-        onClick={addItem}
-        className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm rounded-lg transition-colors border border-dashed border-gray-700"
-    >
-        + Add Item
-    </button>
+                                <div className="relative">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max={discountType === 'percent' ? 100 : undefined}
+                                        value={discountValue}
+                                        onChange={e => setDiscountValue(e.target.value)}
+                                        className="w-full px-3 py-1.5 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm pr-10"
+                                        placeholder="0"
+                                    />
+                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs pointer-events-none">
+                                        {discountType === 'percent' ? '%' : 'EGP'}
+                                    </span>
+                                </div>
+                                {discountType === 'percent' && discountAmount > 0 && (
+                                    <p className="text-green-400 text-xs">= {discountAmount} EGP off</p>
+                                )}
+                            </div>
+
+                            <div className="flex justify-between text-lg font-bold text-white border-t border-gray-800 pt-3">
+                                <span>Total</span>
+                                <span>{grandTotal} EGP</span>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={saving || items.length === 0 || !customerId}
+                                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-medium rounded-lg transition-colors text-sm"
+                            >
+                                {saving ? 'Creating...' : 'Create Order'}
+                            </button>
+                        </div>
                     </div>
                 </div>
-
-                {/* Total + Submit */}
-                <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 flex items-center justify-between">
-    <div>
-        <p className="text-gray-400 text-sm">Order Total</p>
-        <p className="text-xl text-gray-400 line-through">{getTotal()} EGP</p>
-        <p className="text-3xl font-bold text-white">
-            {Math.max(0, getTotal() - (parseFloat(discount) || 0))} EGP
-        </p>
-        {discount > 0 && (
-            <p className="text-green-400 text-xs mt-1">Discount: {discount} EGP</p>
-        )}
-    </div>
-    <div className="flex flex-col items-end gap-3">
-        <div className="flex items-center gap-2">
-            <label className="text-gray-400 text-sm">Discount (EGP)</label>
-            <input
-                type="number"
-                min="0"
-                value={discount}
-                onChange={(e) => setDiscount(e.target.value)}
-                className="w-28 px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
-                placeholder="0"
-            />
-        </div>
-        <button
-            type="submit"
-            disabled={saving}
-            className="px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium rounded-lg transition-colors"
-        >
-            {saving ? 'Creating...' : 'Create Order'}
-        </button>
-    </div>
-</div>
             </form>
         </div>
     )

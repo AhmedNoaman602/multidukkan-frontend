@@ -85,6 +85,8 @@ const todayFormatted = new Date().toLocaleDateString('en-EG', {
                 // Top 3 debtors — group unpaid orders by customer
                 const debtorMap = {}
                 unpaidOrders.forEach(o => {
+                    if (o.customer_name === 'Deleted Customer') return;
+                    
                     if (!debtorMap[o.customer_id]) {
                         debtorMap[o.customer_id] = {
                             id: o.customer_id,

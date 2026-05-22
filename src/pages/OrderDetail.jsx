@@ -12,11 +12,24 @@ export default function OrderDetail() {
     const [error, setError] = useState('')
     const [cancelling, setCancelling] = useState(false)
     const [showConfirm, setShowConfirm] = useState(false)
+    const [editMode, setEditMode] = useState(false)
+    const [editForm, setEditForm] = useState({ order_date: '', notes: '', discount: '' })
+    const [saving, setSaving] = useState(false)
+    const [success, setSuccess] = useState('')
     const user = JSON.parse(localStorage.getItem('user') || '{}')
+
+    const canEdit = user.role === 'tenant_admin' || user.role === 'store_manager'
 
     const fetchOrder = () => {
         api.get(`/orders/${id}`)
-            .then(res => setOrder(res.data))
+            .then(res => {
+                setOrder(res.data)
+                setEditForm({
+                    order_date: res.data.created_at?.split('T')[0] ?? res.data.created_at?.split(' ')[0],
+                    notes:      res.data.notes ?? '',
+                    discount:   res.data.discount ?? 0,
+                })
+            })
             .catch(() => setError('Failed to load order'))
             .finally(() => setLoading(false))
     }
@@ -36,16 +49,47 @@ export default function OrderDetail() {
         }
     }
 
+    const handleSave = async () => {
+        setSaving(true)
+        setError('')
+        try {
+            const res = await api.patch(`/orders/${id}`, {
+                order_date: editForm.order_date,
+                notes:      editForm.notes,
+                discount:   parseFloat(editForm.discount) || 0,
+            })
+            setOrder(res.data)
+            setEditMode(false)
+            setSuccess('Order updated successfully.')
+            setTimeout(() => setSuccess(''), 3000)
+        } catch (err) {
+            setError(err.response?.data?.message || 'Failed to update order')
+        } finally {
+            setSaving(false)
+        }
+    }
+
+    const handleCancelEdit = () => {
+        setEditMode(false)
+        setEditForm({
+            order_date: order.created_at?.split('T')[0] ?? order.created_at?.split(' ')[0],
+            notes:      order.notes ?? '',
+            discount:   order.discount ?? 0,
+        })
+        setError('')
+    }
+
     if (loading) return <LoadingSpinner />
     if (error && !order) return <p className="text-red-400">{error}</p>
 
     const hasDiscount = order.discount > 0
+    const hasPayments = order.payments?.length > 0
 
     return (
         <div className="max-w-4xl">
             {/* Back + actions */}
             <div className="flex items-center justify-between mb-6">
-                <BackButton label="Back"/>
+                <BackButton label="Back" />
                 <div className="flex gap-2">
                     <button
                         onClick={() => window.open(`/orders/${id}/invoice`, '_blank')}
@@ -53,7 +97,35 @@ export default function OrderDetail() {
                     >
                         🖨️ Invoice
                     </button>
-                    {user.role === 'tenant_admin' && (
+
+                    {canEdit && !editMode && (
+                        <button
+                            onClick={() => setEditMode(true)}
+                            className="px-4 py-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-medium rounded-lg hover:bg-blue-500/20 transition-colors"
+                        >
+                            ✏️ Edit
+                        </button>
+                    )}
+
+                    {editMode && (
+                        <>
+                            <button
+                                onClick={handleCancelEdit}
+                                className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSave}
+                                disabled={saving}
+                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+                            >
+                                {saving ? 'Saving...' : 'Save Changes'}
+                            </button>
+                        </>
+                    )}
+
+                    {user.role === 'tenant_admin' && !editMode && (
                         <button
                             onClick={() => setShowConfirm(true)}
                             className="px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium rounded-lg hover:bg-red-500/20 transition-colors"
@@ -67,6 +139,12 @@ export default function OrderDetail() {
             {error && (
                 <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg mb-6 text-sm">
                     {error}
+                </div>
+            )}
+
+            {success && (
+                <div className="bg-green-500/10 border border-green-500/20 text-green-400 px-4 py-3 rounded-lg mb-6 text-sm">
+                    {success}
                 </div>
             )}
 
@@ -100,9 +178,18 @@ export default function OrderDetail() {
                     </div>
                     <div>
                         <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Date</p>
-                        <p className="text-white text-sm">
-                            {new Date(order.created_at).toLocaleDateString('en-GB')}
-                        </p>
+                        {editMode ? (
+                            <input
+                                type="date"
+                                value={editForm.order_date}
+                                onChange={e => setEditForm({ ...editForm, order_date: e.target.value })}
+                                className="w-full px-3 py-1.5 bg-gray-800 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
+                            />
+                        ) : (
+                            <p className="text-white text-sm">
+                                {new Date(order.created_at).toLocaleDateString('en-GB')}
+                            </p>
+                        )}
                     </div>
                 </div>
             </div>
@@ -139,12 +226,32 @@ export default function OrderDetail() {
                             <span>Subtotal</span>
                             <span>{order.subtotal} EGP</span>
                         </div>
-                        {hasDiscount && (
-                            <div className="flex justify-between text-sm text-green-400">
+
+                        {/* Discount row */}
+                        {(hasDiscount || editMode) && (
+                            <div className="flex justify-between text-sm text-green-400 items-center">
                                 <span>Discount</span>
-                                <span>- {order.discount} EGP</span>
+                                {editMode ? (
+                                    <div className="flex items-center gap-1">
+                                        {hasPayments ? (
+                                            <span className="text-gray-500 text-xs">Locked (has payments)</span>
+                                        ) : (
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                step="0.01"
+                                                value={editForm.discount}
+                                                onChange={e => setEditForm({ ...editForm, discount: e.target.value })}
+                                                className="w-24 px-2 py-1 bg-gray-800 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm text-right"
+                                            />
+                                        )}
+                                    </div>
+                                ) : (
+                                    <span>- {order.discount} EGP</span>
+                                )}
                             </div>
                         )}
+
                         <div className="flex justify-between text-base font-bold text-white border-t border-gray-800 pt-2">
                             <span>Total</span>
                             <span>{order.total} EGP</span>
@@ -160,12 +267,20 @@ export default function OrderDetail() {
             </div>
 
             {/* Notes */}
-            {order.notes && (
-                <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-                    <p className="text-gray-400 text-xs uppercase tracking-wider mb-2">Notes</p>
-                    <p className="text-white text-sm">{order.notes}</p>
-                </div>
-            )}
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
+                <p className="text-gray-400 text-xs uppercase tracking-wider mb-2">Notes</p>
+                {editMode ? (
+                    <textarea
+                        value={editForm.notes}
+                        onChange={e => setEditForm({ ...editForm, notes: e.target.value })}
+                        rows={3}
+                        placeholder="Add notes..."
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm resize-none"
+                    />
+                ) : (
+                    <p className="text-white text-sm">{order.notes || '—'}</p>
+                )}
+            </div>
 
             {/* Cancel confirm modal */}
             {showConfirm && (
