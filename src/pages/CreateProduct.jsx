@@ -14,12 +14,13 @@ export default function CreateProduct() {
     const stockBottomRef = useRef(null)
     const [form, setForm] = useState({
         name: '', sku: '', price: '', unit: '',
-        description: '',
+        description: '',description_ar: '',
+        description_en: '',
         price_a: '', price_b: '', price_c: '', price_d: '', price_e: '',
         secondary_unit: '', conversion_factor: '',
     })
     const [stocks, setStocks] = useState([
-        { warehouse_id: '', quantity: 0, threshold: 10, unit_type: 'base' }
+        { warehouse_id: '', quantity: 1, threshold: 10, unit_type: 'base' }
     ])
     const navigate = useNavigate()
     const [units, setUnits] = useState([])
@@ -35,7 +36,7 @@ export default function CreateProduct() {
     }, [])
 
     const addStock = () => {
-        setStocks([...stocks, { warehouse_id: '', quantity: 0, threshold: 10, unit_type: 'base' }])
+        setStocks([...stocks, { warehouse_id: '', quantity: 1, threshold: 10, unit_type: 'base' }])
         setTimeout(() => {
             stockBottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
         }, 50)
@@ -47,6 +48,10 @@ export default function CreateProduct() {
         setStocks(updated)
     }
 
+    const showError = (msg) => {
+        setError(msg)
+        setTimeout(() => setError('') , 4000)
+    }
     const usedWarehouseIds = stocks.map(s => parseInt(s.warehouse_id)).filter(Boolean)
 
     const handleSaveUnit = async () => {
@@ -68,7 +73,7 @@ export default function CreateProduct() {
 
     const handleGenerateDescription = async () => {
         if (!form.name || !form.price || !form.unit) {
-            setError('Please fill in name, price and unit first.')
+            showError('Please fill in name, price and unit first.')
             return
         }
         setGeneratingDesc(true)
@@ -76,10 +81,14 @@ export default function CreateProduct() {
         try {
             const res = await api.post('/ai/describe-product', {
                 name: form.name,
-                unit: form.unit,
                 price: parseFloat(form.price),
             })
-            setForm(f => ({ ...f, description: res.data.description }))
+            setForm(f => ({
+                ...f,
+                description_ar: res.data.ar,
+                description_en: res.data.en,
+                description: `${res.data.ar}\n${res.data.en}`,
+            }))
         } catch {
             setError('Failed to generate description')
         } finally {
@@ -91,6 +100,21 @@ export default function CreateProduct() {
         e.preventDefault()
         setSaving(true)
         setError('')
+        const hasEmptyWarehouse = stocks.some(s => !s.warehouse_id)
+    if (hasEmptyWarehouse) {
+        showError('Please select a warehouse for all stock rows, or remove empty rows.')
+        setSaving(false)
+        return
+    }
+
+    const hasInvalidQuantity = stocks.some(s => 
+        s.warehouse_id && (!s.quantity || parseInt(s.quantity) <= 0)
+    )
+    if (hasInvalidQuantity) {
+        showError('Please enter a quantity greater than 0 for all warehouse rows.')
+        setSaving(false)
+        return
+    }
         try {
             await api.post('/products', {
                 ...form,
@@ -119,12 +143,6 @@ export default function CreateProduct() {
                 <BackButton label="Back to Products" to="/products" />
                 <h2 className="text-2xl font-bold text-white">Add New Product</h2>
             </div>
-
-            {error && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg mb-6 text-sm">
-                    {error}
-                </div>
-            )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
 
@@ -206,27 +224,26 @@ export default function CreateProduct() {
                             )}
                         </div>
 
-                        {/* Description — full width, after basics */}
                         <div className="col-span-2">
-                            <div className="flex items-center justify-between mb-1">
-                                <label className="block text-sm text-gray-400">Description</label>
-                                <button
-                                    type="button"
-                                    onClick={handleGenerateDescription}
-                                    disabled={generatingDesc || !form.name || !form.price}
-                                    className="px-3 py-1 bg-purple-600/20 border border-purple-500/30 text-purple-400 hover:bg-purple-600/30 disabled:opacity-40 text-xs font-medium rounded-lg transition-colors"
-                                >
-                                    {generatingDesc ? 'Generating...' : '✨ Generate with AI'}
-                                </button>
-                            </div>
-                            <textarea
-                                value={form.description || ''}
-                                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                                rows={3}
-                                placeholder="Product description (or generate with AI above)"
-                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm resize-none placeholder-gray-600"
-                            />
-                        </div>
+    <div className="flex items-center justify-between mb-1">
+        <label className="block text-sm text-gray-400">Description</label>
+        <button
+            type="button"
+            onClick={handleGenerateDescription}
+            disabled={generatingDesc || !form.name || !form.price}
+            className="px-3 py-1 bg-purple-600/20 border border-purple-500/30 text-purple-400 hover:bg-purple-600/30 disabled:opacity-40 text-xs font-medium rounded-lg transition-colors"
+        >
+            {generatingDesc ? 'Generating...' : '✨ Generate with AI'}
+        </button>
+    </div>
+    <textarea
+        value={form.description || ''}
+        onChange={(e) => setForm({ ...form, description: e.target.value })}
+        rows={3}
+        placeholder="Product description (or generate with AI above)"
+        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm resize-none placeholder-gray-600"
+    />
+</div>
                     </div>
                 </div>
 
@@ -324,7 +341,7 @@ export default function CreateProduct() {
                     <td className="px-3 py-2">
                         <input
                             type="number"
-                            min="0"
+                            min="1"
                             value={stock.quantity}
                             onChange={(e) => updateStock(i, 'quantity', e.target.value)}
                             className="w-24 px-2 py-1.5 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm text-center"
@@ -383,15 +400,20 @@ export default function CreateProduct() {
 </div>
 
                 {/* Submit */}
-                <div className="flex justify-end">
-                    <button
-                        type="submit"
-                        disabled={saving}
-                        className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
-                    >
-                        {saving ? 'Saving...' : 'Save Product'}
-                    </button>
-                </div>
+<div className="flex flex-col items-end gap-2">
+    {error && (
+        <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg text-sm w-full">
+            {error}
+        </div>
+    )}
+    <button
+        type="submit"
+        disabled={saving}
+        className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+    >
+        {saving ? 'Saving...' : 'Save Product'}
+    </button>
+</div>
 
             </form>
         </div>

@@ -16,7 +16,10 @@ export default function Products() {
     const [page , setPage] = useState(1)
     const [lastPage , setLastPage] = useState(1)
     const user = JSON.parse(localStorage.getItem('user') || '{}')
-
+    const showError = (msg) => {
+        setError(msg)
+        setTimeout(() => setError(''), 4000)
+    }
     const fetchData = async () => {
         try {
             const res = await api.get('/products' ,{params: {page , search}})
@@ -28,6 +31,7 @@ export default function Products() {
             setLoading(false)
         }
     }
+    
     const handleSearch = (value) => {
         setSearch(value)
         setPage(1)
@@ -42,7 +46,7 @@ export default function Products() {
         setDeleteTarget(null)
         fetchData()
     } catch (err) {
-        setError(err.response?.data?.message || 'Failed to delete product')
+        showError(err.response?.data?.message || 'Failed to delete product')
         setDeleteTarget(null)
     } finally {
         setDeleting(false)
@@ -72,12 +76,6 @@ export default function Products() {
                     )}
                 </div>
             </div>
-
-            {error && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg mb-6 text-sm">
-                    {error}
-                </div>
-            )}
 
             <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
                 <table className="w-full">
@@ -187,6 +185,11 @@ export default function Products() {
                                 </form>
                             )}
                         </Modal>
+                        {error && (
+    <div className="fixed bottom-6 right-6 bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg text-sm shadow-lg z-50">
+        {error}
+    </div>
+)}
         </div>
     )
 }
