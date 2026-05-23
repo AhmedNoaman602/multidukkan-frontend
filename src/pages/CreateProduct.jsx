@@ -1,92 +1,122 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import BackButton from '../components/BackButton'
 
 export default function CreateProduct() {
     const [warehouses, setWarehouses] = useState([])
-    const [stockUnit, setStockUnit] = useState('base')
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
     const [generatingDesc, setGeneratingDesc] = useState(false)
-const [description, setDescription] = useState('')
+    const [newUnit, setNewUnit] = useState('')
+    const [showNewUnit, setShowNewUnit] = useState(false)
+    const [savingUnit, setSavingUnit] = useState(false)
+    const stockBottomRef = useRef(null)
     const [form, setForm] = useState({
-        name: '', sku: '', price: '', unit: 'حتة',   description: '',
+        name: '', sku: '', price: '', unit: '',
+        description: '',
         price_a: '', price_b: '', price_c: '', price_d: '', price_e: '',
         secondary_unit: '', conversion_factor: '',
     })
     const [stocks, setStocks] = useState([
-    { warehouse_id: '', quantity: 0, threshold: 10 , unit_type:'base' }
-])
+        { warehouse_id: '', quantity: 0, threshold: 10, unit_type: 'base' }
+    ])
     const navigate = useNavigate()
     const [units, setUnits] = useState([])
 
     useEffect(() => {
         api.get('/warehouses').then(res => setWarehouses(res.data.data))
-        api.get('/units').then(res => setUnits(res.data.data))
+        api.get('/units').then(res => {
+            setUnits(res.data.data)
+            if (res.data.data.length > 0) {
+                setForm(f => ({ ...f, unit: res.data.data[0].name }))
+            }
+        })
     }, [])
-const addStock = () => setStocks([...stocks, { warehouse_id: '', quantity: 0, threshold: 10, unit_type: 'base' }])
-const removeStock = (i) => setStocks(stocks.filter((_, idx) => idx !== i))
-const updateStock = (i, field, value) => {
-    const updated = [...stocks]
-    updated[i][field] = value
-    setStocks(updated)
-}
 
-const usedWarehouseIds = stocks.map(s => parseInt(s.warehouse_id)).filter(Boolean)
+    const addStock = () => {
+        setStocks([...stocks, { warehouse_id: '', quantity: 0, threshold: 10, unit_type: 'base' }])
+        setTimeout(() => {
+            stockBottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }, 50)
+    }
+    const removeStock = (i) => setStocks(stocks.filter((_, idx) => idx !== i))
+    const updateStock = (i, field, value) => {
+        const updated = [...stocks]
+        updated[i][field] = value
+        setStocks(updated)
+    }
 
-   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setSaving(true)
-    setError('')
-    try {
-        await api.post('/products', {
-            ...form,
-            price: parseFloat(form.price),
-           stocks: stocks
-    .filter(s => s.warehouse_id)
-    .map(s => ({
-        warehouse_id: parseInt(s.warehouse_id),
-        quantity: s.unit_type === 'secondary' && form.conversion_factor
-            ? parseInt(s.quantity) * parseInt(form.conversion_factor)
-            : parseInt(s.quantity) || 0,
-        threshold: parseInt(s.threshold) || 10,
-    }))
-        })
-        navigate('/products')
-    } catch (err) {
-        setError(err.response?.data?.message || 'Failed to create product')
-    } finally {
-        setSaving(false)
-    }
-}
+    const usedWarehouseIds = stocks.map(s => parseInt(s.warehouse_id)).filter(Boolean)
 
-const handleGenerateDescription = async () => {
-    if (!form.name || !form.price || !form.unit) {
-        setError('Please fill in name, price and unit first.')
-        return
+    const handleSaveUnit = async () => {
+        if (!newUnit.trim()) return
+        setSavingUnit(true)
+        try {
+            const res = await api.post('/units', { name: newUnit.trim() })
+            const saved = res.data.data ?? res.data
+            setUnits(prev => [...prev, saved])
+            setForm(f => ({ ...f, unit: saved.name }))
+            setNewUnit('')
+            setShowNewUnit(false)
+        } catch {
+            setError('Failed to save unit')
+        } finally {
+            setSavingUnit(false)
+        }
     }
-    setGeneratingDesc(true)
-    setError('')
-    try {
-        const res = await api.post('/ai/describe-product', {
-            name:  form.name,
-            unit:  form.unit,
-            price: parseFloat(form.price),
-        })
-        setDescription(res.data.description)
-        setForm({ ...form, description: res.data.description })
-    } catch {
-        setError('Failed to generate description')
-    } finally {
-        setGeneratingDesc(false)
+
+    const handleGenerateDescription = async () => {
+        if (!form.name || !form.price || !form.unit) {
+            setError('Please fill in name, price and unit first.')
+            return
+        }
+        setGeneratingDesc(true)
+        setError('')
+        try {
+            const res = await api.post('/ai/describe-product', {
+                name: form.name,
+                unit: form.unit,
+                price: parseFloat(form.price),
+            })
+            setForm(f => ({ ...f, description: res.data.description }))
+        } catch {
+            setError('Failed to generate description')
+        } finally {
+            setGeneratingDesc(false)
+        }
     }
-}
+
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        setSaving(true)
+        setError('')
+        try {
+            await api.post('/products', {
+                ...form,
+                price: parseFloat(form.price),
+                stocks: stocks
+                    .filter(s => s.warehouse_id)
+                    .map(s => ({
+                        warehouse_id: parseInt(s.warehouse_id),
+                        quantity: s.unit_type === 'secondary' && form.conversion_factor
+                            ? parseInt(s.quantity) * parseInt(form.conversion_factor)
+                            : parseInt(s.quantity) || 0,
+                        threshold: parseInt(s.threshold) || 10,
+                    }))
+            })
+            navigate('/products')
+        } catch (err) {
+            setError(err.response?.data?.message || 'Failed to create product')
+        } finally {
+            setSaving(false)
+        }
+    }
 
     return (
-        <div className="">
+        <div>
             <div className="flex items-center gap-4 mb-6">
-                <BackButton label="Back to Products" to="/products"/>
+                <BackButton label="Back to Products" to="/products" />
                 <h2 className="text-2xl font-bold text-white">Add New Product</h2>
             </div>
 
@@ -96,117 +126,167 @@ const handleGenerateDescription = async () => {
                 </div>
             )}
 
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-                <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
 
-                    <div>
-                        <label className="block text-sm text-gray-400 mb-1">Name</label>
-                        <input
-                            value={form.name}
-                            onChange={(e) => setForm({ ...form, name: e.target.value })}
-                            required
-                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
-                        />
-                    </div>
+                {/* Basic Info */}
+                <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+                    <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">Basic Info</h3>
+                    <div className="grid grid-cols-2 gap-4">
 
-                    <div>
-                        <label className="block text-sm text-gray-400 mb-1">SKU</label>
-                        <input
-                            value={form.sku}
-                            onChange={(e) => setForm({ ...form, sku: e.target.value })}
-                            required
-                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
-                        />
-                    </div>
+                        <div>
+                            <label className="block text-sm text-gray-400 mb-1">Name</label>
+                            <input
+                                value={form.name}
+                                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                                required
+                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
+                            />
+                        </div>
 
-                    <div className="col-span-2">
-    <div className="flex items-center justify-between mb-1">
-        <label className="block text-sm text-gray-400">Description</label>
-        <button
-            type="button"
-            onClick={handleGenerateDescription}
-            disabled={generatingDesc || !form.name || !form.price}
-            className="px-3 py-1 bg-purple-600/20 border border-purple-500/30 text-purple-400 hover:bg-purple-600/30 disabled:opacity-40 text-xs font-medium rounded-lg transition-colors"
-        >
-            {generatingDesc ? 'Generating...' : '✨ Generate with AI'}
-        </button>
-    </div>
-    <textarea
-        value={form.description || ''}
-        onChange={(e) => setForm({ ...form, description: e.target.value })}
-        rows={3}
-        placeholder="Product description (or generate with AI above)"
-        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm resize-none placeholder-gray-600"
-    />
-</div>
+                        <div>
+                            <label className="block text-sm text-gray-400 mb-1">SKU</label>
+                            <input
+                                value={form.sku}
+                                onChange={(e) => setForm({ ...form, sku: e.target.value })}
+                                required
+                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
+                            />
+                        </div>
 
-                    <div>
-                        <label className="block text-sm text-gray-400 mb-1">Default Price</label>
-                        <input
-                            type="number"
-                            value={form.price}
-                            onChange={(e) => setForm({ ...form, price: e.target.value })}
-                            required
-                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm text-gray-400 mb-1">Unit</label>
-                        <select
-                            value={form.unit}
-                            onChange={(e) => setForm({ ...form, unit: e.target.value })}
-                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
-                        >
-                            {units.map(u => (
-                                 <option key={u.id} value={u.name}>{u.name}</option>
-                                ))}
-                        </select>
-                    </div>
-
-                    {['a', 'b', 'c', 'd', 'e'].map(tier => (
-                        <div key={tier}>
-                            <label className="block text-sm text-gray-400 mb-1">سعر {tier.toUpperCase()}</label>
+                        <div>
+                            <label className="block text-sm text-gray-400 mb-1">Default Price</label>
                             <input
                                 type="number"
-                                value={form[`price_${tier}`]}
-                                onChange={(e) => setForm({ ...form, [`price_${tier}`]: e.target.value })}
-                                placeholder="Optional"
+                                value={form.price}
+                                onChange={(e) => setForm({ ...form, price: e.target.value })}
+                                required
+                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm text-gray-400 mb-1">Unit</label>
+                            <div className="flex gap-2">
+                                <select
+                                    value={form.unit}
+                                    onChange={(e) => setForm({ ...form, unit: e.target.value })}
+                                    className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
+                                >
+                                    {units.map(u => (
+                                        <option key={u.id} value={u.name}>{u.name}</option>
+                                    ))}
+                                </select>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowNewUnit(!showNewUnit)}
+                                    className="px-3 py-2 bg-gray-800 border border-gray-700 text-gray-400 hover:text-white rounded-lg text-xs transition-colors"
+                                >
+                                    + New
+                                </button>
+                            </div>
+                            {showNewUnit && (
+                                <div className="flex gap-2 mt-2">
+                                    <input
+                                        value={newUnit}
+                                        onChange={(e) => setNewUnit(e.target.value)}
+                                        placeholder="e.g. كرتونة"
+                                        onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleSaveUnit())}
+                                        className="flex-1 px-3 py-2 bg-gray-800 border border-blue-500 text-white rounded-lg focus:outline-none text-sm"
+                                        autoFocus
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleSaveUnit}
+                                        disabled={savingUnit}
+                                        className="px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-xs transition-colors"
+                                    >
+                                        {savingUnit ? '...' : 'Save'}
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Description — full width, after basics */}
+                        <div className="col-span-2">
+                            <div className="flex items-center justify-between mb-1">
+                                <label className="block text-sm text-gray-400">Description</label>
+                                <button
+                                    type="button"
+                                    onClick={handleGenerateDescription}
+                                    disabled={generatingDesc || !form.name || !form.price}
+                                    className="px-3 py-1 bg-purple-600/20 border border-purple-500/30 text-purple-400 hover:bg-purple-600/30 disabled:opacity-40 text-xs font-medium rounded-lg transition-colors"
+                                >
+                                    {generatingDesc ? 'Generating...' : '✨ Generate with AI'}
+                                </button>
+                            </div>
+                            <textarea
+                                value={form.description || ''}
+                                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                                rows={3}
+                                placeholder="Product description (or generate with AI above)"
+                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm resize-none placeholder-gray-600"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Price Tiers */}
+                <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+                    <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">Price Tiers</h3>
+                    <div className="grid grid-cols-5 gap-4">
+                        {['a', 'b', 'c', 'd', 'e'].map(tier => (
+                            <div key={tier}>
+                                <label className="block text-sm text-gray-400 mb-1">سعر {tier.toUpperCase()}</label>
+                                <input
+                                    type="number"
+                                    value={form[`price_${tier}`]}
+                                    onChange={(e) => setForm({ ...form, [`price_${tier}`]: e.target.value })}
+                                    placeholder="Optional"
+                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm placeholder-gray-600"
+                                />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Secondary Unit */}
+                <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+                    <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">Secondary Unit <span className="text-gray-600 normal-case font-normal">(optional)</span></h3>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm text-gray-400 mb-1">Secondary Unit</label>
+                            <input
+                                value={form.secondary_unit}
+                                onChange={(e) => setForm({ ...form, secondary_unit: e.target.value })}
+                                placeholder="e.g. دستة"
                                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm placeholder-gray-600"
                             />
                         </div>
-                    ))}
-
-                    <div>
-                        <label className="block text-sm text-gray-400 mb-1">Secondary Unit</label>
-                        <input
-                            value={form.secondary_unit}
-                            onChange={(e) => setForm({ ...form, secondary_unit: e.target.value })}
-                            placeholder="e.g. دستة"
-                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm placeholder-gray-600"
-                        />
+                        <div>
+                            <label className="block text-sm text-gray-400 mb-1">Conversion Factor</label>
+                            <input
+                                type="number"
+                                value={form.conversion_factor}
+                                onChange={(e) => setForm({ ...form, conversion_factor: e.target.value })}
+                                placeholder="e.g. 12"
+                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm placeholder-gray-600"
+                            />
+                            {form.secondary_unit && form.conversion_factor && (
+                                <p className="text-xs text-blue-400 mt-1">
+                                    1 {form.secondary_unit} = {form.conversion_factor} {form.unit}
+                                </p>
+                            )}
+                        </div>
                     </div>
+                </div>
 
-                    <div>
-                        <label className="block text-sm text-gray-400 mb-1">Conversion Factor</label>
-                        <input
-                            type="number"
-                            value={form.conversion_factor}
-                            onChange={(e) => setForm({ ...form, conversion_factor: e.target.value })}
-                            placeholder="e.g. 12"
-                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm placeholder-gray-600"
-                        />
-                        {form.secondary_unit && form.conversion_factor && (
-                            <p className="text-xs text-blue-400 mt-1">
-                                1 {form.secondary_unit} = {form.conversion_factor} {form.unit}
-                            </p>
-                        )}
-                    </div>
-
-                    {/* Warehouse Stock — full width */}
-<div className="col-span-2">
-    <div className="flex items-center justify-between mb-3">
-        <label className="text-sm text-gray-400">Warehouse Stock</label>
+                {/* Warehouse Stock */}
+<div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+    <div className="px-4 py-2.5 border-b border-gray-800 flex items-center justify-between">
+        <h3 className="text-white text-sm font-semibold">
+            Warehouse Stock
+            {stocks.length > 0 && <span className="ml-1.5 text-gray-500 font-normal">({stocks.length})</span>}
+        </h3>
         <button
             type="button"
             onClick={addStock}
@@ -216,98 +296,104 @@ const handleGenerateDescription = async () => {
         </button>
     </div>
 
-    <div className="space-y-3">
-        {stocks.map((stock, i) => (
-            <div key={i} className="grid grid-cols-7 gap-3 items-end bg-gray-800 p-3 rounded-lg">
-                <div className="col-span-3">
-                    <label className="block text-xs text-gray-400 mb-1">Warehouse</label>
-                    <select
-                        value={stock.warehouse_id}
-                        onChange={(e) => updateStock(i, 'warehouse_id', e.target.value)}
-                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
-                    >
-                        <option value="">Select warehouse</option>
-                        {warehouses
-                            .filter(w => !usedWarehouseIds.includes(w.id) || w.id === parseInt(stock.warehouse_id))
-                            .map(w => (
-                                <option key={w.id} value={w.id}>{w.name}</option>
-                            ))
-                        }
-                    </select>
-                </div>
-
-                <div className="col-span-2">
-                    <label className="block text-xs text-gray-400 mb-1">Quantity</label>
-                    <input
-                        type="number"
-                        min="0"
-                        value={stock.quantity}
-                        onChange={(e) => updateStock(i, 'quantity', e.target.value)}
-                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
-                    />
-                </div>
-
-                <div className="col-span-1">
-                    <label className="block text-xs text-gray-400 mb-1">Threshold</label>
-                    <input
-                        type="number"
-                        min="0"
-                        value={stock.threshold}
-                        onChange={(e) => updateStock(i, 'threshold', e.target.value)}
-                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
-                    />
-                </div>
-                {form.secondary_unit && form.conversion_factor && (
-    <div className="col-span-7 flex gap-2 mt-1">
-        {['base', 'secondary'].map(u => (
-            <button
-                key={u}
-                type="button"
-                onClick={() => updateStock(i, 'unit_type', u)}
-                className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
-                    stock.unit_type === u
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-                }`}
-            >
-                {u === 'base' ? form.unit : form.secondary_unit}
-            </button>
-        ))}
-        {stock.unit_type === 'secondary' && form.conversion_factor && stock.quantity > 0 && (
-            <span className="text-xs text-blue-400 self-center ml-2">
-                = {parseInt(stock.quantity) * parseInt(form.conversion_factor)} {form.unit}
-            </span>
-        )}
-    </div>
-)}
-
-                <div className="col-span-1 flex justify-end">
-                    {stocks.length > 1 && (
-                        <button
-                            type="button"
-                            onClick={() => removeStock(i)}
-                            className="px-3 py-2 text-red-400 hover:text-red-300 text-sm transition-colors"
+    <table className="w-full">
+        <thead className="bg-gray-800">
+            <tr>
+                {['Warehouse', 'Quantity', 'Threshold', ''].map(h => (
+                    <th key={h} className="px-3 py-2 text-left text-[11px] font-medium text-gray-400 uppercase tracking-wider">{h}</th>
+                ))}
+            </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-800/60">
+            {stocks.map((stock, i) => (
+                <tr key={i} className="hover:bg-gray-800/30 transition-colors">
+                    <td className="px-3 py-2">
+                        <select
+                            value={stock.warehouse_id}
+                            onChange={(e) => updateStock(i, 'warehouse_id', e.target.value)}
+                            className="w-full px-2 py-1.5 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                         >
-                            ✕
-                        </button>
-                    )}
-                </div>
-            </div>
-        ))}
-    </div>
+                            <option value="">Select warehouse</option>
+                            {warehouses
+                                .filter(w => !usedWarehouseIds.includes(w.id) || w.id === parseInt(stock.warehouse_id))
+                                .map(w => (
+                                    <option key={w.id} value={w.id}>{w.name}</option>
+                                ))}
+                        </select>
+                    </td>
+                    <td className="px-3 py-2">
+                        <input
+                            type="number"
+                            min="0"
+                            value={stock.quantity}
+                            onChange={(e) => updateStock(i, 'quantity', e.target.value)}
+                            className="w-24 px-2 py-1.5 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm text-center"
+                        />
+                        {form.secondary_unit && form.conversion_factor && (
+                            <div className="flex gap-1 mt-1">
+                                {['base', 'secondary'].map(u => (
+                                    <button
+                                        key={u}
+                                        type="button"
+                                        onClick={() => updateStock(i, 'unit_type', u)}
+                                        className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${
+                                            stock.unit_type === u
+                                                ? 'bg-blue-600 text-white'
+                                                : 'bg-gray-700 text-gray-400'
+                                        }`}
+                                    >
+                                        {u === 'base' ? form.unit : form.secondary_unit}
+                                    </button>
+                                ))}
+                                {stock.unit_type === 'secondary' && stock.quantity > 0 && (
+                                    <span className="text-xs text-blue-400 self-center ml-1">
+                                        = {parseInt(stock.quantity) * parseInt(form.conversion_factor)} {form.unit}
+                                    </span>
+                                )}
+                            </div>
+                        )}
+                    </td>
+                    <td className="px-3 py-2">
+                        <input
+                            type="number"
+                            min="0"
+                            value={stock.threshold}
+                            onChange={(e) => updateStock(i, 'threshold', e.target.value)}
+                            className="w-24 px-2 py-1.5 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm text-center"
+                        />
+                    </td>
+                    <td className="px-3 py-2">
+                        {stocks.length > 1 && (
+                            <button
+                                type="button"
+                                onClick={() => removeStock(i)}
+                                className="text-gray-600 hover:text-red-400 transition-colors text-xs"
+                            >
+                                ✕
+                            </button>
+                        )}
+                    </td>
+                </tr>
+                
+            ))}
+                        <tr ref={stockBottomRef} />
+
+        </tbody>
+    </table>
 </div>
 
-                    <div className="col-span-2 pt-2">
-                        <button
-                            type="submit"
-                            disabled={saving}
-                            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
-                        >
-                            {saving ? 'Saving...' : 'Save Product'}
-                        </button>
-                    </div>
-                </form>
-            </div>
+                {/* Submit */}
+                <div className="flex justify-end">
+                    <button
+                        type="submit"
+                        disabled={saving}
+                        className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+                    >
+                        {saving ? 'Saving...' : 'Save Product'}
+                    </button>
+                </div>
+
+            </form>
         </div>
     )
 }
