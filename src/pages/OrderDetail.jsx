@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import BackButton from '../components/BackButton'
+import { useToast } from '../hooks/useToast'
+import Toast from '../components/Toast'
 
 export default function OrderDetail() {
     const { id } = useParams()
@@ -16,6 +18,7 @@ export default function OrderDetail() {
     const [editForm, setEditForm] = useState({ order_date: '', notes: '', discount: '' })
     const [saving, setSaving] = useState(false)
     const [success, setSuccess] = useState('')
+    const {toast, showToast, hideToast} = useToast()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
 
     const canEdit = user.role === 'tenant_admin' || user.role === 'store_manager'
@@ -42,7 +45,7 @@ export default function OrderDetail() {
             await api.delete(`/orders/${id}`)
             navigate('/orders')
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to cancel order')
+            showToast(err.response?.data?.message || 'Failed to cancel order', 'error')
             setShowConfirm(false)
         } finally {
             setCancelling(false)
@@ -60,10 +63,9 @@ export default function OrderDetail() {
             })
             setOrder(res.data)
             setEditMode(false)
-            setSuccess('Order updated successfully.')
-            setTimeout(() => setSuccess(''), 3000)
+            showToast('Order updated successfully.', 'success')
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to update order')
+            showToast(err.response?.data?.message || 'Failed to update order', 'error')
         } finally {
             setSaving(false)
         }
@@ -136,18 +138,6 @@ export default function OrderDetail() {
                 </div>
             </div>
 
-            {error && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg mb-6 text-sm">
-                    {error}
-                </div>
-            )}
-
-            {success && (
-                <div className="bg-green-500/10 border border-green-500/20 text-green-400 px-4 py-3 rounded-lg mb-6 text-sm">
-                    {success}
-                </div>
-            )}
-
             {/* Order header */}
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
                 <div className="flex items-start justify-between">
@@ -211,7 +201,12 @@ export default function OrderDetail() {
                         {order.items.map((item, index) => (
                             <tr key={index}>
                                 <td className="py-3 text-white text-sm">{item.product_name}</td>
-                                <td className="py-3 text-gray-400 text-sm">{item.quantity}</td>
+                                <td className="py-3 text-gray-400 text-sm">
+                                    {item.quantity}
+                                    {item.unit_type && item.unit_type !== 'base' && (
+                                        <span className="ml-1 text-xs text-blue-400">{item.unit_type}</span>
+                                    )}
+                                </td>
                                 <td className="py-3 text-gray-400 text-sm">{item.unit_price} EGP</td>
                                 <td className="py-3 text-white text-sm font-medium">{item.total} EGP</td>
                             </tr>
@@ -308,6 +303,11 @@ export default function OrderDetail() {
                     </div>
                 </div>
             )}
+            <Toast
+                type={toast.type}
+                message={toast.message}
+                onClose={hideToast}
+            />
         </div>
     )
 }
