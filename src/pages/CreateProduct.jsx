@@ -2,9 +2,14 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import BackButton from '../components/BackButton'
+import SupplierSearchInput from '../components/SupplierSearchInput'
+import Toast from '../components/Toast'
+import {useToast} from '../hooks/useToast'
 
 export default function CreateProduct() {
     const [warehouses, setWarehouses] = useState([])
+    const [suppliers, setSuppliers] = useState([])
+    const [selectedSupplier, setSelectedSupplier] = useState(null)
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
     const [generatingDesc, setGeneratingDesc] = useState(false)
@@ -18,12 +23,15 @@ export default function CreateProduct() {
         description_en: '',
         price_a: '', price_b: '', price_c: '', price_d: '', price_e: '',
         secondary_unit: '', conversion_factor: '',
+        supplier_id: '',
     })
     const [stocks, setStocks] = useState([
         { warehouse_id: '', quantity: 1, threshold: 10, unit_type: 'base' }
     ])
     const navigate = useNavigate()
     const [units, setUnits] = useState([])
+    const { toast, showToast, hideToast } = useToast()
+    
 
     useEffect(() => {
         api.get('/warehouses').then(res => setWarehouses(res.data.data))
@@ -33,6 +41,7 @@ export default function CreateProduct() {
                 setForm(f => ({ ...f, unit: res.data.data[0].name }))
             }
         })
+        api.get('/suppliers').then(res => setSuppliers(res.data.data))
     }, [])
 
     const addStock = () => {
@@ -48,10 +57,6 @@ export default function CreateProduct() {
         setStocks(updated)
     }
 
-    const showError = (msg) => {
-        setError(msg)
-        setTimeout(() => setError('') , 4000)
-    }
     const usedWarehouseIds = stocks.map(s => parseInt(s.warehouse_id)).filter(Boolean)
 
     const handleSaveUnit = async () => {
@@ -62,10 +67,11 @@ export default function CreateProduct() {
             const saved = res.data.data ?? res.data
             setUnits(prev => [...prev, saved])
             setForm(f => ({ ...f, unit: saved.name }))
+            showToast('Unit created successfully', 'success')
             setNewUnit('')
             setShowNewUnit(false)
         } catch {
-            setError('Failed to save unit')
+            showToast('Failed to save unit', 'error')
         } finally {
             setSavingUnit(false)
         }
@@ -73,7 +79,7 @@ export default function CreateProduct() {
 
     const handleGenerateDescription = async () => {
         if (!form.name || !form.price || !form.unit) {
-            showError('Please fill in name, price and unit first.')
+            showToast('Please fill in name, price and unit first.', 'error')
             return
         }
         setGeneratingDesc(true)
@@ -102,7 +108,7 @@ export default function CreateProduct() {
         setError('')
         const hasEmptyWarehouse = stocks.some(s => !s.warehouse_id)
     if (hasEmptyWarehouse) {
-        showError('Please select a warehouse for all stock rows, or remove empty rows.')
+        showToast('Please select a warehouse for all stock rows, or remove empty rows.', 'error')
         setSaving(false)
         return
     }
@@ -111,13 +117,14 @@ export default function CreateProduct() {
         s.warehouse_id && (!s.quantity || parseInt(s.quantity) <= 0)
     )
     if (hasInvalidQuantity) {
-        showError('Please enter a quantity greater than 0 for all warehouse rows.')
+        showToast('Please enter a quantity greater than 0 for all warehouse rows.', 'error')
         setSaving(false)
         return
     }
         try {
             await api.post('/products', {
                 ...form,
+                supplier_id: selectedSupplier?.id ?? null,
                 price: parseFloat(form.price),
                 stocks: stocks
                     .filter(s => s.warehouse_id)
@@ -131,7 +138,7 @@ export default function CreateProduct() {
             })
             navigate('/products')
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to create product')
+            showToast(err.response?.data?.message || 'Failed to create product', 'error')
         } finally {
             setSaving(false)
         }
@@ -170,6 +177,17 @@ export default function CreateProduct() {
                                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                             />
                         </div>
+                        <div className="col-span-2">
+    <label className="block text-sm text-gray-400 mb-1">
+        Supplier <span className="text-gray-600">(optional)</span>
+    </label>
+    <SupplierSearchInput
+        suppliers={suppliers}
+        value={selectedSupplier?.id ?? null}
+        onSelect={setSelectedSupplier}
+        placeholder="Search suppliers..."
+    />
+</div>
 
                         <div>
                             <label className="block text-sm text-gray-400 mb-1">Default Price</label>
@@ -416,6 +434,7 @@ export default function CreateProduct() {
 </div>
 
             </form>
+            <Toast message={toast.message} type={toast.type} onClose={hideToast} />
         </div>
     )
 }
