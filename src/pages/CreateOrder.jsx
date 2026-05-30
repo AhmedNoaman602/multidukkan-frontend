@@ -5,7 +5,8 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import BackButton from '../components/BackButton'
 import ProductSearchInput from '../components/ProductSearchInput'
 import CustomerSearchInput from '../components/CustomerSearchInput'
-
+import { useToast } from '../hooks/useToast'
+import Toast from '../components/Toast'
 const STORAGE_KEY = 'createOrderDraft'
 
 export default function CreateOrder() {
@@ -21,6 +22,7 @@ export default function CreateOrder() {
     const navigate = useNavigate()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
     const productSearchRef = useRef(null)
+    const { toast, showToast, hideToast } = useToast()
 
     // ---- Form state (restored from draft) ----
     const draft = (() => {
@@ -28,14 +30,21 @@ export default function CreateOrder() {
         catch { return {} }
     })()
 
+
     const [storeId, setStoreId] = useState(draft.storeId || '')
     const [customerId, setCustomerId] = useState(draft.customerId || '')
     const [items, setItems] = useState(draft.items || [])
     const [discountValue, setDiscountValue] = useState(draft.discountValue || 0)
     const [discountType, setDiscountType] = useState(draft.discountType || 'amount')
-    const [orderDate , setOrderDate] = useState(
-        draft.orderDate || new Date().toISOString().split('T')[0]
-    )
+
+    const [orderDate, setOrderDate] = useState(() => {
+        const today = new Date().toISOString().split('T')[0]
+        const saved = localStorage.getItem('order_draft_date')
+        return saved || today
+    })
+    useEffect(() => {
+        localStorage.setItem('order_draft_date', orderDate)
+    }, [orderDate])
     // Set store from user or saved default
     useEffect(() => {
         if (user.store_id) {
@@ -83,9 +92,9 @@ export default function CreateOrder() {
     // ---- Persist draft on every change ----
     useEffect(() => {
         sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
-            storeId, customerId, items, discountValue, discountType,orderDate,
+            storeId, customerId, items, discountValue, discountType,orderDate
         }))
-    }, [storeId, customerId, items, discountValue, discountType])
+    }, [storeId, customerId, items, discountValue, discountType,orderDate])
 
     // ---- Flash new item highlight ----
     useEffect(() => {
@@ -214,6 +223,7 @@ export default function CreateOrder() {
                 }))
             })
             sessionStorage.removeItem(STORAGE_KEY)
+            localStorage.removeItem('order_draft_date')
             navigate('/orders')
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to create order')
@@ -472,6 +482,11 @@ export default function CreateOrder() {
                     </div>
                 </div>
             </form>
+            <Toast 
+            message={toast.message} 
+            type={toast.type} 
+            onClose={hideToast} 
+            />
         </div>
     )
 }
