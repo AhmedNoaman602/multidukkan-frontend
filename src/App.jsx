@@ -31,6 +31,8 @@ import OrderDetail from './pages/OrderDetail'
 import PurchaseOrderDetail from './pages/PurchaseOrderDetail'
 import ScrollToTop from './components/ScrollToTop'
 import Toast from './components/Toast'
+import ChatWidget from './components/ChatWidget'
+
 // Simple auth check — is the user logged in at all?
 // Does NOT check has_store here. That's AuthGate's job with fresh data.
 const PrivateRoute = ({ children }) => {
@@ -231,6 +233,7 @@ export default function App() {
 
                 </Routes>
                 <Toast />
+                <ChatWidget />
             </AuthGate>
         </BrowserRouter>
     )
