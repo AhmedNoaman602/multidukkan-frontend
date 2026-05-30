@@ -29,6 +29,11 @@ export default function Dashboard() {
     const [topDebtors, setTopDebtors] = useState([])
     const [lowStockItems, setLowStockItems] = useState([])
     const [loading, setLoading] = useState(true)
+    const [insights, setInsights] = useState('')
+const [loadingInsights, setLoadingInsights] = useState(false)
+const [insightsFetched, setInsightsFetched] = useState(false)
+const [activePeriod , setActivePeriod] = useState("Today")
+const [ordersFilter, setOrdersFilter] = useState('all')
     const navigate = useNavigate()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
 
@@ -41,10 +46,28 @@ export default function Dashboard() {
         return 'Good night'
     }
 
+    const fetchInsights = async () => {
+    if (insightsFetched) return
+    setLoadingInsights(true)
+    try {
+        const res = await api.get('/ai/insights')
+        setInsights(res.data)
+        setInsightsFetched(true)
+    } catch {
+        setInsights(null)
+    } finally {
+        setLoadingInsights(false)
+    }
+}
+
 const today = new Date().toLocaleDateString('en-CA')    
 const todayFormatted = new Date().toLocaleDateString('en-EG', {
         weekday: 'long', month: 'long', day: 'numeric'
     })
+
+    useEffect(() => {
+    window.scrollTo(0, 0)
+}, [])
 
     useEffect(() => {
         const fetchData = async () => {
@@ -135,20 +158,35 @@ const todayFormatted = new Date().toLocaleDateString('en-EG', {
         <div className="space-y-8">
 
             {/* Header */}
-            <div className="flex items-start justify-between">
-                <div>
-                    <p className="text-gray-500 text-sm mb-1">{todayFormatted}</p>
-                    <h1 className="text-3xl font-bold text-white tracking-tight">
-                        {getGreeting()}, {user.name}
-                    </h1>
-                </div>
-                <div className="text-right">
-                    <p className="text-white font-semibold">{user.business_name}</p>
-                    <span className="inline-block mt-1 text-xs px-2 py-0.5 bg-blue-500/15 text-blue-400 rounded-full capitalize">
-                        {user.role?.replace(/_/g, ' ')}
-                    </span>
-                </div>
-            </div>
+           <div className="flex items-start justify-between">
+    <div>
+        <div className="flex items-center gap-2 mb-1">
+            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+            <p className="text-gray-500 text-sm">{todayFormatted}</p>
+        </div>
+        <h1 className="text-3xl font-bold text-white tracking-tight">
+            {getGreeting()}, {user.name}
+        </h1>
+        <p className="text-gray-500 text-sm mt-1">
+            Here's what's happening at {user.business_name} today.
+        </p>
+    </div>
+    <div className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-xl p-1">
+    {['Today', 'Week', 'Month', 'Year'].map(period => (
+        <button
+            key={period}
+            onClick={() => setActivePeriod(period)}
+            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                activePeriod === period
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-400 hover:text-white'
+            }`}
+        >
+            {period}
+        </button>
+    ))}
+</div>
+</div>
 
             {/* PRIMARY — Today's performance */}
             <div>
@@ -268,69 +306,258 @@ const todayFormatted = new Date().toLocaleDateString('en-EG', {
                     )}
                 </div>
             </div>
+{/* AI Insights */}
+{user.role === 'tenant_admin' && (
+    <div>
+        <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+                <div className="w-1 h-4 bg-purple-500 rounded-full" />
+                <p className="text-xs text-gray-400 uppercase tracking-widest font-semibold">AI Insights</p>
+                <span className="text-xs px-2 py-0.5 bg-purple-500/15 text-purple-400 rounded-full">آخر 30 يوم</span>
+                {insightsFetched && (
+                    <span className="text-xs px-2 py-0.5 bg-green-500/15 text-green-400 rounded-full">✓ محدّث</span>
+                )}
+            </div>
+            <button
+                onClick={fetchInsights}
+                disabled={loadingInsights}
+                className="flex items-center gap-2 px-4 py-2 bg-purple-600/20 border border-purple-500/30 text-purple-400 hover:bg-purple-600/30 disabled:opacity-40 text-xs font-medium rounded-lg transition-colors"
+            >
+                {loadingInsights ? (
+                    <>
+                        <span className="w-3 h-3 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+                        جاري التحليل...
+                    </>
+                ) : insightsFetched ? (
+                    <>🔄 تحديث</>
+                ) : (
+                    <>✨ تحليل المبيعات</>
+                )}
+            </button>
+        </div>
 
+        <div className="bg-gray-900 border border-purple-500/20 rounded-2xl overflow-hidden">
+            {!insightsFetched && !loadingInsights && (
+                <div className="text-center py-10">
+                    <div className="text-4xl mb-3">🤖</div>
+                    <p className="text-gray-300 text-sm font-medium mb-1">تحليل ذكي لمبيعاتك</p>
+                    <p className="text-gray-600 text-xs mb-4">اضغط على "تحليل المبيعات" للحصول على رؤى مخصصة لمتجرك</p>
+                    <button
+                        onClick={fetchInsights}
+                        disabled={loadingInsights}
+                        className="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded-lg transition-colors"
+                    >
+                        ✨ تحليل المبيعات الآن
+                    </button>
+                </div>
+            )}
+
+            {loadingInsights && (
+                <div className="text-center py-10">
+                    <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                    <p className="text-purple-400 text-sm">جاري تحليل بيانات المبيعات...</p>
+                    <p className="text-gray-600 text-xs mt-1">قد يستغرق هذا بضع ثوانٍ</p>
+                </div>
+            )}
+
+            {insights && !loadingInsights && (
+    <div className="p-5">
+        <div className="grid grid-cols-3 gap-4">
+            {[
+                {
+                    key: 'opportunity',
+                    label: 'OPPORTUNITY',
+                    icon: '💡',
+                    color: 'green',
+                    border: 'border-green-500/20',
+                    bg: 'bg-green-500/5',
+                    badge: 'bg-green-500/20 text-green-400',
+                },
+                {
+                    key: 'urgent',
+                    label: 'URGENT',
+                    icon: '⚠️',
+                    color: 'red',
+                    border: 'border-red-500/20',
+                    bg: 'bg-red-500/5',
+                    badge: 'bg-red-500/20 text-red-400',
+                },
+                {
+                    key: 'trend',
+                    label: 'TREND',
+                    icon: '📈',
+                    color: 'blue',
+                    border: 'border-blue-500/20',
+                    bg: 'bg-blue-500/5',
+                    badge: 'bg-blue-500/20 text-blue-400',
+                },
+            ].map(card => (
+                insights[card.key]?.title && (
+                    <div key={card.key} className={`rounded-xl border ${card.border} ${card.bg} p-4`}>
+                        <div className="flex items-center gap-2 mb-3">
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${card.badge}`}>
+                                {card.icon} {card.label}
+                            </span>
+                        </div>
+                        <p className="text-white text-sm font-semibold mb-2 text-right" dir="rtl">
+                            {insights[card.key].title}
+                        </p>
+                        <p className="text-gray-400 text-xs leading-relaxed text-right" dir="rtl">
+                            {insights[card.key].body}
+                        </p>
+                    </div>
+                )
+            ))}
+        </div>
+        <div className="mt-4 pt-4 border-t border-gray-800 flex items-center justify-between">
+            <p className="text-gray-600 text-xs">تم التحليل بواسطة الذكاء الاصطناعي</p>
+            <button
+                onClick={() => { setInsightsFetched(false); setInsights(null); fetchInsights() }}
+                className="text-purple-400 hover:text-purple-300 text-xs transition-colors"
+            >
+                🔄 تحديث التحليل
+            </button>
+        </div>
+    </div>
+)}
+        </div>
+    </div>
+)}
             {/* Two-column info panels */}
             <div className="grid grid-cols-2 gap-4">
 
-                {/* Recent orders */}
-                <div>
-                    <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                            <div className="w-1 h-4 bg-blue-500 rounded-full" />
-                            <p className="text-xs text-gray-400 uppercase tracking-widest font-semibold">Recent Orders</p>
-                        </div>
-                        <button
-                            onClick={() => navigate('/orders')}
-                            className="text-blue-400 hover:text-blue-300 text-xs font-medium"
-                        >
-                            View all →
-                        </button>
-                    </div>
+                {/* Recent Orders */}
+<div>
+    <div className="flex items-center justify-between mb-3">
+        <div>
+            <div className="flex items-center gap-2">
+                <div className="w-1 h-4 bg-blue-500 rounded-full" />
+                <p className="text-xs text-gray-400 uppercase tracking-widest font-semibold">Recent Orders</p>
+            </div>
+            <p className="text-gray-600 text-xs mt-0.5 ml-3">
+                {recentOrders.length} orders · today and recent
+            </p>
+        </div>
+        <button
+            onClick={() => navigate('/orders')}
+            className="text-blue-400 hover:text-blue-300 text-xs font-medium"
+        >
+            View all →
+        </button>
+    </div>
 
-                    <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
-                        {recentOrders.length === 0 ? (
-                            <div className="text-center py-10">
-                                <p className="text-4xl mb-2">📭</p>
-                                <p className="text-gray-500 text-sm mb-3">No orders yet</p>
-                                <button
-                                    onClick={() => navigate('/orders/create')}
-                                    className="text-blue-400 hover:text-blue-300 text-sm font-medium"
-                                >
-                                    Create your first order →
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="divide-y divide-gray-800">
-                                {recentOrders.map(order => (
-                                    <div
-                                        key={order.id}
-                                        className="flex items-center justify-between px-4 py-3 hover:bg-gray-800/50 transition-colors"
-                                    >
-                                        <div className="flex items-center gap-3 min-w-0">
-                                            <span className="text-gray-600 text-xs font-mono">#{order.id}</span>
-                                            <div className="min-w-0">
-                                                <p className="text-white text-sm font-medium truncate">{order.customer_name}</p>
-                                                <p className="text-gray-500 text-xs">
-                                                    {new Date(order.created_at).toLocaleDateString('en-EG', { month: 'short', day: 'numeric' })}
-                                                </p>
-                                            </div>
+    <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+        {/* Filter tabs */}
+        <div className="flex items-center gap-1 px-4 py-3 border-b border-gray-800">
+            {[
+                { label: 'All', value: 'all', count: recentOrders.length },
+                { label: 'Paid', value: 'paid', count: recentOrders.filter(o => o.status === 'paid').length },
+                { label: 'Unpaid', value: 'unpaid', count: recentOrders.filter(o => o.status === 'unpaid').length },
+            ].map(tab => (
+                <button
+                    key={tab.value}
+                    onClick={() => setOrdersFilter(tab.value)}
+                    className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                        ordersFilter === tab.value
+                            ? 'bg-gray-700 text-white'
+                            : 'text-gray-500 hover:text-gray-300'
+                    }`}
+                >
+                    {tab.label}
+                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${
+                        ordersFilter === tab.value ? 'bg-gray-600 text-white' : 'bg-gray-800 text-gray-500'
+                    }`}>
+                        {tab.count}
+                    </span>
+                </button>
+            ))}
+        </div>
+
+        {/* Table */}
+        {recentOrders.length === 0 ? (
+            <div className="text-center py-10">
+                <p className="text-4xl mb-2">📭</p>
+                <p className="text-gray-500 text-sm mb-3">No orders yet</p>
+                <button
+                    onClick={() => navigate('/orders/create')}
+                    className="text-blue-400 hover:text-blue-300 text-sm font-medium"
+                >
+                    Create your first order →
+                </button>
+            </div>
+        ) : (
+            <table className="w-full table-fixed">
+                <colgroup>
+                    <col className="w-10" />   {/* Invoice */}
+                    <col />                     {/* Customer – flex */}
+                    <col className="w-8" />    {/* Items */}
+                    <col className="w-20" />   {/* Total */}
+                    <col className="w-20" />   {/* Balance */}
+                    <col className="w-24" />   {/* Status */}
+                    <col className="w-24" />   {/* Time */}
+                </colgroup>
+                <thead>
+                    <tr className="border-b border-gray-800">
+                        {['Invoice', 'Customer', 'Items', 'Total', 'Balance', 'Status', 'Time'].map(h => (
+                            <th key={h} className="px-2 py-2.5 text-left text-[11px] font-medium text-gray-500 uppercase tracking-wider">
+                                {h}
+                            </th>
+                        ))}
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-800/60">
+                    {recentOrders
+                        .filter(o => ordersFilter === 'all' || o.status === ordersFilter)
+                        .map(order => (
+                            <tr
+                                key={order.id}
+                                onClick={() => navigate(`/orders/${order.id}`)}
+                                className="hover:bg-gray-800/50 transition-colors cursor-pointer"
+                            >
+                                <td className="px-2 py-3 text-gray-500 text-xs font-mono">
+                                    #{order.id}
+                                </td>
+                                <td className="px-2 py-3">
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="w-6 h-6 rounded-md bg-blue-600/20 border border-blue-500/20 flex items-center justify-center text-blue-400 text-xs font-bold shrink-0">
+                                            {order.customer_name?.charAt(0) ?? '?'}
                                         </div>
-                                        <div className="flex items-center gap-3 shrink-0">
-                                            <span className="text-white text-sm font-semibold">{order.total} EGP</span>
-                                            <span className={`px-2 py-0.5 rounded-md text-xs font-semibold ${
-                                                order.status === 'paid'
-                                                    ? 'bg-green-500/15 text-green-400'
-                                                    : 'bg-red-500/15 text-red-400'
-                                            }`}>
-                                                {order.status === 'paid' ? '✓' : '⏳'}
-                                            </span>
-                                        </div>
+                                        <p className="text-white text-sm font-medium truncate">{order.customer_name}</p>
                                     </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
+                                </td>
+                                <td className="px-2 py-3 text-gray-400 text-sm">
+                                    {order.items_count}
+                                </td>
+                                <td className="px-2 py-3 text-white text-sm font-semibold">
+                                    {order.total} <span className="text-gray-500 text-xs font-normal">EGP</span>
+                                </td>
+                                <td className="px-2 py-3 text-sm font-medium">
+                                    {order.amount_remaining > 0
+                                        ? <span className="text-red-400 whitespace-nowrap">-{order.amount_remaining}</span>
+                                        : <span className="text-gray-600">—</span>
+                                    }
+                                </td>
+                                <td className="px-2 py-3 whitespace-nowrap">
+                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold whitespace-nowrap ${
+                                        order.status === 'paid'
+                                            ? 'bg-green-500/15 text-green-400'
+                                            : 'bg-red-500/15 text-red-400'
+                                    }`}>
+                                        {order.status === 'paid' ? '✓ Paid' : '⏳ Unpaid'}
+                                    </span>
+                                </td>
+                                <td className="px-2 py-3 text-gray-500 text-xs whitespace-nowrap">
+                                    {new Date(order.created_at).toLocaleDateString('en-EG', {
+                                        year: 'numeric', month: 'short', day: 'numeric'
+                                    })}
+                                </td>
+                            </tr>
+                        ))}
+                </tbody>
+            </table>
+        )}
+    </div>
+</div>
 
                 {/* Top debtors OR Low stock */}
                 <div>
