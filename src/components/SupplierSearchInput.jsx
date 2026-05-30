@@ -95,7 +95,7 @@ export default function SupplierSearchInput({ suppliers, value, onChange, onSele
                         onClick={handleClear}
                         className="p-1 hover:bg-gray-700 rounded transition-colors"
                     >
-                        <X className="w-4 h-4 text-gray-400" />
+                      <span className="text-gray-400 text-sm">✕</span>
                     </button>
                 </div>
             ) : (
@@ -168,8 +168,7 @@ export default function SupplierSearchInput({ suppliers, value, onChange, onSele
                         <div className="p-4 border-b border-gray-700 flex items-center justify-between">
                             <h3 className="text-white font-semibold">Select Supplier</h3>
                             <button onClick={() => setShowBrowseModal(false)} className="text-gray-400 hover:text-white">
-                                <X className="w-5 h-5" />
-                            </button>
+<span className="text-gray-400 text-sm">✕</span>                            </button>
                         </div>
                         <div className="p-4 overflow-auto max-h-[calc(80vh-120px)]">
                             <div className="space-y-1">
