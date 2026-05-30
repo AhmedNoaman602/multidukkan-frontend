@@ -24,7 +24,7 @@ export default function SupplierBalance() {
                 api.get(`/suppliers/${id}/balance`),
                 api.get(`/suppliers/${id}/ledger`),
                 api.get('/purchase-orders'),
-                api.get(`/suppliers/${id}/products`),
+                api.get(`/suppliers/${id}/stock`),
             ])
             setData({
                 balance: balanceRes.data,
@@ -122,27 +122,53 @@ export default function SupplierBalance() {
                 </div>
             )}
 
-            {/* Attached Products */}
-            {attachedProducts.length > 0 && (
-                <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-                    <h3 className="text-white font-semibold mb-3">
-                        Products
-                        <span className="ml-2 text-sm font-normal text-gray-400">
-                            ({attachedProducts.length})
-                        </span>
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                        {attachedProducts.map(p => (
-                            <span
-                                key={p.id}
-                                className="px-3 py-1 bg-gray-800 border border-gray-700 text-gray-300 text-xs rounded-lg"
-                            >
-                                {p.name}
+            {/* Products & Stock */}
+<div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden mb-6">
+    <div className="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
+        <h3 className="text-white font-semibold">
+            Products
+            <span className="ml-2 text-sm font-normal text-gray-400">
+                ({attachedProducts.length})
+            </span>
+        </h3>
+    </div>
+    {attachedProducts.length > 0 ? (
+        <table className="w-full">
+            <thead className="bg-gray-800">
+                <tr>
+                    {['Product', 'SKU', 'Unit', 'Price', 'Total Stock'].map(h => (
+                        <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                            {h}
+                        </th>
+                    ))}
+                </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-800">
+                {attachedProducts.map(product => (
+                    <tr key={product.id} className="hover:bg-gray-800/50 transition-colors">
+                        <td className="px-4 py-3 text-white text-sm font-medium">{product.name}</td>
+                        <td className="px-4 py-3 text-gray-400 text-sm font-mono">{product.sku}</td>
+                        <td className="px-4 py-3 text-gray-400 text-sm">{product.unit}</td>
+                        <td className="px-4 py-3 text-white text-sm">{product.price} EGP</td>
+                        <td className="px-4 py-3">
+                            <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                product.total_stock > 0
+                                    ? 'bg-green-500/20 text-green-400'
+                                    : 'bg-red-500/20 text-red-400'
+                            }`}>
+                                {product.total_stock} {product.unit}
                             </span>
-                        ))}
-                    </div>
-                </div>
-            )}
+                        </td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    ) : (
+        <div className="text-center py-10 text-gray-500 text-sm">
+            No products linked to this supplier yet.
+        </div>
+    )}
+</div>
 
             {/* Purchase Orders */}
             <h3 className="text-white font-semibold mb-4">Purchase Orders</h3>
