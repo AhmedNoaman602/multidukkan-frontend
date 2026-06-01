@@ -1,13 +1,16 @@
 import { useEffect } from 'react'
+import { useToast } from '../hooks/useToast'
 
-export default function Toast({ message, type = 'error', onClose }) {
+export default function Toast() {
+    const { toast, hideToast } = useToast()
+
     useEffect(() => {
-        if (!message) return
-        const timer = setTimeout(onClose, 4000)
+        if (!toast.message) return
+        const timer = setTimeout(hideToast, 4000)
         return () => clearTimeout(timer)
-    }, [message])
+    }, [toast.message])
 
-    if (!message) return null
+    if (!toast.message) return null
 
     const styles = {
         error:   'bg-red-500/10 border-red-500/20 text-red-400',
@@ -16,11 +19,11 @@ export default function Toast({ message, type = 'error', onClose }) {
     }
 
     return (
-        <div className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-lg border text-sm shadow-lg max-w-sm ${styles[type]}`}>
+        <div className={`fixed bottom-6 left-6 z-50 px-4 py-3 rounded-lg border text-sm shadow-lg max-w-sm ${styles[toast.type]}`}>
             <div className="flex items-center justify-between gap-3">
-                <span>{message}</span>
+                <span>{toast.message}</span>
                 <button
-                    onClick={onClose}
+                    onClick={hideToast}
                     className="text-current opacity-60 hover:opacity-100 transition-opacity"
                 >
                     ✕
