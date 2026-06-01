@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import BackButton from '../components/BackButton'
 import SupplierSearchInput from '../components/SupplierSearchInput'
-import Toast from '../components/Toast'
 import {useToast} from '../hooks/useToast'
 
 export default function CreateProduct() {
@@ -419,11 +418,6 @@ export default function CreateProduct() {
 
                 {/* Submit */}
 <div className="flex flex-col items-end gap-2">
-    {error && (
-        <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg text-sm w-full">
-            {error}
-        </div>
-    )}
     <button
         type="submit"
         disabled={saving}
@@ -434,7 +428,6 @@ export default function CreateProduct() {
 </div>
 
             </form>
-            <Toast message={toast.message} type={toast.type} onClose={hideToast} />
         </div>
     )
 }

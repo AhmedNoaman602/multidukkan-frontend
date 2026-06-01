@@ -30,6 +30,7 @@ import PurchaseOrderInvoice from './pages/PurchaseOrderInvoice'
 import OrderDetail from './pages/OrderDetail'
 import PurchaseOrderDetail from './pages/PurchaseOrderDetail'
 import ScrollToTop from './components/ScrollToTop'
+import { ToastProvider } from './hooks/useToast'
 import Toast from './components/Toast'
 import ChatWidget from './components/ChatWidget'
 
@@ -78,7 +79,8 @@ function AuthGate({ children }) {
 export default function App() {
     return (
         <BrowserRouter>
-        <ScrollToTop />
+        <ToastProvider>
+             <ScrollToTop />
             <AuthGate>
                 <Routes>
                     <Route path="/login" element={<Login />} />
@@ -232,9 +234,10 @@ export default function App() {
                     } />
 
                 </Routes>
-                <Toast />
+                <Toast/>
                 <ChatWidget />
             </AuthGate>
+            </ToastProvider>
         </BrowserRouter>
     )
 }
