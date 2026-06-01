@@ -5,6 +5,8 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import Modal from '../components/Modal'
 import SearchInput from '../components/SearchInput'
 import StatBoxes from '../components/StatBoxes'
+import DeleteModal from '../components/DeleteModal'
+import {useToast} from '../hooks/useToast'
 
 export default function Suppliers() {
     const [suppliers, setSuppliers] = useState([])
@@ -17,6 +19,7 @@ export default function Suppliers() {
     const [page, setPage] = useState(1)
     const [lastPage, setLastPage] = useState(1)
     const [stats, setStats] = useState([])
+    const {showToast} = useToast()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
 
     const fetchSuppliers = () => {
@@ -40,7 +43,7 @@ export default function Suppliers() {
             setDeleteTarget(null)
             fetchSuppliers()
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to delete supplier')
+            showToast(err.response?.data?.message || 'Failed to delete supplier', 'error')
             setDeleteTarget(null)
         } finally {
             setDeleting(false)

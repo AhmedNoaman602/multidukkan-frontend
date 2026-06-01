@@ -5,11 +5,12 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import Modal from '../components/Modal'
 import SearchInput from '../components/SearchInput'
 import StatBoxes from '../components/StatBoxes'
+import {useToast} from '../hooks/useToast'
+import DeleteModal from '../components/DeleteModal'
 
 export default function Customers() {
     const [customers, setCustomers] = useState([])
     const [loading, setLoading] = useState(true)
-    const [error, setError] = useState('')
     const [search, setSearch] = useState('')
     const [deleteTarget, setDeleteTarget] = useState(null)
     const [deleting, setDeleting] = useState(false)
@@ -17,6 +18,8 @@ export default function Customers() {
     const [lastPage, setLastPage] = useState(1)
     const [stats, setStats] = useState([])
     const navigate = useNavigate()
+    const [error, setError] = useState('')
+    const {showToast} = useToast()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
 
     const fetchCustomers = () => {
@@ -37,10 +40,11 @@ export default function Customers() {
         setDeleting(true)
         try {
             await api.delete(`/customers/${deleteTarget.id}`)
+            showToast('Customer deleted successfully', 'success')
             setDeleteTarget(null)
             fetchCustomers()
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to delete customer')
+            showToast(err.response?.data?.message || 'Failed to delete customer' , 'error')
             setDeleteTarget(null)
         } finally {
             setDeleting(false)
@@ -74,12 +78,6 @@ export default function Customers() {
                     )}
                 </div>
             </div>
-
-            {error && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg mb-6 text-sm">
-                    {error}
-                </div>
-            )}
 
             {
                 stats && (
@@ -189,40 +187,15 @@ export default function Customers() {
                 </div>
             )}
 
-            <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Delete Customer">
-                {deleteTarget && (
-                    <form onSubmit={(e) => { e.preventDefault(); handleDelete() }}>
-                        <div className="space-y-4">
-                            <p className="text-gray-300 text-sm">
-                                Are you sure you want to delete{' '}
-                                <span className="text-white font-semibold">{deleteTarget.name}</span>?
-                                This action cannot be undone.
-                            </p>
-                            <div className="bg-red-500/5 border border-red-500/20 rounded-lg px-4 py-3">
-                                <p className="text-red-400 text-xs">
-                                    All balance history and transactions linked to this customer will be affected.
-                                </p>
-                            </div>
-                            <div className="flex justify-end gap-2 pt-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setDeleteTarget(null)}
-                                    className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={deleting}
-                                    className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
-                                >
-                                    {deleting ? 'Deleting...' : 'Yes, Delete'}
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                )}
-            </Modal>
+           <DeleteModal
+            open={!!deleteTarget}
+            onClose={() => setDeleteTarget(null)}
+            onConfirm={handleDelete}
+            deleting={deleting}
+            title="Delete Customer"
+            name={deleteTarget?.name}
+            warning="All balance history and transactions linked to this customer will be affected."
+           />
         </div>
     )
 }

@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom'
 import LoadingSpinner from '../components/LoadingSpinner'
 import SearchInput from '../components/SearchInput'
 import Modal from '../components/Modal'
+import {useToast} from '../hooks/useToast'
+import DeleteModal from '../components/DeleteModal'
 
 export default function Products() {
     const navigate = useNavigate()
@@ -15,11 +17,9 @@ export default function Products() {
     const [deleting, setDeleting] = useState(false)
     const [page , setPage] = useState(1)
     const [lastPage , setLastPage] = useState(1)
+    const {showToast} = useToast()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
-    const showError = (msg) => {
-        setError(msg)
-        setTimeout(() => setError(''), 4000)
-    }
+
     const fetchData = async () => {
         try {
             const res = await api.get('/products' ,{params: {page , search}})
@@ -46,7 +46,7 @@ export default function Products() {
         setDeleteTarget(null)
         fetchData()
     } catch (err) {
-        showError(err.response?.data?.message || 'Failed to delete product')
+        showToast(err.response?.data?.message || 'Failed to delete product' , 'error')
         setDeleteTarget(null)
     } finally {
         setDeleting(false)
@@ -150,46 +150,14 @@ export default function Products() {
         </button>
     </div>
 )}
-            <Modal
-                            open={!!deleteTarget}
-                            onClose={() => setDeleteTarget(null)}
-                            title="Delete Product"
-                        >
-                            {deleteTarget && (
-                                <form onSubmit={(e) => { e.preventDefault(); handleDelete(); }}>
-                                    <div className="space-y-4">
-                                        <p className="text-gray-300 text-sm">
-                                            Are you sure you want to delete{' '}
-                                            <span className="text-white font-semibold">
-                                                {deleteTarget.name}
-                                            </span>
-                                            ? This action cannot be undone.
-                                        </p>
-                                        <div className="flex justify-end gap-2 pt-2">
-                                            <button
-                                                type="button"
-                                                onClick={() => setDeleteTarget(null)}
-                                                className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
-                                            >
-                                                Cancel
-                                            </button>
-                                            <button
-                                                type="submit"
-                                                disabled={deleting}
-                                                className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
-                                            >
-                                                {deleting ? 'Deleting...' : 'Yes, Delete'}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </form>
-                            )}
-                        </Modal>
-                        {error && (
-    <div className="fixed bottom-6 right-6 bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg text-sm shadow-lg z-50">
-        {error}
-    </div>
-)}
+            <DeleteModal
+                open={!!deleteTarget}
+                onClose={() => setDeleteTarget(null)}
+                onConfirm={handleDelete}
+                deleting={deleting}
+                title="Delete Product"
+                name={deleteTarget?.name}
+            />
         </div>
     )
 }
