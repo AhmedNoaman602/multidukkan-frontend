@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
+import { useToast } from '../hooks/useToast'
+import DeleteModal from '../components/DeleteModal'
 import Modal from '../components/Modal'
-import Toast from '../components/Toast'
-import {useToast} from '../hooks/useToast'
 
 export default function Settings() {
     const [activeTab, setActiveTab] = useState('users')
@@ -14,7 +14,6 @@ export default function Settings() {
     const [showCreateUser, setShowCreateUser] = useState(false)
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
-    const [success, setSuccess] = useState('')
     const [showCreateStore, setShowCreateStore] = useState(false)
     const [storeForm, setStoreForm] = useState({ name: '', address: '', phone: '' })
     const user = JSON.parse(localStorage.getItem('user') || '{}')
@@ -33,9 +32,15 @@ export default function Settings() {
     const [units, setUnits] = useState([])
     const [showCreateUnit, setShowCreateUnit] = useState(false)
     const [unitForm, setUnitForm] = useState({ name: '' })
+    const [deleteTargetUser, setDeleteTargetUser] = useState(null)
+    const [deletingUser, setDeletingUser] = useState(false)
     const [deleteTargetStore, setDeleteTargetStore] = useState(null)
     const [deletingStore, setDeletingStore] = useState(false)
-    const { toast, showToast, hideToast } = useToast()
+    const [deleteTargetWarehouse, setDeleteTargetWarehouse] = useState(null)
+    const [deletingWarehouse, setDeletingWarehouse] = useState(false)
+    const [deleteTargetUnit, setDeleteTargetUnit] = useState(null)
+    const [deletingUnit, setDeletingUnit] = useState(false)
+    const { showToast } = useToast()
 
     const allowedRoles = user.role === 'tenant_admin'
         ? ['store_manager', 'store_staff']
@@ -80,16 +85,21 @@ export default function Settings() {
         }
     }
 
-    const handleDeleteUser = async (userId) => {
-        if (!confirm('Are you sure you want to delete this user?')) return
-        try {
-            await api.delete(`/users/${userId}`)
-            setUsers(users.filter(u => u.id !== userId))
-            showToast('User deleted successfully', 'success')
-        } catch (err) {
-            showToast(err.response?.data?.message || 'Failed to delete user', 'error')
-        }
+    const handleDeleteUser = async () => {
+    if (!deleteTargetUser) return
+    setDeletingUser(true)
+    try {
+        await api.delete(`/users/${deleteTargetUser.id}`)
+        setUsers(users.filter(u => u.id !== deleteTargetUser.id))
+        showToast('User deleted successfully', 'success')
+        setDeleteTargetUser(null)
+    } catch (err) {
+        showToast(err.response?.data?.message || 'Failed to delete user', 'error')
+        setDeleteTargetUser(null)
+    } finally {
+        setDeletingUser(false)
     }
+}
 
     const handleCreateStore = async (e) => {
     e.preventDefault()
@@ -142,15 +152,20 @@ const handleCreateWarehouse = async (e) => {
     }
 }
 
-const handleDeleteWarehouse = async (warehouseId) => {
-    if (!confirm('Are you sure you want to delete this warehouse?')) return
+const handleDeleteWarehouse = async () => {
+    if (!deleteTargetWarehouse) return
+    setDeletingWarehouse(true)
     try {
-        await api.delete(`/warehouses/${warehouseId}`)
-        setWarehouses(warehouses.filter(w => w.id !== warehouseId))
+        await api.delete(`/warehouses/${deleteTargetWarehouse.id}`)
+        setWarehouses(warehouses.filter(w => w.id !== deleteTargetWarehouse.id))
         showToast('Warehouse deleted successfully', 'success')
+        setDeleteTargetWarehouse(null)
     } catch (err) {
-    showToast(err.response?.data?.message || 'Failed to delete warehouse', 'error')
-}
+        showToast(err.response?.data?.message || 'Failed to delete warehouse', 'error')
+        setDeleteTargetWarehouse(null)
+    } finally {
+        setDeletingWarehouse(false)
+    }
 }
 
 const handleCreateUnit = async (e) => {
@@ -170,14 +185,19 @@ const handleCreateUnit = async (e) => {
     }
 }
 
-const handleDeleteUnit = async (unitId) => {
-    if (!confirm('Are you sure you want to delete this unit?')) return
+const handleDeleteUnit = async () => {
+    if (!deleteTargetUnit) return
+    setDeletingUnit(true)
     try {
-        await api.delete(`/units/${unitId}`)
-        setUnits(units.filter(u => u.id !== unitId))
+        await api.delete(`/units/${deleteTargetUnit.id}`)
+        setUnits(units.filter(u => u.id !== deleteTargetUnit.id))
         showToast('Unit deleted successfully', 'success')
+        setDeleteTargetUnit(null)
     } catch (err) {
         showToast(err.response?.data?.message || 'Failed to delete unit', 'error')
+        setDeleteTargetUnit(null)
+    } finally {
+        setDeletingUnit(false)
     }
 }
     
@@ -222,12 +242,6 @@ const handleDeleteUnit = async (unitId) => {
         {/* Content */}
         <div className="flex-1 min-w-0">
             <h2 className="text-2xl font-bold text-white mb-6">Settings</h2>
-
-            {success && (
-                <div className="bg-green-500/10 border border-green-500/20 text-green-400 px-4 py-3 rounded-lg mb-6 text-sm">
-                    {success}
-                </div>
-            )}
 
             {/* Users tab */}
             {activeTab === 'users' && (
@@ -301,7 +315,7 @@ const handleDeleteUnit = async (unitId) => {
                                         <td className="px-4 py-3 text-gray-400 text-sm">{stores.find(s => s.id === parseInt(u.store_id))?.name || '—'}</td>
                                         <td className="px-4 py-3">
                                             {allowedRoles.includes(u.role) && (
-                                                <button onClick={() => handleDeleteUser(u.id)} className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-medium rounded-lg transition-colors">Remove</button>
+                                                <button onClick={() => setDeleteTargetUser(u)} className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-medium rounded-lg transition-colors">Remove</button>
                                             )}
                                         </td>
                                     </tr>
@@ -310,6 +324,15 @@ const handleDeleteUnit = async (unitId) => {
                         </table>
                         {users.length === 0 && <div className="text-center py-16 text-gray-500">No team members yet.</div>}
                     </div>
+                    <DeleteModal
+                       open={!!deleteTargetUser}
+                       onClose={() => setDeleteTargetUser(null)}
+                       onConfirm={handleDeleteUser}
+                       deleting={deletingUser}
+                       title="Delete User"
+                       name={deleteTargetUser?.name}
+                       warning="This user will lose access to the system immediately."
+                    />
                 </div>
             )}
 
@@ -367,40 +390,15 @@ const handleDeleteUnit = async (unitId) => {
                         </table>
                         {stores.length === 0 && <div className="text-center py-16 text-gray-500">No stores yet.</div>}
                     </div>
-                    {deleteTargetStore && (
-                        <Modal open={!!deleteTargetStore} onClose={() => setDeleteTargetStore(null)} title="Delete Store">
-                            <form onSubmit={(e) => { e.preventDefault(); handleDeleteStore() }}>
-                                <div className="space-y-4">
-                                    <p className="text-gray-300 text-sm">
-                                        Are you sure you want to delete{' '}
-                                        <span className="text-white font-semibold">{deleteTargetStore.name}</span>?
-                                        This action cannot be undone.
-                                    </p>
-                                    <div className="bg-red-500/5 border border-red-500/20 rounded-lg px-4 py-3">
-                                        <p className="text-red-400 text-xs">
-                                            All warehouses, users, and transactions linked to this store will be affected.
-                                        </p>
-                                    </div>
-                                    <div className="flex justify-end gap-2 pt-2">
-                                        <button
-                                            type="button"
-                                            onClick={() => setDeleteTargetStore(null)}
-                                            className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            type="submit"
-                                            disabled={deletingStore}
-                                            className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
-                                        >
-                                            {deletingStore ? 'Deleting...' : 'Yes, Delete'}
-                                        </button>
-                                    </div>
-                                </div>
-                            </form>
-                        </Modal>
-                    )}
+                    <DeleteModal
+                        open={!!deleteTargetStore}
+                        onClose={() => setDeleteTargetStore(null)}
+                        onConfirm={handleDeleteStore}
+                        deleting={deletingStore}
+                        title="Delete Store"
+                        name={deleteTargetStore?.name}
+                        warning="All warehouses and transactions linked to this store will be affected."
+/>
                 </div>
             )}
 
@@ -457,7 +455,7 @@ const handleDeleteUnit = async (unitId) => {
                                         <td className="px-4 py-3 text-gray-400 text-sm">{stores.find(s => s.id === parseInt(w.store_id))?.name || '—'}</td>
                                         <td className="px-4 py-3 text-gray-400 text-sm">{w.address || '—'}</td>
                                         <td className="px-4 py-3">
-                                            <button onClick={() => handleDeleteWarehouse(w.id)} className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-medium rounded-lg transition-colors">Delete</button>
+                                            <button onClick={() => setDeleteTargetWarehouse(w)} className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-medium rounded-lg transition-colors">Delete</button>
                                         </td>
                                     </tr>
                                 ))}
@@ -465,8 +463,20 @@ const handleDeleteUnit = async (unitId) => {
                         </table>
                         {warehouses.length === 0 && <div className="text-center py-16 text-gray-500">No warehouses yet.</div>}
                     </div>
+                    <DeleteModal
+    open={!!deleteTargetWarehouse}
+    onClose={() => setDeleteTargetWarehouse(null)}
+    onConfirm={handleDeleteWarehouse}
+    deleting={deletingWarehouse}
+    title="Delete Warehouse"
+    name={deleteTargetWarehouse?.name}
+    warning="All inventory in this warehouse will be affected."
+/>
+
                 </div>
+                
             )}
+           
 
             {/* Units tab */}
             {activeTab === 'units' && (
@@ -509,7 +519,7 @@ const handleDeleteUnit = async (unitId) => {
                                     <tr key={u.id} className="hover:bg-gray-800/50 transition-colors">
                                         <td className="px-4 py-3 text-white text-sm font-medium">{u.name}</td>
                                         <td className="px-4 py-3">
-                                            <button onClick={() => handleDeleteUnit(u.id)} className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-medium rounded-lg transition-colors">Delete</button>
+                                            <button onClick={() => setDeleteTargetUnit(u)} className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-medium rounded-lg transition-colors">Delete</button>
                                         </td>
                                     </tr>
                                 ))}
@@ -519,8 +529,15 @@ const handleDeleteUnit = async (unitId) => {
                     </div>
                 </div>
             )}
+           <DeleteModal
+                open={!!deleteTargetUnit}
+                onClose={() => setDeleteTargetUnit(null)}
+                onConfirm={handleDeleteUnit}
+                deleting={deletingUnit}
+                title="Delete Unit"
+                name={deleteTargetUnit?.name}
+            />
         </div>
-        <Toast message={toast.message} type={toast.type} onClose={hideToast} />
     </div>
 )
 }
