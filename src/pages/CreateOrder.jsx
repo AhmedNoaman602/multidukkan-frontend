@@ -6,7 +6,6 @@ import BackButton from '../components/BackButton'
 import ProductSearchInput from '../components/ProductSearchInput'
 import CustomerSearchInput from '../components/CustomerSearchInput'
 import { useToast } from '../hooks/useToast'
-import Toast from '../components/Toast'
 const STORAGE_KEY = 'createOrderDraft'
 
 export default function CreateOrder() {
@@ -22,7 +21,7 @@ export default function CreateOrder() {
     const navigate = useNavigate()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
     const productSearchRef = useRef(null)
-    const { toast, showToast, hideToast } = useToast()
+    const {showToast} = useToast()
 
     // ---- Form state (restored from draft) ----
     const draft = (() => {
@@ -55,6 +54,15 @@ export default function CreateOrder() {
         }
     }, [])
 
+      useEffect(() => {
+        if (stores.length > 0 && !storeId) {
+            const id = String(stores[0].id)
+            setStoreId(id)
+            localStorage.setItem('default_store_id', id)
+        }
+    }, [stores])
+
+
     // Fetch data
     useEffect(() => {
         const fetchData = async () => {
@@ -80,14 +88,7 @@ export default function CreateOrder() {
         fetchData()
     }, [])
 
-    // Auto-select store if only one
-    useEffect(() => {
-        if (stores.length === 1 && !user.store_id && !storeId) {
-            const id = String(stores[0].id)
-            setStoreId(id)
-            localStorage.setItem('default_store_id', id)
-        }
-    }, [stores])
+  
 
     // ---- Persist draft on every change ----
     useEffect(() => {
@@ -240,12 +241,6 @@ export default function CreateOrder() {
                 <BackButton label="Back to Orders" to="/orders" />
                 <h2 className="text-2xl font-bold text-white">Create New Order</h2>
             </div>
-
-            {error && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg mb-4 text-sm">
-                    {error}
-                </div>
-            )}
 
             <form onSubmit={handleSubmit}>
                 {/* Store + Customer row */}
@@ -482,11 +477,6 @@ export default function CreateOrder() {
                     </div>
                 </div>
             </form>
-            <Toast 
-            message={toast.message} 
-            type={toast.type} 
-            onClose={hideToast} 
-            />
         </div>
     )
 }

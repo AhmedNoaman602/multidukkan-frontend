@@ -4,7 +4,6 @@ import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import BackButton from '../components/BackButton'
 import { useToast } from '../hooks/useToast'
-import Toast from '../components/Toast'
 
 export default function OrderDetail() {
     const { id } = useParams()
@@ -17,8 +16,7 @@ export default function OrderDetail() {
     const [editMode, setEditMode] = useState(false)
     const [editForm, setEditForm] = useState({ order_date: '', notes: '', discount: '' })
     const [saving, setSaving] = useState(false)
-    const [success, setSuccess] = useState('')
-    const {toast, showToast, hideToast} = useToast()
+    const { showToast } = useToast()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
 
     const canEdit = user.role === 'tenant_admin' || user.role === 'store_manager'
@@ -28,7 +26,7 @@ export default function OrderDetail() {
             .then(res => {
                 setOrder(res.data)
                 setEditForm({
-                    order_date: res.data.created_at?.split('T')[0] ?? res.data.created_at?.split(' ')[0],
+                    order_date: res.data.order_date,
                     notes:      res.data.notes ?? '',
                     discount:   res.data.discount ?? 0,
                 })
@@ -74,7 +72,7 @@ export default function OrderDetail() {
     const handleCancelEdit = () => {
         setEditMode(false)
         setEditForm({
-            order_date: order.created_at?.split('T')[0] ?? order.created_at?.split(' ')[0],
+            order_date: order.order_date,
             notes:      order.notes ?? '',
             discount:   order.discount ?? 0,
         })
@@ -177,7 +175,7 @@ export default function OrderDetail() {
                             />
                         ) : (
                             <p className="text-white text-sm">
-                                {new Date(order.created_at).toLocaleDateString('en-GB')}
+                                {new Date(order.order_date).toLocaleDateString('en-GB')}
                             </p>
                         )}
                     </div>
@@ -303,11 +301,6 @@ export default function OrderDetail() {
                     </div>
                 </div>
             )}
-            <Toast
-                type={toast.type}
-                message={toast.message}
-                onClose={hideToast}
-            />
         </div>
     )
 }
