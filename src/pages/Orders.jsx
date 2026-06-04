@@ -5,30 +5,30 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import SearchInput from '../components/SearchInput'
 import Modal from '../components/Modal'
 import StatBoxes from '../components/StatBoxes'
+import RefundModal from '../components/RefundModal'
+import {useToast} from '../hooks/useToast'
 
 export default function Orders() {
     const [orders, setOrders] = useState([])
     const [loading, setLoading] = useState(true)
-    const [error, setError] = useState('')
     const [search, setSearch] = useState('')
     const [yearFilter, setYearFilter] = useState('')
     const [payTarget, setPayTarget] = useState(null)
     const [payForm, setPayForm] = useState({ amount: '', method: 'cash' })
     const [paying, setPaying] = useState(false)
-    const [payError, setPayError] = useState('')
-    const [paySuccess, setPaySuccess] = useState('')
     const [page, setPage] = useState(1)
     const [lastPage, setLastPage] = useState(1)
     const [years, setYears] = useState([])
     const [monthFilter, setMonthFilter] = useState('')
 const [dateFrom, setDateFrom] = useState('')
 const [dateTo, setDateTo] = useState('')
-    const [stats, setStats] = useState([])
+    const [stats, setStats] = useState(null)
     const [dateExact , setDateExact] = useState('');
     const [filterMode , setFilterMode] = useState('all')
     const [hoveredOrder, setHoveredOrder] = useState(null)
-    const hasActiveFilters = yearFilter || monthFilter || dateFrom || dateTo || dateExact || search 
-
+    const hasActiveFilters = yearFilter || monthFilter || dateFrom || dateTo || dateExact || search || filterMode !== 'all'
+    const [refundTarget, setRefundTarget] = useState(null)
+    const { showToast } = useToast()
 const clearFilters = () => {
     setFilterMode('all')
     setYearFilter('')
@@ -58,7 +58,7 @@ const clearFilters = () => {
                 setOrders(res.data.data)
                 setLastPage(res.data.meta.last_page)
                 setYears(res.data.years)
-                setStats(res.data.stats)
+                setStats(res.data.stats || null)
             })
             .catch(() => setError('Failed to load orders'))
             .finally(() => setLoading(false))
@@ -71,7 +71,6 @@ const clearFilters = () => {
     const handlePay = async (e) => {
         e.preventDefault()
         setPaying(true)
-        setPayError('')
         try {
             await api.post('/payments', {
                 order_id:    payTarget.id,
@@ -79,15 +78,14 @@ const clearFilters = () => {
                 amount:      parseFloat(payForm.amount),
                 method:      payForm.method,
             })
-            setPaySuccess('Payment processed successfully!')
+            showToast('Payment processed successfully!', 'success')
             setTimeout(() => {
                 setPayTarget(null)
-                setPaySuccess('')
                 setPayForm({ amount: '', method: 'cash' })
                 fetchOrders()
             }, 1500)
         } catch (err) {
-            setPayError(err.response?.data?.message || 'Failed to process payment')
+            showToast(err.response?.data?.message || 'Failed to process payment', 'error')
         } finally {
             setPaying(false)
         }
@@ -260,12 +258,6 @@ const clearFilters = () => {
 </div>
 </div>
 
-            {error && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg mb-6 text-sm">
-                    {error}
-                </div>
-            )}
-
             {stats && (
                 <StatBoxes stats={[
                     { label: 'Total Orders',   value: stats.total_orders,              color: 'white'  },
@@ -311,7 +303,9 @@ const clearFilters = () => {
                                     </span>
                                 </td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">
-                                    {new Date(order.created_at).toLocaleDateString()}
+                                    {order.order_date
+                                        ? new Date(order.order_date).toLocaleDateString('en-GB')
+                                        : new Date(order.created_at).toLocaleDateString('en-GB')}
                                 </td>
                                 <td className="px-4 py-3 whitespace-nowrap relative">
                                     <div className="flex items-center gap-2">
@@ -336,28 +330,39 @@ const clearFilters = () => {
                                                 Pay
                                             </button>
                                         )}
+                                        {order.status === 'paid' && (
+                                         <button
+                                               onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    setRefundTarget(order)
+                                               }}
+                                         className="px-3 py-1 bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-medium rounded-lg hover:bg-orange-500/20 transition-colors"
+                                         >
+                                             Refund
+                                         </button>
+                                        )}
                                     </div>
                                 </td>
                                {/* Tooltip - NOW OUTSIDE the cells, anchored to the row */}
-    {hoveredOrder === order.id && (
+      {hoveredOrder === order.id && (
         <td className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 pointer-events-none z-50">
             <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-2xl px-4 py-3 w-[240px]">
                 <div className="space-y-2 text-sm">
+                     <div className="flex justify-between items-center">
+                           <span className="text-gray-400">Total:</span>
+                           <span className="text-white font-medium">{order.total} EGP</span>
+                     </div>
                     <div className="flex justify-between items-center">
-                        <span className="text-gray-400">Total:</span>
-                        <span className="text-white font-medium">{order.total} EGP</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                        <span className="text-gray-400">Paid:</span>
-                        <span className="text-green-400 font-medium">
+                           <span className="text-gray-400">Paid:</span>
+                           <span className="text-green-400 font-medium">
                             {getPaidAmount(order)} EGP
-                        </span>
+                           </span>
                     </div>
                     <div className="flex justify-between items-center border-t border-gray-700 pt-2">
-                        <span className="text-gray-400">Remaining:</span>
-                        <span className="text-red-400 font-medium">
+                           <span className="text-gray-400">Remaining:</span>
+                           <span className="text-red-400 font-medium">
                             {order.amount_remaining || 0} EGP
-                        </span>
+                           </span>
                     </div>
                     {order.payments_count > 0 && (
                         <div className="text-xs text-gray-500 text-center pt-1">
@@ -410,13 +415,9 @@ const clearFilters = () => {
                 open={!!payTarget}
                 onClose={() => {
                     setPayTarget(null)
-                    setPayError('')
-                    setPaySuccess('')
                     setPayForm({ amount: '', method: 'cash' })
                 }}
                 title={`Pay — ${payTarget?.invoice_number}`}
-                error={payError}
-                success={paySuccess}
             >
                 {payTarget && (
                     <form onSubmit={handlePay} className="space-y-4">
@@ -463,6 +464,19 @@ const clearFilters = () => {
                     </form>
                 )}
             </Modal>
+            <RefundModal
+                open={!!refundTarget}
+                onClose={() => setRefundTarget(null)}
+                orders={refundTarget ? [{
+                    ...refundTarget,
+                    paid: refundTarget.total - (refundTarget.amount_remaining ?? 0)
+                }] : []}
+                customerId={refundTarget?.customer_id}
+                onSuccess={() => {
+                    setRefundTarget(null)
+                    fetchOrders()
+                }}
+/>
         </div>
     )
 }
