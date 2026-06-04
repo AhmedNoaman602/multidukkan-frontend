@@ -2,7 +2,7 @@ import { createContext, useContext, useState } from 'react'
 
 const ToastContext = createContext(null)
 
-export function ToastProvider({ children }) {
+export  function ToastProvider({ children }) {
     const [toast, setToast] = useState({ message: '', type: 'error' })
 
     const showToast = (message, type = 'error') => {
