@@ -5,8 +5,8 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import Modal from '../components/Modal'
 import SearchInput from '../components/SearchInput'
 import StatBoxes from '../components/StatBoxes'
-import DeleteModal from '../components/DeleteModal'
 import {useToast} from '../hooks/useToast'
+import DeleteModal from '../components/DeleteModal'
 
 export default function Suppliers() {
     const [suppliers, setSuppliers] = useState([])
@@ -42,6 +42,7 @@ export default function Suppliers() {
             await api.delete(`/suppliers/${deleteTarget.id}`)
             setDeleteTarget(null)
             fetchSuppliers()
+            showToast('Supplier deleted successfully.', 'success')
         } catch (err) {
             showToast(err.response?.data?.message || 'Failed to delete supplier', 'error')
             setDeleteTarget(null)
@@ -183,41 +184,14 @@ export default function Suppliers() {
                     </button>
                 </div>
             )}
-
-            <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Delete Supplier">
-                {deleteTarget && (
-                    <form onSubmit={(e) => { e.preventDefault(); handleDelete() }}>
-                        <div className="space-y-4">
-                            <p className="text-gray-300 text-sm">
-                                Are you sure you want to delete{' '}
-                                <span className="text-white font-semibold">{deleteTarget.name}</span>?
-                                This action cannot be undone.
-                            </p>
-                            <div className="bg-red-500/5 border border-red-500/20 rounded-lg px-4 py-3">
-                                <p className="text-red-400 text-xs">
-                                    All balance history and transactions linked to this supplier will be affected.
-                                </p>
-                            </div>
-                            <div className="flex justify-end gap-2 pt-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setDeleteTarget(null)}
-                                    className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={deleting}
-                                    className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
-                                >
-                                    {deleting ? 'Deleting...' : 'Yes, Delete'}
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                )}
-            </Modal>
+            <DeleteModal
+                isOpen={!!deleteTarget}
+                onClose={() => setDeleteTarget(null)}
+                onConfirm={handleDelete}
+                loading={deleting}
+                title="Delete Supplier"
+                message={`Are you sure you want to delete ${deleteTarget?.name}?`}
+            />
         </div>
     )
 }
