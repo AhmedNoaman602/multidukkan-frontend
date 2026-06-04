@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import BackButton from '../components/BackButton'
+import { useToast } from '../hooks/useToast'
 
 export default function CreatePurchaseOrder() {
     const [warehouses, setWarehouses] = useState([])
@@ -19,6 +20,7 @@ export default function CreatePurchaseOrder() {
     const user = JSON.parse(localStorage.getItem('user') || '{}')
     const [stores, setStores] = useState([])
     const [storeId, setStoreId] = useState(user.store_id || '')
+    const { showToast } = useToast();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -125,7 +127,7 @@ export default function CreatePurchaseOrder() {
         setError('')
         const invalidQty = items.some(item => !Number.isInteger(Number(item.quantity)))
         if (invalidQty) {
-            setError('Quantity must be a whole number.')
+            showToast('Quantity must be a whole number.', 'error')
             setSaving(false)
             return
         }
@@ -145,7 +147,7 @@ export default function CreatePurchaseOrder() {
             })
             navigate('/purchase-orders')
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to create purchase order')
+            showToast(err.response?.data?.message || 'Failed to create purchase order', 'error')
         } finally {
             setSaving(false)
         }
@@ -163,12 +165,6 @@ export default function CreatePurchaseOrder() {
                 <BackButton label="Back to Purchase Orders" to="/purchase-orders"/>
                 <h2 className="text-2xl font-bold text-white">Create New Purchase Order</h2>
             </div>
-
-            {error && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg mb-6 text-sm">
-                    {error}
-                </div>
-            )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
 {!user.store_id && (

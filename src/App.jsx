@@ -41,6 +41,29 @@ const PrivateRoute = ({ children }) => {
     return token ? children : <Navigate to="/login" />
 }
 
+function ChatWidgetGuard() {
+    const location = useLocation()
+
+    const hiddenRoutes = [
+        '/login',
+        '/register',
+        '/onboarding',
+    ]
+
+    const isInvoicePage =
+        location.pathname.startsWith('/orders/') &&
+        location.pathname.endsWith('/invoice')
+
+    if (
+        hiddenRoutes.includes(location.pathname) ||
+        isInvoicePage
+    ) {
+        return null
+    }
+
+    return <ChatWidget />
+}
+
 // AuthGate runs on every route change.
 // Calls /me to get FRESH user data, then decides if new tenant_admin
 // needs to be sent to /onboarding. Using fresh data avoids the bug
@@ -75,6 +98,8 @@ function AuthGate({ children }) {
 
     return children
 }
+
+
 
 export default function App() {
     return (
@@ -235,7 +260,7 @@ export default function App() {
 
                 </Routes>
                 <Toast/>
-                <ChatWidget />
+                <ChatWidgetGuard />
             </AuthGate>
             </ToastProvider>
         </BrowserRouter>

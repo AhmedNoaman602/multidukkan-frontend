@@ -349,15 +349,15 @@ const handleDeleteUnit = async () => {
                         <Modal open={showCreateStore} onClose={() => setShowCreateStore(false)} error={error} title="New Store">
                             <form onSubmit={handleCreateStore} className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm text-gray-400 mb-1">Store Name</label>
+                                    <label className="block text-sm text-gray-400 mb-1">Store Name *</label>
                                     <input value={storeForm.name} onChange={(e) => setStoreForm({ ...storeForm, name: e.target.value })} required className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm text-gray-400 mb-1">Phone *</label>
+                                    <label className="block text-sm text-gray-400 mb-1">Phone</label>
                                     <input value={storeForm.phone} onChange={(e) => setStoreForm({ ...storeForm, phone: e.target.value })} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
                                 </div>
                                 <div className="col-span-2">
-                                    <label className="block text-sm text-gray-400 mb-1">Address *</label>
+                                    <label className="block text-sm text-gray-400 mb-1">Address</label>
                                     <input value={storeForm.address} onChange={(e) => setStoreForm({ ...storeForm, address: e.target.value })} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
                                 </div>
                                 <div className="col-span-2">

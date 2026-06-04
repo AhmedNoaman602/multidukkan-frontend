@@ -98,7 +98,7 @@ const todayFormatted = new Date().toLocaleDateString('en-EG', {
                 const totalOwed = unpaidOrders.reduce((sum, o) => sum + parseFloat(o.amount_remaining ?? o.total ?? 0), 0)
                 // Today's orders
                 const todayOrders = orders.filter(o =>
-                    new Date(o.created_at).toISOString().split('T')[0] === today
+                    (o.order_date ?? new Date(o.created_at).toISOString().split('T')[0]) === today
                 )
                 const todaySales = todayOrders.reduce((sum, o) => sum + parseFloat(o.total || 0), 0)
 
@@ -488,13 +488,13 @@ const todayFormatted = new Date().toLocaleDateString('en-EG', {
         ) : (
             <table className="w-full table-fixed">
                 <colgroup>
-                    <col className="w-10" />   {/* Invoice */}
-                    <col />                     {/* Customer – flex */}
-                    <col className="w-8" />    {/* Items */}
-                    <col className="w-20" />   {/* Total */}
-                    <col className="w-20" />   {/* Balance */}
-                    <col className="w-24" />   {/* Status */}
-                    <col className="w-24" />   {/* Time */}
+                    <col className="w-10" />   
+                    <col />                     
+                    <col className="w-8" />    
+                    <col className="w-20" />   
+                    <col className="w-20" />   
+                    <col className="w-24" />   
+                    <col className="w-24" />   
                 </colgroup>
                 <thead>
                     <tr className="border-b border-gray-800">
@@ -547,7 +547,7 @@ const todayFormatted = new Date().toLocaleDateString('en-EG', {
                                     </span>
                                 </td>
                                 <td className="px-2 py-3 text-gray-500 text-xs whitespace-nowrap">
-                                    {new Date(order.created_at).toLocaleDateString('en-EG', {
+                                    {new Date(order.order_date ?? order.created_at).toLocaleDateString('en-GB', {
                                         year: 'numeric', month: 'short', day: 'numeric'
                                     })}
                                 </td>

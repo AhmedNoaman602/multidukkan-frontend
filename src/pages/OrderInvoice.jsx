@@ -8,7 +8,13 @@ export default function OrderInvoice() {
     const [order, setOrder] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
-    const user = JSON.parse(localStorage.getItem('user') || '{}')
+   let user = {}
+
+try {
+    user = JSON.parse(localStorage.getItem('user') || '{}')
+} catch {
+    user = {}
+}
 
     useEffect(() => {
         api.get(`/orders/${id}`)
@@ -93,7 +99,7 @@ export default function OrderInvoice() {
                     <div className="text-right">
                         <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Date</p>
                         <p className="text-gray-900 text-sm">
-                            {new Date(order.created_at).toLocaleDateString('en-GB')}
+                            {new Date(order.order_date || order.created_at).toLocaleDateString('en-GB')}
                         </p>
                         <div className="mt-2">
                             <span className={`px-2 py-1 rounded text-xs font-medium ${
@@ -118,7 +124,7 @@ export default function OrderInvoice() {
                         </tr>
                     </thead>
                     <tbody>
-                        {order.items.map((item, index) => (
+                        {order.items?.map((item, index) => (
                             <tr key={index} className="border-b border-gray-100">
                                 <td className="py-3 text-gray-900 text-sm">{item.product_name}</td>
                                 <td className="py-3 text-center text-gray-600 text-sm">{item.quantity}</td>

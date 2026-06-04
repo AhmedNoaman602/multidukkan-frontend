@@ -3,12 +3,17 @@ import { useNavigate, useParams } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import BackButton from '../components/BackButton'
+import SupplierSearchInput from '../components/SupplierSearchInput'
+import { useToast } from '../hooks/useToast'
 
 export default function EditProduct() {
     const { id } = useParams()
     const navigate = useNavigate()
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
+    const [suppliers, setSuppliers] = useState([])
+    const [selectedSupplier, setSelectedSupplier] = useState(null)
+    const [generatingDesc, setGeneratingDesc] = useState(false)
     const [error, setError] = useState('')
     const [units, setUnits] = useState([])
     const [warehouses, setWarehouses] = useState([])
@@ -16,16 +21,20 @@ export default function EditProduct() {
     const [form, setForm] = useState({
         name: '', sku: '', price: '', unit: '',
         price_a: '', price_b: '', price_c: '', price_d: '', price_e: '',
+        description_ar: '', description_en: '',
         secondary_unit: '', conversion_factor: '',
     })
+    const { showToast } = useToast()
+
 
     useEffect(() => {
         Promise.all([
             api.get(`/products/${id}`),
-            api.get('/warehouses'),
+            api.get('/warehouses'), 
             api.get('/units'),
-        ]).then(([productRes, warehouseRes, unitRes]) => {
-            const p = productRes.data.data
+            api.get('/suppliers'),
+        ]).then(([productRes, warehouseRes, unitRes, supplierRes]) => {
+            const p = productRes.data.data  
 
             setForm({
                 name:              p.name || '',
@@ -39,7 +48,14 @@ export default function EditProduct() {
                 price_e:           p.price_e || '',
                 secondary_unit:    p.secondary_unit || '',
                 conversion_factor: p.conversion_factor || '',
+                description_ar:    p.description_ar || '',
+                description_en:    p.description_en || '',
             })
+            
+            // Pre-populate selected supplier when loading product:
+            if (p.supplier_id) {
+                setSelectedSupplier({ id: p.supplier_id, name: p.supplier_name })
+            }
 
             // Load existing warehouse stocks
             setStocks(p.stocks.map(s => ({
@@ -52,6 +68,7 @@ export default function EditProduct() {
 
             setWarehouses(warehouseRes.data.data)
             setUnits(unitRes.data.data)
+            setSuppliers(supplierRes.data.data)
         })
         .catch(() => setError('Failed to load product'))
         .finally(() => setLoading(false))
@@ -76,6 +93,31 @@ export default function EditProduct() {
         setStocks(updated)
     }
 
+    const handleGenerateDescription = async () => {
+        if (!form.name || !form.price || !form.unit) {
+            showToast('Please fill in name, price and unit first.', 'error')
+            return
+        }
+        setGeneratingDesc(true)
+        setError('')
+        try {
+            const res = await api.post('/ai/describe-product', {
+                name: form.name,
+                price: parseFloat(form.price),
+            })
+            setForm(f => ({
+                ...f,
+                description_ar: res.data.ar,
+                description_en: res.data.en,
+                description: `${res.data.ar}\n${res.data.en}`,
+            }))
+        } catch {
+            showToast('Failed to generate description', 'error')
+        } finally {
+            setGeneratingDesc(false)
+        }
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault()
         setSaving(true)
@@ -90,6 +132,7 @@ export default function EditProduct() {
                 price_d:           form.price_d ? parseFloat(form.price_d) : null,
                 price_e:           form.price_e ? parseFloat(form.price_e) : null,
                 conversion_factor: form.conversion_factor ? parseInt(form.conversion_factor) : null,
+                supplier_id:       selectedSupplier?.id ?? null,
                 stocks: stocks
                     .filter(s => s.warehouse_id)
                     .map(s => ({
@@ -98,9 +141,10 @@ export default function EditProduct() {
                         threshold:    parseInt(s.threshold) || 10,
                     }))
             })
+            showToast('Product updated successfully.', 'success')
             navigate('/products')
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to update product')
+            showToast(err.response?.data?.message || 'Failed to update product', 'error')
         } finally {
             setSaving(false)
         }
@@ -114,12 +158,6 @@ export default function EditProduct() {
                 <BackButton label="Back to Products" to="/products"/>
                 <h2 className="text-2xl font-bold text-white">Edit Product</h2>
             </div>
-
-            {error && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg mb-6 text-sm">
-                    {error}
-                </div>
-            )}
 
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
                 <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
@@ -143,6 +181,17 @@ export default function EditProduct() {
                             className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                         />
                     </div>
+                    <div className="col-span-2">
+    <label className="block text-sm text-gray-400 mb-1">
+        Supplier <span className="text-gray-600">(optional)</span>
+    </label>
+    <SupplierSearchInput
+        suppliers={suppliers}
+        value={selectedSupplier?.id ?? null}
+        onSelect={setSelectedSupplier}
+        placeholder="Search suppliers..."
+    />
+</div>
 
                     <div>
                         <label className="block text-sm text-gray-400 mb-1">Default Price</label>
@@ -167,6 +216,27 @@ export default function EditProduct() {
                             ))}
                         </select>
                     </div>
+
+                                            <div className="col-span-2">
+    <div className="flex items-center justify-between mb-1">
+        <label className="block text-sm text-gray-400">Description</label>
+        <button
+            type="button"
+            onClick={handleGenerateDescription}
+            disabled={generatingDesc || !form.name || !form.price}
+            className="px-3 py-1 bg-purple-600/20 border border-purple-500/30 text-purple-400 hover:bg-purple-600/30 disabled:opacity-40 text-xs font-medium rounded-lg transition-colors"
+        >
+            {generatingDesc ? 'Generating...' : '✨ Generate with AI'}
+        </button>
+    </div>
+    <textarea
+        value={form.description || ''}
+        onChange={(e) => setForm({ ...form, description: e.target.value })}
+        rows={3}
+        placeholder="Product description (or generate with AI above)"
+        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm resize-none placeholder-gray-600"
+    />
+</div>
 
                     {['a', 'b', 'c', 'd', 'e'].map(tier => (
                         <div key={tier}>

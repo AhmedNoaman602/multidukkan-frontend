@@ -196,6 +196,11 @@ export default function SupplierSearchInput({ suppliers, value, onChange, onSele
                                         </div>
                                     </button>
                                 ))}
+                                    {filteredSuppliers.length === 0 && (
+                                        <div className="px-3 py-4 text-center text-gray-500 text-sm">
+                                            No suppliers found
+                                        </div>
+                                    )}
                             </div>
                         </div>
                     </div>

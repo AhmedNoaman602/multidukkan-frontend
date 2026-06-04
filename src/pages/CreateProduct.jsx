@@ -29,7 +29,7 @@ export default function CreateProduct() {
     ])
     const navigate = useNavigate()
     const [units, setUnits] = useState([])
-    const { toast, showToast, hideToast } = useToast()
+    const { showToast } = useToast()
     
 
     useEffect(() => {
