@@ -15,7 +15,6 @@ export default function CreateOrder() {
     const [products, setProducts] = useState([])
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
-    const [error, setError] = useState('')
     const [stores, setStores] = useState([])
     const [flashIndex, setFlashIndex] = useState(-1)
     const navigate = useNavigate()
@@ -37,13 +36,9 @@ export default function CreateOrder() {
     const [discountType, setDiscountType] = useState(draft.discountType || 'amount')
 
     const [orderDate, setOrderDate] = useState(() => {
-        const today = new Date().toISOString().split('T')[0]
-        const saved = localStorage.getItem('order_draft_date')
-        return saved || today
+       return new Date().toISOString().split('T')[0]
     })
-    useEffect(() => {
-        localStorage.setItem('order_draft_date', orderDate)
-    }, [orderDate])
+  
     // Set store from user or saved default
     useEffect(() => {
         if (user.store_id) {
@@ -80,7 +75,7 @@ export default function CreateOrder() {
                 setInventory(inventoryRes.data.data)
                 setStores(storesRes.data.data)
             } catch {
-                setError('Failed to load data')
+                showToast('Failed to load data' , 'error')
             } finally {
                 setLoading(false)
             }
@@ -205,11 +200,10 @@ export default function CreateOrder() {
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        if (items.length === 0) { setError('Add at least one item.'); return }
-        if (!storeId) { setError('Please select a store.'); return }
-        if (!customerId) { setError('Please select a customer.'); return }
+        if (items.length === 0) { showToast('Add at least one item.' , 'error'); return }
+        if (!storeId) { showToast('Please select a store.' , 'error'); return }
+        if (!customerId) { showToast('Please select a customer.' , 'error'); return }
         setSaving(true)
-        setError('')
         try {
             await api.post('/orders', {
                 store_id: parseInt(storeId),
@@ -224,10 +218,10 @@ export default function CreateOrder() {
                 }))
             })
             sessionStorage.removeItem(STORAGE_KEY)
-            localStorage.removeItem('order_draft_date')
+            showToast('Order created successfully.' , 'success')
             navigate('/orders')
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to create order')
+            showToast(err.response?.data?.message || 'Failed to create order' , 'error')
         } finally {
             setSaving(false)
         }
