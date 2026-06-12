@@ -4,18 +4,26 @@ import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import BackButton from '../components/BackButton'
 import { useToast } from '../hooks/useToast'
+import AddItemModal from '../components/AddItemModal'
+import DeleteModal from '../components/DeleteModal'
 
 export default function OrderDetail() {
     const { id } = useParams()
     const navigate = useNavigate()
     const [order, setOrder] = useState(null)
     const [loading, setLoading] = useState(true)
-    const [error, setError] = useState('')
     const [cancelling, setCancelling] = useState(false)
     const [showConfirm, setShowConfirm] = useState(false)
     const [editMode, setEditMode] = useState(false)
     const [editForm, setEditForm] = useState({ order_date: '', notes: '', discount: '' })
+    const [editingItem, setEditingItem] = useState(null) // holds item id being edited
+    const [itemForm, setItemForm] = useState({ quantity: '', unit_price: '' })
+    const[showAddItem,setShowAddItem] = useState(false)
+    const [products,setProducts] = useState([])
+    const[warehouses,setWarehouses] = useState([])
+    const [inventory, setInventory] = useState([])
     const [saving, setSaving] = useState(false)
+    const [discountType, setDiscountType] = useState('amount')
     const { showToast } = useToast()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
 
@@ -31,11 +39,17 @@ export default function OrderDetail() {
                     discount:   res.data.discount ?? 0,
                 })
             })
-            .catch(() => setError('Failed to load order'))
+            .catch(() => showToast('Failed to load order' , 'error'))
             .finally(() => setLoading(false))
     }
 
     useEffect(() => { fetchOrder() }, [id])
+
+    useEffect(() => {
+    api.get('/products?per_page=all').then(res => setProducts(res.data.data))
+    api.get('/warehouses').then(res => setWarehouses(res.data.data))
+    api.get('/inventory?per_page=all').then(res => setInventory(res.data.data))
+}, []) // ← empty array = runs once only
 
     const handleCancel = async () => {
         setCancelling(true)
@@ -52,12 +66,15 @@ export default function OrderDetail() {
 
     const handleSave = async () => {
         setSaving(true)
-        setError('')
         try {
+            const discountAmount = discountType === 'percent'
+    ? Math.round(order.subtotal * (parseFloat(editForm.discount) || 0) / 100 * 100) / 100
+    : parseFloat(editForm.discount) || 0
+
             const res = await api.patch(`/orders/${id}`, {
                 order_date: editForm.order_date,
                 notes:      editForm.notes,
-                discount:   parseFloat(editForm.discount) || 0,
+                discount:   discountAmount,
             })
             setOrder(res.data)
             setEditMode(false)
@@ -69,6 +86,42 @@ export default function OrderDetail() {
         }
     }
 
+    const handleSaveItem = async (item) => {
+        setSaving(true)
+        try{
+            await api.patch(`/orders/${id}/items/${item.id}` , {
+                quantity:itemForm.quantity,
+                unit_price:itemForm.unit_price
+            })
+            showToast('Item updated successfully.', 'success')
+            setEditingItem(null)
+            fetchOrder()
+        } catch (err) {
+    showToast(err.response?.data?.message || 'Failed to update item', 'error')
+} finally {
+    setSaving(false)
+}
+    }
+
+    const handleAddItem = async(formData) =>{
+        setSaving(true)
+        try{
+            await api.post(`/orders/${id}/items` , {
+                product_id:formData.product_id,
+                unit_price:formData.unit_price,
+                unit_type:formData.unit_type,
+                quantity:formData.quantity,
+                warehouse_id:formData.warehouse_id,
+            })
+            showToast('Item added successfully.', 'success')
+            setShowAddItem(false)
+            fetchOrder()
+        } catch (err) {
+    showToast(err.response?.data?.message || 'Failed to add item', 'error')
+} finally {
+    setSaving(false)
+}
+    }
     const handleCancelEdit = () => {
         setEditMode(false)
         setEditForm({
@@ -76,14 +129,22 @@ export default function OrderDetail() {
             notes:      order.notes ?? '',
             discount:   order.discount ?? 0,
         })
-        setError('')
     }
 
     if (loading) return <LoadingSpinner />
-    if (error && !order) return <p className="text-red-400">{error}</p>
 
-    const hasDiscount = order.discount > 0
-    const hasPayments = order.payments?.length > 0
+
+    const discountPreview = discountType === 'percent'
+    ? Math.round(order.subtotal * (parseFloat(editForm.discount) || 0) / 100 * 100) / 100
+    : parseFloat(editForm.discount) || 0
+
+const displayTotal = editMode
+    ? Math.max(0, order.subtotal - discountPreview)
+    : order.total
+
+    const displayAmountDue = editMode
+    ? Math.max(0, displayTotal - order.paid)
+    : order.amount_remaining
 
     return (
         <div className="max-w-4xl">
@@ -188,7 +249,7 @@ export default function OrderDetail() {
                 <table className="w-full">
                     <thead>
                         <tr className="border-b border-gray-800">
-                            {['Product', 'Qty', 'Unit Price', 'Total'].map(h => (
+                            {['Product', 'Qty', 'Unit Price', 'Total' , 'Actions'].map(h => (
                                 <th key={h} className="text-left text-xs text-gray-400 uppercase tracking-wider pb-3">
                                     {h}
                                 </th>
@@ -196,21 +257,72 @@ export default function OrderDetail() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-800">
-                        {order.items.map((item, index) => (
-                            <tr key={index}>
-                                <td className="py-3 text-white text-sm">{item.product_name}</td>
-                                <td className="py-3 text-gray-400 text-sm">
-                                    {item.quantity}
-                                    {item.unit_type && item.unit_type !== 'base' && (
-                                        <span className="ml-1 text-xs text-blue-400">{item.unit_type}</span>
-                                    )}
-                                </td>
-                                <td className="py-3 text-gray-400 text-sm">{item.unit_price} EGP</td>
-                                <td className="py-3 text-white text-sm font-medium">{item.total} EGP</td>
-                            </tr>
-                        ))}
+                       {order.items.map((item) => (
+    <tr key={item.id}>
+        <td className="py-3 text-white text-sm">{item.product_name}</td>
+        
+      <td className="py-3 text-gray-400 text-sm">
+    {editingItem === item.id
+        ? <input type="number" min="1" value={itemForm.quantity}
+            onChange={e => setItemForm({...itemForm, quantity: e.target.value})}
+            className="w-20 px-2 py-1 bg-gray-800 border border-gray-600 text-white rounded-lg text-sm"/>
+        : <>
+            {item.quantity}
+            {item.unit_type && item.unit_type !== 'base' && (
+                <span className="ml-1 text-xs text-blue-400">{item.unit_type}</span>
+            )}
+          </>
+    }
+</td>
+
+        <td className="py-3 text-gray-400 text-sm">
+            {editingItem === item.id
+                ? <input type="number" min="0" step="0.01" value={itemForm.unit_price}
+                    onChange={e => setItemForm({...itemForm, unit_price: e.target.value})}
+                    className="w-24 px-2 py-1 bg-gray-800 border border-gray-600 text-white rounded-lg text-sm"/>
+                : `${item.unit_price} EGP`
+            }
+        </td>
+
+        <td className="py-3 text-white text-sm font-medium">{item.total} EGP</td>
+
+        <td className="py-3">
+            {editingItem === item.id ? (
+                <div className="flex gap-2">
+                    <button onClick={() => handleSaveItem(item)}
+                        className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-medium rounded-lg hover:bg-blue-500/20 transition-colors">
+                        Save
+                    </button>
+                    <button onClick={() => setEditingItem(null)}
+                        className="px-2 py-1 text-gray-400 text-xs">
+                        Cancel
+                    </button>
+                </div>
+            ) : (
+                 canEdit && (
+                    <button onClick={() => {
+                        setEditingItem(item.id)
+                        setItemForm({ quantity: item.quantity, unit_price: item.unit_price })
+                    }}
+                        className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-medium rounded-lg hover:bg-blue-500/20 transition-colors">
+                       Edit
+                    </button>
+                )
+            )}
+        </td>
+    </tr>
+))}
                     </tbody>
                 </table>
+                {/* Add Item */}
+{canEdit && (
+    <button
+        onClick={() => setShowAddItem(true)}
+        className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors"
+    >
+        + Add Item
+    </button>
+)}
 
                 {/* Totals */}
                 <div className="flex justify-end mt-4">
@@ -219,40 +331,48 @@ export default function OrderDetail() {
                             <span>Subtotal</span>
                             <span>{order.subtotal} EGP</span>
                         </div>
+{/* Discount row */}
+{editMode ? (
+    <div className="flex items-center gap-2">
+        <div className="flex rounded-lg overflow-hidden border border-gray-700">
+            {['amount', 'percent'].map(t => (
+                <button key={t} type="button"
+                    onClick={() => setDiscountType(t)}
+                    className={`px-2 py-0.5 text-xs font-medium transition-colors ${
+                        discountType === t ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400'
+                    }`}
+                >
+                    {t === 'amount' ? 'EGP' : '%'}
+                </button>
+            ))}
+        </div>
+        <input
+            type="number"
+            min="0"
+            max={discountType === 'percent' ? 100 : undefined}
+            value={editForm.discount}
+            onChange={e => setEditForm({ ...editForm, discount: e.target.value })}
+            className="w-24 px-2 py-1 bg-gray-800 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm text-right"
+        />
+    </div>
+) : (
+    order.discount > 0 && (
+        <div className="flex justify-between text-sm text-green-400">
+            <span>Discount</span>
+            <span>- {order.discount} EGP</span>
+        </div>
+    )
+)}
 
-                        {/* Discount row */}
-                        {(hasDiscount || editMode) && (
-                            <div className="flex justify-between text-sm text-green-400 items-center">
-                                <span>Discount</span>
-                                {editMode ? (
-                                    <div className="flex items-center gap-1">
-                                        {hasPayments ? (
-                                            <span className="text-gray-500 text-xs">Locked (has payments)</span>
-                                        ) : (
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                step="0.01"
-                                                value={editForm.discount}
-                                                onChange={e => setEditForm({ ...editForm, discount: e.target.value })}
-                                                className="w-24 px-2 py-1 bg-gray-800 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm text-right"
-                                            />
-                                        )}
-                                    </div>
-                                ) : (
-                                    <span>- {order.discount} EGP</span>
-                                )}
-                            </div>
-                        )}
 
                         <div className="flex justify-between text-base font-bold text-white border-t border-gray-800 pt-2">
                             <span>Total</span>
-                            <span>{order.total} EGP</span>
+                            <span>{displayTotal} EGP</span>
                         </div>
                         {order.status === 'unpaid' && order.amount_remaining > 0 && (
                             <div className="flex justify-between text-sm text-red-400">
                                 <span>Amount Due</span>
-                                <span>{order.amount_remaining} EGP</span>
+                                <span>{displayAmountDue} EGP</span>
                             </div>
                         )}
                     </div>
@@ -275,32 +395,26 @@ export default function OrderDetail() {
                 )}
             </div>
 
-            {/* Cancel confirm modal */}
-            {showConfirm && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-                    <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 max-w-sm w-full mx-4">
-                        <h3 className="text-white font-semibold mb-2">Cancel Order?</h3>
-                        <p className="text-gray-400 text-sm mb-6">
-                            This will reverse the ledger charge and restore inventory. This cannot be undone.
-                        </p>
-                        <div className="flex justify-end gap-2">
-                            <button
-                                onClick={() => setShowConfirm(false)}
-                                className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
-                            >
-                                Keep Order
-                            </button>
-                            <button
-                                onClick={handleCancel}
-                                disabled={cancelling}
-                                className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
-                            >
-                                {cancelling ? 'Cancelling...' : 'Yes, Cancel'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <DeleteModal
+            open={!!showConfirm}
+            onClose={() => setShowConfirm(false)}
+            onConfirm={handleCancel}
+            deleting={cancelling}
+            title="Cancel Order"
+            name={"Order " + order.invoice_number}
+            warning="This will reverse the ledger charge and restore inventory. This cannot be undone."
+           />
+            
+            {showAddItem && (
+            <AddItemModal
+    onClose={() => setShowAddItem(false)}
+    onSave={handleAddItem}
+    products={products}
+    warehouses={warehouses}
+    inventory={inventory}
+    saving={saving}
+/>
+    )}
         </div>
     )
 }
