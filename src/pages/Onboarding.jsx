@@ -1,6 +1,7 @@
 import { useState , useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
+import {useToast} from '../hooks/useToast'
 
 const STEP_LABELS = [
     'Welcome',
@@ -19,40 +20,52 @@ export default function Onboarding() {
     const [step, setStep] = useState(1)
     const [createdStoreId, setCreatedStoreId] = useState(null)
     const [loading, setLoading] = useState(false)
-    const [error, setError] = useState('')
 
     const [storeForm, setStoreForm] = useState({ name: '', address: '', phone: '' })
     const [warehouseForm, setWarehouseForm] = useState({ name: '', address: '' })
     const [createdWarehouseId , setCreatedWarehouseId] = useState(null);
+    const [productCreated, setProductCreated] = useState(false)
+const [customerCreated, setCustomerCreated] = useState(false)
+const [teamCreated, setTeamCreated] = useState(false)
+const [showNewUnit, setShowNewUnit] = useState(false)
+const [newUnit, setNewUnit] = useState('')
+const [savingUnit, setSavingUnit] = useState(false)
     const [units, setUnits] = useState([])
+    const {showToast} = useToast()
+
 useEffect(() => {
     api.get('/units').then(res => setUnits(res.data.data))
 }, [])
 const [productForm, setProductForm] = useState({ 
-    name: '', sku: '', price: '', unit: units[0]?.name || '', quantity: 0 
+    name: '', sku: '', price: '', unit: units[0]?.name || '', quantity: 0 , cost_price:''
 })    
 
 const [customerForm, setCustomerForm] = useState({ name: '', phone: '', price_tier: '' })
     const [teamForm, setTeamForm] = useState({ name: '', email: '', password: '', role: 'store_manager' })
 
     const handleNext = async () => {
-        setError('')
         setLoading(true)
         try {
             if (step === 1) {
                 setStep(2)
             } else if (step === 2) {
-                const res = await api.post('/stores', storeForm)
-                setCreatedStoreId(res.data.data.id)
-                setStep(3)
-            } else if (step === 3) {
-      const res = await api.post('/warehouses', { ...warehouseForm, store_id: createdStoreId })
-     setCreatedWarehouseId(res.data.data.id)
-     setStep(4)
-} else if (step === 4) {
+    if (!createdStoreId) {  
+        const res = await api.post('/stores', storeForm)
+        setCreatedStoreId(res.data.data.id)
+    }
+    setStep(3)
+} else if (step === 3) {
+    if (!createdWarehouseId) {  
+        const res = await api.post('/warehouses', { ...warehouseForm, store_id: createdStoreId })
+        setCreatedWarehouseId(res.data.data.id)
+    }
+    setStep(4)
+}else if (step === 4) {
+    if(!productCreated){
     await api.post('/products', {
         ...productForm,
         price: parseFloat(productForm.price),
+        cost_price: productForm.cost_price ? parseFloat(productForm.cost_price) : null,
         stocks: createdWarehouseId && parseInt(productForm.quantity) > 0
         ? [{
             warehouse_id: parseInt(createdWarehouseId),
@@ -61,15 +74,23 @@ const [customerForm, setCustomerForm] = useState({ name: '', phone: '', price_ti
           }]
         : []
     })
+    setProductCreated(true)
+}
     setStep(5)
 } else if (step === 5) {
+    if(!customerCreated){
                 await api.post('/customers', {
                     ...customerForm,
                 price_tier:customerForm.price_tier || null
                 })
+                setCustomerCreated(true)
+            }
                 setStep(6)
             } else if (step === 6) {
+                if(!teamCreated){
                 await api.post('/users', { ...teamForm, store_id: createdStoreId })
+                setTeamCreated(true)
+                }
                 setStep(7)
             } else if (step === 7) {
                 const res = await api.get('/me')
@@ -78,22 +99,36 @@ const [customerForm, setCustomerForm] = useState({ name: '', phone: '', price_ti
                 return
             }
         } catch (err) {
-            setError(err.response?.data?.message || 'Something went wrong. Please try again.')
+            showToast(err.response?.data?.message || 'Something went wrong. Please try again.' , 'error')
         } finally {
             setLoading(false)
         }
     }
 
     const handleSkip = () => {
-        setError('')
         setStep(step + 1)
     }
 
     const handleBack = () => {
-        setError('')
         setStep(step - 1)
     }
-
+   const handleSaveUnit = async () => {
+        if (!newUnit.trim()) return
+        setSavingUnit(true)
+        try {
+            const res = await api.post('/units', { name: newUnit.trim() })
+            const saved = res.data.data ?? res.data
+            setUnits(prev => [...prev, saved])
+            setProductForm(f => ({ ...f, unit: saved.name }))
+            showToast('Unit created successfully', 'success')
+            setNewUnit('')
+            setShowNewUnit(false)
+        } catch {
+            showToast('Failed to save unit', 'error')
+        } finally {
+            setSavingUnit(false)
+        }
+    }
     const canSubmit = () => {
         if (loading) return false
         if (step === 2) return storeForm.name.trim() !== ''
@@ -161,7 +196,7 @@ const [customerForm, setCustomerForm] = useState({ name: '', phone: '', price_ti
                                 />
                             </div>
                             <div>
-                                <label className={labelClass}>Address *</label>
+                                <label className={labelClass}>Address</label>
                                 <input
                                     value={storeForm.address}
                                     onChange={(e) => setStoreForm({ ...storeForm, address: e.target.value })}
@@ -169,7 +204,7 @@ const [customerForm, setCustomerForm] = useState({ name: '', phone: '', price_ti
                                 />
                             </div>
                             <div>
-                                <label className={labelClass}>Phone *</label>
+                                <label className={labelClass}>Phone</label>
                                 <input
                                     value={storeForm.phone}
                                     onChange={(e) => setStoreForm({ ...storeForm, phone: e.target.value })}
@@ -239,17 +274,56 @@ const [customerForm, setCustomerForm] = useState({ name: '', phone: '', price_ti
                                 />
                             </div>
                             <div>
-                                <label className={labelClass}>Unit *</label>
-                                <select
-                                    value={productForm.unit}
-                                    onChange={(e) => setProductForm({ ...productForm, unit: e.target.value })}
-                                    className={inputClass}
-                                >
-                                    {units.map(u => (
-                                        <option key={u.id} value={u.name}>{u.name}</option>
-                                    ))}
-                                </select>
-                            </div>
+    <label className={labelClass}>Cost Price</label>
+    <input
+        type="number"
+        value={productForm.cost_price ?? ''}
+        onChange={(e) => setProductForm({ ...productForm, cost_price: e.target.value })}
+        placeholder="What you paid for it (optional)"
+        className={inputClass}
+    />
+</div>
+                            <div>
+    <label className={labelClass}>Unit *</label>
+    <div className="flex gap-2">
+        <select
+            value={productForm.unit}
+            onChange={(e) => setProductForm({ ...productForm, unit: e.target.value })}
+            className={`${inputClass} flex-1`}
+        >
+            {units.map(u => (
+                <option key={u.id} value={u.name}>{u.name}</option>
+            ))}
+        </select>
+        <button
+            type="button"
+            onClick={() => setShowNewUnit(!showNewUnit)}
+            className="px-3 py-2 bg-gray-800 border border-gray-700 text-gray-400 hover:text-white rounded-lg text-xs transition-colors"
+        >
+            + New
+        </button>
+    </div>
+    {showNewUnit && (
+        <div className="flex gap-2 mt-2">
+            <input
+                value={newUnit}
+                onChange={(e) => setNewUnit(e.target.value)}
+                placeholder="e.g. كرتونة"
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleSaveUnit())}
+                className={`${inputClass} flex-1 border-blue-500`}
+                autoFocus
+            />
+            <button
+                type="button"
+                onClick={handleSaveUnit}
+                disabled={savingUnit}
+                className="px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-xs"
+            >
+                {savingUnit ? '...' : 'Save'}
+            </button>
+        </div>
+    )}
+</div>
                             <div className="col-span-2">
     <label className={labelClass}>Initial Quantity</label>
     <input
@@ -388,11 +462,6 @@ const [customerForm, setCustomerForm] = useState({ name: '', phone: '', price_ti
 
                 {/* Card */}
                 <div className="bg-gray-900 border border-gray-800 rounded-xl p-8">
-                    {error && (
-                        <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg mb-6 text-sm">
-                            {error}
-                        </div>
-                    )}
 
                     {renderStep()}
 

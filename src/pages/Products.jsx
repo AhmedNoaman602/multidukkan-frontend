@@ -10,7 +10,6 @@ export default function Products() {
     const navigate = useNavigate()
     const [products, setProducts] = useState([])
     const [loading, setLoading] = useState(true)
-    const [error, setError] = useState('')
     const [search, setSearch] = useState('')
     const [deleteTarget , setDeleteTarget] = useState(null)
     const [deleting, setDeleting] = useState(false)
@@ -25,7 +24,7 @@ export default function Products() {
             setProducts(res.data.data)
             setLastPage(res.data.meta.last_page)
         } catch (err) {
-            setError('Failed to load products')
+            showToast('Failed to load products' , 'error')
         } finally {
             setLoading(false)
         }
@@ -76,11 +75,11 @@ export default function Products() {
                 </div>
             </div>
 
-            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>
-                            {['Name', 'SKU', 'Default', 'سعر أ', 'سعر ب', 'سعر ج', 'سعر د', 'سعر هـ', 'Unit', 'Actions'].map(h => (
+                            {['Name', 'SKU', 'Default', 'سعر أ', 'سعر ب', 'سعر ج', 'سعر د', 'سعر هـ', 'Cost Price', 'Profit Margin', 'Unit', 'Actions'].map(h => (
                                 <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                                     {h}
                                 </th>
@@ -93,14 +92,42 @@ export default function Products() {
                                 <td className="px-4 py-3 text-white text-sm">{product.name}</td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">{product.sku}</td>
                                 <td className="px-4 py-3 text-white text-sm">{product.price} EGP</td>
-                                {['a', 'b', 'c', 'd', 'e'].map(tier => (
-                                    <td key={tier} className="px-4 py-3 text-gray-300 text-sm">
-                                        {product[`price_${tier}`] ?? '—'}
-                                    </td>
-                                ))}
+                               {['a', 'b', 'c', 'd', 'e'].map(tier => (
+    <td key={tier} className="px-4 py-3 text-sm">
+        <div className="text-gray-300">
+            {product[`price_${tier}`] ?? '—'}
+        </div>
+        {product[`price_${tier}`] && product[`profit_margin_${tier}`] !== null && (
+            <div className={`text-xs ${
+                product[`profit_margin_${tier}`] >= 0 
+                    ? 'text-green-400' 
+                    : 'text-red-400'
+            }`}>
+                {product[`profit_margin_${tier}`] > 0 ? '+' : ''}{product[`profit_margin_${tier}`]} EGP
+            </div>
+        )}
+    </td>
+))}
+                              
+    <td className='px-4 py-3 text-white text-sm'>
+    {product.cost_price ? `${product.cost_price} EGP` : '—'}
+    </td>
+
+    <td className={`px-4 py-3 text-sm font-medium ${
+    product.profit_margin === null ? 'text-gray-500' :
+    product.profit_margin >= 0 ? 'text-green-400' : 'text-red-400'
+    }`}>
+    {product.profit_margin !== null ? `${product.profit_margin} EGP` : '—'}
+</td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">{product.unit}</td>
                                 <td className="px-4 py-3">
     <div className="flex gap-2">
+        <button
+    onClick={() => navigate('/products/create', { state: { duplicate: product } })}
+    className="px-3 py-1 bg-gray-500/10 border border-gray-500/20 text-gray-400 text-xs font-medium rounded-lg hover:bg-gray-500/20 transition-colors"
+>
+    Duplicate
+</button>
         {user.role !== 'store_staff' && (
             <button
                 onClick={() => navigate(`/products/${product.id}/edit`)}

@@ -14,13 +14,13 @@ export default function EditProduct() {
     const [suppliers, setSuppliers] = useState([])
     const [selectedSupplier, setSelectedSupplier] = useState(null)
     const [generatingDesc, setGeneratingDesc] = useState(false)
-    const [error, setError] = useState('')
     const [units, setUnits] = useState([])
     const [warehouses, setWarehouses] = useState([])
     const [stocks, setStocks] = useState([])
     const [form, setForm] = useState({
         name: '', sku: '', price: '', unit: '',
         price_a: '', price_b: '', price_c: '', price_d: '', price_e: '',
+        cost_price:'', 
         description_ar: '', description_en: '',
         secondary_unit: '', conversion_factor: '',
     })
@@ -46,6 +46,7 @@ export default function EditProduct() {
                 price_c:           p.price_c || '',
                 price_d:           p.price_d || '',
                 price_e:           p.price_e || '',
+                cost_price:        p.cost_price || '',
                 secondary_unit:    p.secondary_unit || '',
                 conversion_factor: p.conversion_factor || '',
                 description_ar:    p.description_ar || '',
@@ -70,7 +71,7 @@ export default function EditProduct() {
             setUnits(unitRes.data.data)
             setSuppliers(supplierRes.data.data)
         })
-        .catch(() => setError('Failed to load product'))
+        .catch(() => showToast('Failed to load product' , 'error'))
         .finally(() => setLoading(false))
     }, [id])
 
@@ -99,7 +100,6 @@ export default function EditProduct() {
             return
         }
         setGeneratingDesc(true)
-        setError('')
         try {
             const res = await api.post('/ai/describe-product', {
                 name: form.name,
@@ -121,7 +121,6 @@ export default function EditProduct() {
     const handleSubmit = async (e) => {
         e.preventDefault()
         setSaving(true)
-        setError('')
         try {
             await api.put(`/products/${id}`, {
                 ...form,
@@ -131,6 +130,7 @@ export default function EditProduct() {
                 price_c:           form.price_c ? parseFloat(form.price_c) : null,
                 price_d:           form.price_d ? parseFloat(form.price_d) : null,
                 price_e:           form.price_e ? parseFloat(form.price_e) : null,
+                cost_price:        form.cost_price ? parseFloat(form.cost_price) :null,
                 conversion_factor: form.conversion_factor ? parseInt(form.conversion_factor) : null,
                 supplier_id:       selectedSupplier?.id ?? null,
                 stocks: stocks
@@ -203,6 +203,18 @@ export default function EditProduct() {
                             className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                         />
                     </div>
+                    <div>
+    <label className="block text-sm text-gray-400 mb-1">
+        Cost Price <span className="text-gray-600">(optional)</span>
+    </label>
+    <input
+        type="number"
+        value={form.cost_price}
+        onChange={(e) => setForm({ ...form, cost_price: e.target.value })}
+        placeholder="What you paid for it"
+        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm placeholder-gray-600"
+    />
+</div>
 
                     <div>
                         <label className="block text-sm text-gray-400 mb-1">Unit</label>

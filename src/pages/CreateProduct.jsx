@@ -1,29 +1,41 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate , useLocation} from 'react-router-dom'
 import api from '../api/axios'
 import BackButton from '../components/BackButton'
 import SupplierSearchInput from '../components/SupplierSearchInput'
 import {useToast} from '../hooks/useToast'
+
 
 export default function CreateProduct() {
     const [warehouses, setWarehouses] = useState([])
     const [suppliers, setSuppliers] = useState([])
     const [selectedSupplier, setSelectedSupplier] = useState(null)
     const [saving, setSaving] = useState(false)
-    const [error, setError] = useState('')
     const [generatingDesc, setGeneratingDesc] = useState(false)
     const [newUnit, setNewUnit] = useState('')
     const [showNewUnit, setShowNewUnit] = useState(false)
     const [savingUnit, setSavingUnit] = useState(false)
     const stockBottomRef = useRef(null)
+    const location = useLocation()
+    const duplicate = location.state?.duplicate
     const [form, setForm] = useState({
-        name: '', sku: '', price: '', unit: '',
-        description: '',description_ar: '',
-        description_en: '',
-        price_a: '', price_b: '', price_c: '', price_d: '', price_e: '',
-        secondary_unit: '', conversion_factor: '',
-        supplier_id: '',
-    })
+    name: duplicate ? `${duplicate.name}` : '',
+    sku: duplicate ? `${duplicate.sku}` : '',
+    price: duplicate?.price || '',
+    unit: duplicate?.unit || '',
+    price_a: duplicate?.price_a || '',
+    price_b: duplicate?.price_b || '',
+    price_c: duplicate?.price_c || '',
+    price_d: duplicate?.price_d || '',
+    price_e: duplicate?.price_e || '',
+    cost_price: duplicate?.cost_price || '',
+    secondary_unit: duplicate?.secondary_unit || '',
+    conversion_factor: duplicate?.conversion_factor || '',
+    description: '',
+    description_ar: '',
+    description_en: '',
+    supplier_id: '',
+})
     const [stocks, setStocks] = useState([
         { warehouse_id: '', quantity: 1, threshold: 10, unit_type: 'base' }
     ])
@@ -82,7 +94,6 @@ export default function CreateProduct() {
             return
         }
         setGeneratingDesc(true)
-        setError('')
         try {
             const res = await api.post('/ai/describe-product', {
                 name: form.name,
@@ -95,7 +106,7 @@ export default function CreateProduct() {
                 description: `${res.data.ar}\n${res.data.en}`,
             }))
         } catch {
-            setError('Failed to generate description')
+            showToast('Failed to generate description' , 'error')
         } finally {
             setGeneratingDesc(false)
         }
@@ -104,7 +115,6 @@ export default function CreateProduct() {
     const handleSubmit = async (e) => {
         e.preventDefault()
         setSaving(true)
-        setError('')
         const hasEmptyWarehouse = stocks.some(s => !s.warehouse_id)
     if (hasEmptyWarehouse) {
         showToast('Please select a warehouse for all stock rows, or remove empty rows.', 'error')
@@ -125,6 +135,7 @@ export default function CreateProduct() {
                 ...form,
                 supplier_id: selectedSupplier?.id ?? null,
                 price: parseFloat(form.price),
+                cost_price: form.cost_price ? parseFloat(form.cost_price) : null,
                 stocks: stocks
                     .filter(s => s.warehouse_id)
                     .map(s => ({
@@ -198,6 +209,18 @@ export default function CreateProduct() {
                                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                             />
                         </div>
+                         <div>
+    <label className="block text-sm text-gray-400 mb-1">
+        Cost Price <span className="text-gray-600">(optional)</span>
+    </label>
+    <input
+        type="number"
+        value={form.cost_price}
+        onChange={(e) => setForm({ ...form, cost_price: e.target.value })}
+        placeholder="What you paid for it"
+        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm placeholder-gray-600"
+    />
+</div>
 
                         <div>
                             <label className="block text-sm text-gray-400 mb-1">Unit</label>

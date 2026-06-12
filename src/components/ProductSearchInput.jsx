@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 
-export default function ProductSearchInput({ products, onSelect, placeholder = 'Search by name or SKU...', inputRef: externalRef }) {
+export default function ProductSearchInput({ products, onSelect, showCostPrice = false, placeholder = 'Search by name or SKU...', inputRef: externalRef }) {
     const [query, setQuery] = useState('')
     const [open, setOpen] = useState(false)
     const [highlighted, setHighlighted] = useState(0)
@@ -68,7 +68,6 @@ export default function ProductSearchInput({ products, onSelect, placeholder = '
     }
 
     // Expose focus method
-    const focusInput = () => inputRefToUse.current?.focus()
 
     return (
         <>
@@ -99,7 +98,11 @@ export default function ProductSearchInput({ products, onSelect, placeholder = '
                                     <div className="flex justify-between items-center">
                                         <span className="font-medium">{product.name}</span>
                                         <span className={`text-xs ${i === highlighted ? 'text-blue-200' : 'text-gray-400'}`}>
-                                            {product.price} EGP
+                                           
+{showCostPrice 
+    ? (product.cost_price ?? product.price) 
+    : product.price
+} EGP
                                         </span>
                                     </div>
                                     {product.sku && (
@@ -177,8 +180,9 @@ export default function ProductSearchInput({ products, onSelect, placeholder = '
                                         )}
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-white text-sm font-medium">{product.price} EGP</p>
-                                        <p className="text-gray-500 text-xs">{product.unit}</p>
+<p className="text-white text-sm font-medium">
+    {showCostPrice ? (product.cost_price ?? product.price) : product.price} EGP
+</p>                                        <p className="text-gray-500 text-xs">{product.unit}</p>
                                     </div>
                                 </div>
                             ))}
