@@ -29,7 +29,7 @@ export default function Navbar() {
                             { to: '/orders', label: 'Orders' },
                             { to: '/inventory', label: 'Inventory' },
                             { to: '/suppliers', label: 'Suppliers' },
-                            { to: '/purchase-orders', label: 'Purchase Orders' },
+                            { to: '/purchase-orders', label: 'Purchases' },
                         ].map(link => (
                             <NavLink
                                 key={link.to}

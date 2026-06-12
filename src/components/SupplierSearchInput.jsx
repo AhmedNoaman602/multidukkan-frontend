@@ -1,211 +1,217 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
-export default function SupplierSearchInput({ suppliers, value, onChange, onSelect, placeholder = "Search suppliers..." }) {
-    const [isOpen, setIsOpen] = useState(false)
-    const [search, setSearch] = useState('')
-    const [showBrowseModal, setShowBrowseModal] = useState(false)
-    const dropdownRef = useRef(null)
-    const inputRef = useRef(null)
-    const [highlightedIndex, setHighlightedIndex] = useState(0)
+export default function SupplierSearchInput({ suppliers, value, onSelect, placeholder = 'Search by name, phone, or code...' }) {
+    const [query, setQuery] = useState('')
+    const [open, setOpen] = useState(false)
+    const [highlighted, setHighlighted] = useState(0)
+    const [browseOpen, setBrowseOpen] = useState(false)
+    const [browseQuery, setBrowseQuery] = useState('')
+    const ref = useRef(null)
 
-    const selectedSupplier = suppliers.find(s => s.id === value)
+    const filterFn = (q) => (s) =>
+        s.name.toLowerCase().includes(q.toLowerCase()) ||
+        (s.phone && s.phone.includes(q)) ||
+        (s.code && s.code.toLowerCase().includes(q.toLowerCase()))
 
-    const filteredSuppliers = suppliers.filter(s =>
-        s.name.toLowerCase().includes(search.toLowerCase()) ||
-        s.phone?.includes(search) ||
-        s.code?.toLowerCase().includes(search.toLowerCase())
-    )
+    const filtered = query.length > 0
+        ? suppliers.filter(filterFn(query)).slice(0, 8)
+        : []
 
-    useEffect(() => {
-        if (isOpen && filteredSuppliers.length > 0) {
-            setHighlightedIndex(0)
-        }
-    }, [search, isOpen])
+    const browseFiltered = browseQuery.length > 0
+        ? suppliers.filter(filterFn(browseQuery))
+        : suppliers
+
+    const selectedSupplier = suppliers.find(s => s.id === parseInt(value))
 
     useEffect(() => {
         const handleClickOutside = (e) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-                setIsOpen(false)
-            }
+            if (ref.current && !ref.current.contains(e.target)) setOpen(false)
         }
         document.addEventListener('mousedown', handleClickOutside)
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [])
 
-    const handleKeyDown = (e) => {
-        if (!isOpen) {
-            if (e.key === 'Enter' || e.key === 'ArrowDown') {
-                e.preventDefault()
-                setIsOpen(true)
-            }
-            return
-        }
-
-        switch (e.key) {
-            case 'ArrowDown':
-                e.preventDefault()
-                setHighlightedIndex(prev => 
-                    prev < filteredSuppliers.length - 1 ? prev + 1 : prev
-                )
-                break
-            case 'ArrowUp':
-                e.preventDefault()
-                setHighlightedIndex(prev => prev > 0 ? prev - 1 : 0)
-                break
-            case 'Enter':
-                e.preventDefault()
-                if (filteredSuppliers[highlightedIndex]) {
-                    handleSelect(filteredSuppliers[highlightedIndex])
-                }
-                break
-            case 'Escape':
-                e.preventDefault()
-                setIsOpen(false)
-                break
-        }
-    }
+    useEffect(() => {
+        if (browseOpen) document.body.style.overflow = 'hidden'
+        else document.body.style.overflow = ''
+        return () => { document.body.style.overflow = '' }
+    }, [browseOpen])
 
     const handleSelect = (supplier) => {
-        onSelect(supplier)
-        setIsOpen(false)
-        setSearch('')
+        onSelect(supplier.id)
+        setQuery('')
+        setOpen(false)
+        setHighlighted(0)
+    }
+
+    const handleBrowseSelect = (supplier) => {
+        onSelect(supplier.id)
+        setBrowseOpen(false)
+        setBrowseQuery('')
     }
 
     const handleClear = () => {
-        onSelect(null)
-        setSearch('')
-        inputRef.current?.focus()
+        onSelect('')
+        setQuery('')
+    }
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'ArrowDown') {
+            e.preventDefault()
+            setOpen(true)
+            setHighlighted(h => Math.min(h + 1, filtered.length - 1))
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault()
+            setHighlighted(h => Math.max(h - 1, 0))
+        } else if (e.key === 'Enter' && open && filtered.length > 0) {
+            e.preventDefault()
+            handleSelect(filtered[highlighted])
+        } else if (e.key === 'Escape') {
+            setOpen(false)
+        }
+    }
+
+    if (selectedSupplier) {
+        return (
+            <div className="flex items-center justify-between px-3 py-2.5 bg-gray-800 border border-gray-700 rounded-lg">
+                <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-8 h-8 rounded-full bg-purple-600/20 flex items-center justify-center shrink-0">
+                        <span className="text-purple-400 text-xs font-bold">{selectedSupplier.name.charAt(0)}</span>
+                    </div>
+                    <div className="min-w-0">
+                        <span className="text-white text-sm font-medium">{selectedSupplier.name}</span>
+                        <span className="text-gray-400 text-sm ml-2">{selectedSupplier.phone}</span>
+                        {selectedSupplier.code && (
+                            <span className="text-gray-500 text-xs ml-2">{selectedSupplier.code}</span>
+                        )}
+                    </div>
+                </div>
+                <button
+                    type="button"
+                    onClick={handleClear}
+                    className="text-gray-500 hover:text-red-400 transition-colors text-sm ml-3 shrink-0"
+                >
+                    ✕
+                </button>
+            </div>
+        )
     }
 
     return (
-        <div className="relative" ref={dropdownRef}>
-            {selectedSupplier ? (
-                <div className="flex items-center gap-2 px-3 py-2 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                    <div className="flex items-center gap-2 flex-1">
-                        <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-medium">
-                            {selectedSupplier.name[0].toUpperCase()}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <div className="text-white text-sm font-medium truncate">{selectedSupplier.name}</div>
-                            <div className="text-gray-400 text-xs">{selectedSupplier.phone}</div>
-                        </div>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={handleClear}
-                        className="p-1 hover:bg-gray-700 rounded transition-colors"
-                    >
-                      <span className="text-gray-400 text-sm">✕</span>
-                    </button>
-                </div>
-            ) : (
-                <>
+        <>
+            <div className="flex gap-2">
+                <div ref={ref} className="relative flex-1">
                     <input
-                        ref={inputRef}
                         type="text"
-                        value={search}
-                        onChange={(e) => {
-                            setSearch(e.target.value)
-                            setIsOpen(true)
-                        }}
-                        onFocus={() => setIsOpen(true)}
+                        value={query}
+                        onChange={e => { setQuery(e.target.value); setOpen(true); setHighlighted(0) }}
                         onKeyDown={handleKeyDown}
+                        onFocus={() => query && setOpen(true)}
                         placeholder={placeholder}
-                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
+                        autoComplete="off"
+                        className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                     />
 
-                    {isOpen && (
-                        <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl max-h-64 overflow-auto">
-                            {filteredSuppliers.length > 0 ? (
-                                filteredSuppliers.map((supplier, index) => (
-                                    <button
-                                        key={supplier.id}
-                                        type="button"
-                                        onClick={() => handleSelect(supplier)}
-                                        className={`w-full px-3 py-2 text-left hover:bg-gray-700 transition-colors ${
-                                            index === highlightedIndex ? 'bg-gray-700' : ''
-                                        }`}
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-medium">
-                                                {supplier.name[0].toUpperCase()}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="text-white text-sm font-medium truncate">{supplier.name}</div>
-                                                <div className="text-gray-400 text-xs">{supplier.phone}</div>
-                                            </div>
-                                            {supplier.code && (
-                                                <span className="text-xs text-gray-500">{supplier.code}</span>
-                                            )}
-                                        </div>
-                                    </button>
-                                ))
-                            ) : (
-                                <div className="px-3 py-4 text-center text-gray-500 text-sm">
-                                    No suppliers found
+                    {open && filtered.length > 0 && (
+                        <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl max-h-52 overflow-y-auto">
+                            {filtered.map((supplier, i) => (
+                                <div
+                                    key={supplier.id}
+                                    onMouseDown={() => handleSelect(supplier)}
+                                    className={`px-3 py-2.5 cursor-pointer text-sm transition-colors ${
+                                        i === highlighted ? 'bg-blue-600 text-white' : 'text-white hover:bg-gray-700'
+                                    }`}
+                                >
+                                    <div className="flex justify-between items-center">
+                                        <span className="font-medium">{supplier.name}</span>
+                                        <span className={`text-xs ${i === highlighted ? 'text-blue-200' : 'text-gray-400'}`}>{supplier.phone}</span>
+                                    </div>
+                                    {supplier.code && (
+                                        <div className={`text-xs mt-0.5 ${i === highlighted ? 'text-blue-200' : 'text-gray-500'}`}>{supplier.code}</div>
+                                    )}
                                 </div>
-                            )}
-
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setShowBrowseModal(true)
-                                    setIsOpen(false)
-                                }}
-                                className="w-full px-3 py-2 text-sm text-blue-400 hover:bg-gray-700 transition-colors border-t border-gray-700"
-                            >
-                                Browse All Suppliers
-                            </button>
+                            ))}
                         </div>
                     )}
-                </>
-            )}
 
-            {/* Browse All Modal */}
-            {showBrowseModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowBrowseModal(false)}>
-                    <div className="bg-gray-800 rounded-lg border border-gray-700 w-full max-w-2xl max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
-                        <div className="p-4 border-b border-gray-700 flex items-center justify-between">
-                            <h3 className="text-white font-semibold">Select Supplier</h3>
-                            <button onClick={() => setShowBrowseModal(false)} className="text-gray-400 hover:text-white">
-<span className="text-gray-400 text-sm">✕</span>                            </button>
+                    {open && query.length > 0 && filtered.length === 0 && (
+                        <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl px-3 py-3 text-gray-400 text-sm">
+                            No suppliers found for "{query}"
                         </div>
-                        <div className="p-4 overflow-auto max-h-[calc(80vh-120px)]">
-                            <div className="space-y-1">
-                                {suppliers.map(supplier => (
-                                    <button
-                                        key={supplier.id}
-                                        type="button"
-                                        onClick={() => {
-                                            handleSelect(supplier)
-                                            setShowBrowseModal(false)
-                                        }}
-                                        className="w-full px-3 py-2 text-left hover:bg-gray-700 rounded-lg transition-colors"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium">
-                                                {supplier.name[0].toUpperCase()}
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="text-white font-medium">{supplier.name}</div>
-                                                <div className="text-gray-400 text-sm">{supplier.phone}</div>
-                                            </div>
+                    )}
+                </div>
+
+                <button
+                    type="button"
+                    onClick={() => setBrowseOpen(true)}
+                    className="px-3 py-2 bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-300 text-sm rounded-lg transition-colors whitespace-nowrap"
+                >
+                    Browse
+                </button>
+            </div>
+
+            {browseOpen && (
+                <div
+                    className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+                    onClick={() => { setBrowseOpen(false); setBrowseQuery('') }}
+                >
+                    <div
+                        className="bg-gray-900 border border-gray-800 rounded-xl w-full max-w-lg flex flex-col max-h-[80vh]"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between p-4 border-b border-gray-800">
+                            <h3 className="text-white font-semibold">Browse Suppliers</h3>
+                            <button
+                                type="button"
+                                onClick={() => { setBrowseOpen(false); setBrowseQuery('') }}
+                                className="text-gray-400 hover:text-white transition-colors text-lg leading-none"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <div className="p-4 border-b border-gray-800">
+                            <input
+                                type="text"
+                                value={browseQuery}
+                                onChange={e => setBrowseQuery(e.target.value)}
+                                placeholder="Search by name, phone, or code..."
+                                autoFocus
+                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
+                            />
+                            <p className="text-gray-500 text-xs mt-2">
+                                {browseFiltered.length} supplier{browseFiltered.length !== 1 ? 's' : ''}
+                            </p>
+                        </div>
+
+                        <div className="overflow-y-auto flex-1">
+                            {browseFiltered.map(supplier => (
+                                <div
+                                    key={supplier.id}
+                                    onClick={() => handleBrowseSelect(supplier)}
+                                    className="flex items-center justify-between px-4 py-3 hover:bg-gray-800 cursor-pointer transition-colors border-b border-gray-800/50"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-purple-600/20 flex items-center justify-center shrink-0">
+                                            <span className="text-purple-400 text-xs font-bold">{supplier.name.charAt(0)}</span>
+                                        </div>
+                                        <div>
+                                            <p className="text-white text-sm font-medium">{supplier.name}</p>
                                             {supplier.code && (
-                                                <span className="text-gray-500 text-sm">{supplier.code}</span>
+                                                <p className="text-gray-500 text-xs mt-0.5">{supplier.code}</p>
                                             )}
                                         </div>
-                                    </button>
-                                ))}
-                                    {filteredSuppliers.length === 0 && (
-                                        <div className="px-3 py-4 text-center text-gray-500 text-sm">
-                                            No suppliers found
-                                        </div>
-                                    )}
-                            </div>
+                                    </div>
+                                    <p className="text-gray-400 text-sm">{supplier.phone}</p>
+                                </div>
+                            ))}
+                            {browseFiltered.length === 0 && (
+                                <div className="text-center py-12 text-gray-500 text-sm">No suppliers found.</div>
+                            )}
                         </div>
                     </div>
                 </div>
             )}
-        </div>
+        </>
     )
 }
