@@ -15,6 +15,9 @@ export default function CustomerBalance() {
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
 
+    const [editPayment , setEditPayment] = useState(null)
+    const [editForm, setEditForm] = useState({amount:'' , method:'cash'})
+    
     const [paymentModal, setPaymentModal] = useState(false)
     const [autoForm, setAutoForm] = useState({ amount: '', method: 'cash', order_id: '' })
 
@@ -57,6 +60,24 @@ export default function CustomerBalance() {
         } catch (err) {
             showToast(err.response?.data?.message || 'Failed to process payment', 'error')
         } finally {
+            setSaving(false)
+        }
+    }
+
+    const handleEditPayment = async (e) =>{
+        e.preventDefault()
+        setSaving(true)
+        try{
+            await api.patch(`/payments/${editForm.id}`, {
+                amount: parseFloat(editForm.amount),
+                method: editForm.method,
+            })
+            showToast('Payment updated successfully.', 'success')
+            setEditPayment(false)
+            setEditForm({amount: '', method: 'cash'})
+            fetchData()
+        }catch(err){
+showToast(err.response?.data?.message || 'Failed to update payment', 'error')        }finally{
             setSaving(false)
         }
     }
@@ -188,7 +209,7 @@ export default function CustomerBalance() {
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>
-                            {['Invoice', 'Amount', 'Refunded', 'Net', 'Method', 'Date'].map(h => (
+                            {['Invoice', 'Amount', 'Refunded', 'Net', 'Method', 'Date','Actions'].map(h => (
                                 <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>
                             ))}
                         </tr>
@@ -206,6 +227,22 @@ export default function CustomerBalance() {
                                 <td className="px-4 py-3 text-gray-400 text-sm">{methodLabel[p.method] ?? p.method}</td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">
                                     {new Date(p.paid_at).toLocaleDateString('en-GB')}
+                                </td>
+                                <td className='px-4 py-3 text-gray-400 text-sm'>
+                                 <button
+    onClick={() => {
+        setEditPayment(true)
+        setEditForm({ id: p.id, amount: p.amount, method: p.method })
+    }}
+    disabled={p.refunded_amount > 0}
+    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+        p.refunded_amount > 0
+            ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+            : 'bg-purple-600 hover:bg-purple-700 text-white'
+    }`}
+>
+    edit
+</button>
                                 </td>
                             </tr>
                         ))}
@@ -319,10 +356,46 @@ export default function CustomerBalance() {
                 </div>
             </Modal>
 
+            <Modal open={!!editPayment} onClose={()=> setEditPayment(false)} title="Edit Payment">
+                <form onSubmit={handleEditPayment} className='space-y-4'>
+                <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm text-gray-400 mb-1">Amount</label>
+                                <input type="number" value={editForm.amount}
+                                    onChange={e => setEditForm({ ...editForm, amount: e.target.value })}
+                                    required min="0.01" step="0.01"
+                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-purple-500 text-sm"
+                                    placeholder="e.g. 500" />
+                            </div>
+                            <div>
+                                <label className="block text-sm text-gray-400 mb-1">Method</label>
+                                <select value={editForm.method}
+                                    onChange={e => setEditForm({ ...editForm, method: e.target.value })}
+                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-purple-500 text-sm">
+                                    <option value="cash">Cash</option>
+                                    <option value="bank_transfer">Bank Transfer</option>
+                                    <option value="check">Check</option>
+                                </select>
+                            </div>
+                        </div>
+                          <div className="flex justify-end gap-2 pt-2">
+                            <button type="button" onClick={() => setEditPayment(false)}
+                                className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">
+                                Cancel
+                            </button>
+                            <button type="submit" disabled={saving || !editForm.amount}
+                                className="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
+                                {saving ? 'Processing...' : 'Edit Payment'}
+                            </button>
+                        </div>
+                        </form>
+            </Modal>
+
             <RefundModal 
                 open={refundModal}
                 onClose={() => setRefundModal(false)}
                 orders={paidOrders}
+                payments={data.payments}
                 customerId={id}
                 onSuccess={fetchData}
             />
