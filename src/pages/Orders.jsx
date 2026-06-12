@@ -7,6 +7,7 @@ import Modal from '../components/Modal'
 import StatBoxes from '../components/StatBoxes'
 import RefundModal from '../components/RefundModal'
 import {useToast} from '../hooks/useToast'
+import QuickSaleModal from '../components/QuickSaleModal'
 
 export default function Orders() {
     const [orders, setOrders] = useState([])
@@ -28,6 +29,11 @@ const [dateTo, setDateTo] = useState('')
     const [hoveredOrder, setHoveredOrder] = useState(null)
     const hasActiveFilters = yearFilter || monthFilter || dateFrom || dateTo || dateExact || search || filterMode !== 'all'
     const [refundTarget, setRefundTarget] = useState(null)
+    const [showQuickSale, setShowQuickSale] = useState(false)
+    const [quickSaleProducts, setQuickSaleProducts] = useState([])
+    const [quickSaleWarehouses, setQuickSaleWarehouses] = useState([])
+    const user = JSON.parse(localStorage.getItem('user') || '{}')
+    const [inventory, setInventory] = useState([])
     const { showToast } = useToast()
 const clearFilters = () => {
     setFilterMode('all')
@@ -40,6 +46,13 @@ const clearFilters = () => {
     setPage(1)
 }
     const navigate = useNavigate()
+
+
+useEffect(() => {
+    api.get('/products?per_page=all').then(res => setQuickSaleProducts(res.data.data))
+    api.get('/warehouses').then(res => setQuickSaleWarehouses(res.data.data))
+    api.get('/inventory?per_page=all').then(res => setInventory(res.data.data))
+}, [])
 
     const fetchOrders = () => {
         const today = new Date().toISOString().split('T')[0]
@@ -111,6 +124,13 @@ const clearFilters = () => {
     {/* Top row */}
     <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-white">Orders</h2>
+        <div className="flex items-center gap-2">
+                    <button
+    onClick={() => setShowQuickSale(true)}
+    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors"
+>
+    ⚡ بيع سريع
+</button>
         <button
             onClick={() => navigate('/orders/create')}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
@@ -118,7 +138,7 @@ const clearFilters = () => {
             + New Order
         </button>
     </div>
-
+</div>
 {/* Filter row */}
 <div className="flex items-center gap-4 flex-wrap">
     {/* Search + New Order */}
@@ -330,7 +350,7 @@ const clearFilters = () => {
                                                 Pay
                                             </button>
                                         )}
-                                        {order.status === 'paid' && (
+                                        {order.status === 'paid' && order.customer_name !== 'زبون نقدي' &&  (
                                          <button
                                                onClick={(e) => {
                                                     e.stopPropagation()
@@ -477,6 +497,20 @@ const clearFilters = () => {
                     fetchOrders()
                 }}
 />
+
+{showQuickSale && (
+    <QuickSaleModal
+        open={showQuickSale}
+        onClose={() => {
+            setShowQuickSale(false)
+            fetchOrders()
+        }}
+        products={quickSaleProducts}
+        warehouses={quickSaleWarehouses}
+         inventory={inventory} 
+        storeId={user.store_id}
+    />
+)}
         </div>
     )
 }

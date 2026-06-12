@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
+import QuickSaleModal from '../components/QuickSaleModal'
 
 // Reusable stat card component
 const StatCard = ({ label, value, sub, icon, gradient, onClick, accent }) => (
@@ -34,17 +35,57 @@ const [loadingInsights, setLoadingInsights] = useState(false)
 const [insightsFetched, setInsightsFetched] = useState(false)
 const [activePeriod , setActivePeriod] = useState("Today")
 const [ordersFilter, setOrdersFilter] = useState('all')
+const [showQuickSale, setShowQuickSale] = useState(false)
+const [products, setProducts] = useState([])
+const [warehouses, setWarehouses] = useState([])
+const [inventory, setInventory] = useState([])
+
     const navigate = useNavigate()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
 
     const getGreeting = () => {
-        const hour = new Date().getHours()
-        if (hour < 5) return 'Working late'
-        if (hour < 12) return 'Good morning'
-        if (hour < 17) return 'Good afternoon'
-        if (hour < 21) return 'Good evening'
-        return 'Good night'
+    const hour = new Date().getHours()
+    const day = new Date().getDay() // 0=Sunday, 5=Friday, 6=Saturday
+    
+    // Friday
+    if (day === 5) return 'جمعة مباركة،'
+    
+    // Based on stats
+    if (stats?.todayRevenue > 0) {
+        const messages = [
+            `شغل تمام،`,
+            `ماشي الحال،`,
+            `يلا بينا،`,
+        ]
+        return messages[Math.floor(Math.random() * messages.length)]
     }
+
+    // Time based
+    if (hour < 5)  return 'سهران لسه؟'
+    if (hour < 9)  return 'صباح الفل،'
+    if (hour < 12) return 'صباح الخير،'
+    if (hour < 14) return 'نهارك سعيد،'
+    if (hour < 17) return 'بعد الظهر،'
+    if (hour < 19) return 'العصر اتفضل،'
+    if (hour < 21) return 'مساء الخير،'
+    return 'مساء النور،'
+}
+
+const getSubMessage = () => {
+    if (stats?.todayRevenue > 2000) {
+        return `🔥 أداء رائع اليوم! حققت مبيعات بقيمة ${stats.todayRevenue} جنيه حتى الآن`
+    }
+    if (stats?.unpaidOrders > 3) {
+        return `⚠️ لديك ${stats.unpaidOrders} طلبات غير مسددة تحتاج إلى المتابعة`
+    }
+    if (stats?.lowStock > 0) {
+        return `📦 يوجد ${stats.lowStock} منتجات أوشكت على النفاد وتحتاج إلى إعادة التوريد`
+    }
+    if (stats?.todayOrdersCount === 0) {
+        return ' 🚀 لم يتم تسجيل أي طلبات اليوم بعد، نتمنى لك يوماً ناجحاً'
+    }
+    return ` إليك ملخص نشاط ${user.business_name} اليوم`
+}
 
     const fetchInsights = async () => {
     if (insightsFetched) return
@@ -72,13 +113,14 @@ const todayFormatted = new Date().toLocaleDateString('en-EG', {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [ordersRes, customersRes, productsRes, inventoryRes, paymentsRes] = await Promise.all([
-                    api.get('/orders'),
-                    api.get('/customers'),
-                    api.get('/products'),
-                    api.get('/inventory'),
-                    api.get(`/payments?date=${today}`).catch(() => ({ data: { data: [], total: 0, count: 0 } })),
-                ])
+               const [ordersRes, customersRes, productsRes, inventoryRes, paymentsRes, warehousesRes] = await Promise.all([
+    api.get('/orders'),
+    api.get('/customers'),
+    api.get('/products?per_page=all'), 
+    api.get('/inventory?per_page=all'), 
+    api.get(`/payments?date=${today}`).catch(() => ({ data: { data: [], total: 0, count: 0 } })),
+    api.get('/warehouses'),
+])
 
                 const orders = ordersRes.data.data || []
                 const customers = customersRes.data.data || []
@@ -140,6 +182,9 @@ const todayFormatted = new Date().toLocaleDateString('en-EG', {
                 setRecentOrders(orders.slice(0, 5))
                 setTopDebtors(topDebtorsList)
                 setLowStockItems(lowStock.slice(0, 3))
+                setProducts(productsRes.data.data)
+                setWarehouses(warehousesRes.data.data)
+                setInventory(inventoryRes.data.data)
 
             } catch (err) {
                 console.error('Dashboard error:', err)
@@ -164,11 +209,11 @@ const todayFormatted = new Date().toLocaleDateString('en-EG', {
             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
             <p className="text-gray-500 text-sm">{todayFormatted}</p>
         </div>
-        <h1 className="text-3xl font-bold text-white tracking-tight">
-            {getGreeting()}, {user.name}
+        <h1 className="text-3xl font-bold text-white tracking-tight" dir="rtl">
+     {getGreeting()} يا {user.name} 
         </h1>
-        <p className="text-gray-500 text-sm mt-1">
-            Here's what's happening at {user.business_name} today.
+        <p className="text-gray-500 text-sm mt-1" >
+            {getSubMessage()}
         </p>
     </div>
     <div className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-xl p-1">
@@ -304,6 +349,10 @@ const todayFormatted = new Date().toLocaleDateString('en-EG', {
                             </button>
                         </>
                     )}
+                    <button onClick={() => setShowQuickSale(true)}
+    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg">
+    ⚡ بيع سريع
+</button>
                 </div>
             </div>
 {/* AI Insights */}
@@ -631,6 +680,19 @@ const todayFormatted = new Date().toLocaleDateString('en-EG', {
                     </div>
                 </div>
             </div>
+            {showQuickSale && (
+    <QuickSaleModal
+        open={showQuickSale}
+        onClose={() => {
+            setShowQuickSale(false),
+            fetchData()
+        }}
+        products={products}
+        warehouses={warehouses}
+         inventory={inventory} 
+        storeId={user.store_id}
+    />
+)}
 
         </div>
     )
