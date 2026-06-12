@@ -7,35 +7,43 @@ export default function RefundModal({
     open, 
     onClose, 
     orders, 
+    payments,
     customerId, 
     onSuccess
 }){
-    const [refundForm, setRefundForm] = useState({ amount: '', method: 'cash', order_id: '' })
+    const [refundForm, setRefundForm] = useState({ amount: '', method: 'cash', order_id: '', payment_id_target: '' })
     const [saving, setSaving] = useState(false)
     const { showToast } = useToast()
+    
     // At the top of RefundModal, after useState declarations:
+
+
 useEffect(() => {
-    if (orders.length === 1) {
-        setRefundForm(f => ({
-            ...f,
-            order_id: String(orders[0].id),
-            amount:   String(orders[0].paid),
-        }))
+    if (!open) {
+        setRefundForm({ amount: '', method: 'cash', order_id: '', payment_id_target: '' })
     }
-}, [orders])
+}, [open])
 
 
 const handleRefund = async (e) => {
     e.preventDefault()
     setSaving(true)
     try {
+        console.log('refund payload:', {
+    amount: parseFloat(refundForm.amount),
+    method: refundForm.method,
+    order_id: refundForm.order_id,
+    payment_id_target: refundForm.payment_id_target,
+})
         await api.post(`/customers/${customerId}/refund`, {
             amount: parseFloat(refundForm.amount),
             method: refundForm.method,
             ...(refundForm.order_id && { order_id: parseInt(refundForm.order_id) }),
+            ...(refundForm.payment_id_target && { payment_id_target: parseInt(refundForm.payment_id_target) }),
         })
+        
         showToast('Refund issued successfully.', 'success')
-        setRefundForm({ amount: '', method: 'cash', order_id: '' })
+        setRefundForm({ amount: '', method: 'cash', order_id: '', payment_id_target: '' })
         onClose()
         onSuccess()
     } catch (err) {
@@ -87,6 +95,37 @@ const handleRefund = async (e) => {
                                 </select>
                             </div>
                         )}
+                       {payments?.filter(p => (p.amount - (p.refunded_amount ?? 0)) > 0).length > 0 && (
+    <div>
+        <label className="block text-sm text-gray-400 mb-1">
+            Refund Specific Payment
+        </label>
+        <select
+            value={refundForm.payment_id_target}
+            onChange={e => {
+                const payment = payments.find(p => p.id === parseInt(e.target.value))
+                setRefundForm({
+                    ...refundForm,
+                    payment_id_target: e.target.value,
+                    amount: e.target.value
+                        ? String(payment.amount - (payment.refunded_amount ?? 0))
+                        : refundForm.amount
+                })
+            }}
+            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-orange-500 text-sm"
+        >
+            <option value="">Select a payment *</option>
+            {payments
+                .filter(p => (p.amount - (p.refunded_amount ?? 0)) > 0)
+                .map(p => (
+                    <option key={p.id} value={p.id}>
+                        {p.invoice_number} — {p.amount - (p.refunded_amount ?? 0)} EGP net
+                    </option>
+                ))
+            }
+        </select>
+    </div>
+)}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm text-gray-400 mb-1">Amount</label>
