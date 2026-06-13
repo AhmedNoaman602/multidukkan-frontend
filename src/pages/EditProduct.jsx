@@ -12,7 +12,7 @@ export default function EditProduct() {
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [suppliers, setSuppliers] = useState([])
-    const [selectedSupplier, setSelectedSupplier] = useState(null)
+    const [supplierId, setSupplierId] = useState(null)
     const [generatingDesc, setGeneratingDesc] = useState(false)
     const [units, setUnits] = useState([])
     const [warehouses, setWarehouses] = useState([])
@@ -55,7 +55,7 @@ export default function EditProduct() {
             
             // Pre-populate selected supplier when loading product:
             if (p.supplier_id) {
-                setSelectedSupplier({ id: p.supplier_id, name: p.supplier_name })
+                setSupplierId(p.supplier_id)
             }
 
             // Load existing warehouse stocks
@@ -132,7 +132,7 @@ export default function EditProduct() {
                 price_e:           form.price_e ? parseFloat(form.price_e) : null,
                 cost_price:        form.cost_price ? parseFloat(form.cost_price) :null,
                 conversion_factor: form.conversion_factor ? parseInt(form.conversion_factor) : null,
-                supplier_id:       selectedSupplier?.id ?? null,
+                supplier_id:       supplierId ?? null,
                 stocks: stocks
                     .filter(s => s.warehouse_id)
                     .map(s => ({
@@ -187,8 +187,8 @@ export default function EditProduct() {
     </label>
     <SupplierSearchInput
         suppliers={suppliers}
-        value={selectedSupplier?.id ?? null}
-        onSelect={setSelectedSupplier}
+        value={supplierId}
+        onSelect={setSupplierId}
         placeholder="Search suppliers..."
     />
 </div>

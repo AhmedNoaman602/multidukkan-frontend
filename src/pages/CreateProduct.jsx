@@ -9,7 +9,7 @@ import {useToast} from '../hooks/useToast'
 export default function CreateProduct() {
     const [warehouses, setWarehouses] = useState([])
     const [suppliers, setSuppliers] = useState([])
-    const [selectedSupplier, setSelectedSupplier] = useState(null)
+    const [supplierId, setSupplierId] = useState(null)
     const [saving, setSaving] = useState(false)
     const [generatingDesc, setGeneratingDesc] = useState(false)
     const [newUnit, setNewUnit] = useState('')
@@ -133,7 +133,7 @@ export default function CreateProduct() {
         try {
             await api.post('/products', {
                 ...form,
-                supplier_id: selectedSupplier?.id ?? null,
+                supplier_id: supplierId ?? null,
                 price: parseFloat(form.price),
                 cost_price: form.cost_price ? parseFloat(form.cost_price) : null,
                 stocks: stocks
@@ -193,8 +193,8 @@ export default function CreateProduct() {
     </label>
     <SupplierSearchInput
         suppliers={suppliers}
-        value={selectedSupplier?.id ?? null}
-        onSelect={setSelectedSupplier}
+        value={supplierId}
+        onSelect={setSupplierId}
         placeholder="Search suppliers..."
     />
 </div>
