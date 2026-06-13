@@ -3,7 +3,7 @@ import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import Modal from '../components/Modal'
 import SearchInput from '../components/SearchInput'
-
+import { useToast } from '../hooks/useToast'
 
 export default function Inventory() {
     const [inventory, setInventory] = useState([])
@@ -12,18 +12,19 @@ export default function Inventory() {
     const [page, setPage] = useState(1)
     const [lastPage, setLastPage] = useState(1)
     const [loading, setLoading] = useState(true)
-    const [error, setError] = useState('')
     const [adjustingItem, setAdjustingItem] = useState(null)
     const [adjustQty, setAdjustQty] = useState('')
     const [adjustDirection, setAdjustDirection] = useState('in')
     const [adjustLoading, setAdjustLoading] = useState(false)
-    const [adjustError, setAdjustError] = useState('')
     const [search, setSearch] = useState('')
     const [selectedWarehouse, setSelectedWarehouse] = useState('')
     const [warehousesList, setWarehousesList] = useState([])
+    const [adjustUnitType, setAdjustUnitType] = useState('base')
     const user = JSON.parse(localStorage.getItem('user') || '{}')
     const canAdjust = user.role !== 'store_staff'
     const isAdmin = user.role === 'tenant_admin'
+
+    const { showToast } = useToast()
 
     const fetchInventory = async () => {
         try {
@@ -39,7 +40,7 @@ export default function Inventory() {
             setStores(storesRes.data.data)
             setWarehousesList(warehousesRes.data.data)
         } catch (err) {
-            setError('Failed to load inventory')
+            showToast(err.response?.data?.message || 'Failed to load inventory', 'error')
         } finally {
             setLoading(false)
         }
@@ -51,20 +52,17 @@ export default function Inventory() {
         setAdjustingItem(item)
         setAdjustDirection(direction)
         setAdjustQty('')
-        setAdjustError('')
     }
 
     const closeAdjustModal = () => {
         setAdjustingItem(null)
         setAdjustQty('')
-        setAdjustError('')
     }
 
     const submitAdjust = async () => {
-        setAdjustError('')
         const qty = parseInt(adjustQty, 10)
         if (!qty || qty < 1) {
-            setAdjustError('Please enter a quantity of 1 or more.')
+            showToast('Please enter a quantity of 1 or more.', 'error')
             return
         }
         setAdjustLoading(true)
@@ -72,23 +70,27 @@ export default function Inventory() {
             await api.post(`/inventory/${adjustingItem.id}/adjust`, {
                 quantity: qty,
                 direction: adjustDirection,
+                unit_type: adjustUnitType,
             })
             await fetchInventory()
             closeAdjustModal()
         } catch (err) {
-            setAdjustError(err.response?.data?.message || 'Failed to adjust stock')
+            showToast(err.response?.data?.message || 'Failed to adjust stock', 'error')
         } finally {
             setAdjustLoading(false)
         }
     }
 
-    const previewNewQty = () => {
-        const qty = parseInt(adjustQty, 10) || 0
-        if (!adjustingItem) return 0
-        return adjustDirection === 'in'
-            ? adjustingItem.quantity + qty
-            : adjustingItem.quantity - qty
-    }
+   const previewNewQty = () => {
+    const qty = parseInt(adjustQty, 10) || 0
+    if (!adjustingItem) return 0
+    const baseQty = adjustUnitType === 'secondary' && adjustingItem.conversion_factor
+        ? qty * adjustingItem.conversion_factor
+        : qty
+    return adjustDirection === 'in'
+        ? adjustingItem.quantity + baseQty
+        : adjustingItem.quantity - baseQty
+}
 
     const filteredInventory = inventory.filter(item => !selectedStore || String(item.store_id) === String(selectedStore))
 
@@ -140,13 +142,6 @@ export default function Inventory() {
         </button>
     ))}
 </div>
-
-            {error && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg mb-6 text-sm">
-                    {error}
-                </div>
-            )}
-
             <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
                 <table className="w-full">
                     <thead className="bg-gray-800">
@@ -257,7 +252,7 @@ export default function Inventory() {
                 open={!!adjustingItem}
                 onClose={closeAdjustModal}
                 title={adjustDirection === 'in' ? 'Add Stock' : 'Remove Stock'}
-                error={adjustError}
+                setAdjustUnitType={'base'}
             >
                 {adjustingItem && (
                     <form onSubmit={(e) => { e.preventDefault(); submitAdjust(); }}>
@@ -280,6 +275,30 @@ export default function Inventory() {
                                     autoFocus
                                 />
                             </div>
+                            {adjustingItem?.secondary_unit && (
+    <div>
+        <label className="block text-sm text-gray-400 mb-1">Unit</label>
+        <div className="flex gap-2">
+            {['base', 'secondary'].map(u => (
+                <button
+                    key={u}
+                    type="button"
+                    onClick={() => setAdjustUnitType(u)}
+                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        adjustUnitType === u
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                    }`}
+                >
+                    {u === 'base' 
+                        ? adjustingItem.product_unit 
+                        : adjustingItem.secondary_unit}
+                </button>
+            ))}
+        </div>
+    </div>
+)}
+                            
                             {adjustQty && (
                                 <div className="text-sm text-gray-400">
                                     New stock will be: <span className="text-white font-semibold">{previewNewQty()}</span>

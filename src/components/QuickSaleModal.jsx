@@ -113,11 +113,6 @@ export default function QuickSaleModal({
             showToast('Could not resolve store for the selected warehouse.', 'error')
             return
         }
-        console.log('warehouses:', warehouses)
-console.log('items[0].warehouse_id:', items[0].warehouse_id)
-console.log('firstWarehouseId:', firstWarehouseId)
-console.log('selectedWarehouse:', selectedWarehouse)
-console.log('finalStoreId:', finalStoreId)
         setSaving(true)
         try {
             const res = await api.post('/orders', {
@@ -132,25 +127,24 @@ console.log('finalStoreId:', finalStoreId)
                     unit_type: i.unit_type ?? 'base',
                 }))
             })
-            console.log('order response:', res.data)
-            console.log('customer_id from response:', res.data.customer_id)
-
-            console.log('sending payment:', {
-                order_id: res.data.id,
-                customer_id: res.data.customer_id,
-                amount: res.data.total,
-                method: 'cash',
-            })
             await api.post('/payments', {
                 order_id: res.data.id,
                 customer_id: user.walk_in_customer_id,
                 amount: res.data.total,
                 method: 'cash',
             })
+
             showToast('تم تسجيل البيع ✅', 'success')
             setItems([])
             setDiscount(0)
-            onClose()
+showToast('تم تسجيل البيع ✅', 'success')
+setItems([])
+setDiscount(0)
+try {
+    onClose()
+} catch(e) {
+    console.error('onClose error:', e)
+}
         } catch (err) {
             showToast(err.response?.data?.message || 'Failed to create order', 'error')
         } finally {
