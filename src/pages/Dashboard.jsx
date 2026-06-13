@@ -54,8 +54,7 @@ const [inventory, setInventory] = useState([])
     if (stats?.todayRevenue > 0) {
         const messages = [
             `شغل تمام،`,
-            `ماشي الحال،`,
-            `يلا بينا،`,
+            `أداء ممتاز النهارده`,
         ]
         return messages[Math.floor(Math.random() * messages.length)]
     }
@@ -65,8 +64,6 @@ const [inventory, setInventory] = useState([])
     if (hour < 9)  return 'صباح الفل،'
     if (hour < 12) return 'صباح الخير،'
     if (hour < 14) return 'نهارك سعيد،'
-    if (hour < 17) return 'بعد الظهر،'
-    if (hour < 19) return 'العصر اتفضل،'
     if (hour < 21) return 'مساء الخير،'
     return 'مساء النور،'
 }
@@ -212,7 +209,7 @@ const todayFormatted = new Date().toLocaleDateString('en-EG', {
         <h1 className="text-3xl font-bold text-white tracking-tight" dir="rtl">
      {getGreeting()} يا {user.name} 
         </h1>
-        <p className="text-gray-500 text-sm mt-1" >
+        <p className="text-gray-500 text-sm mt-1" dir='rtl'>
             {getSubMessage()}
         </p>
     </div>
@@ -537,14 +534,14 @@ const todayFormatted = new Date().toLocaleDateString('en-EG', {
         ) : (
             <table className="w-full table-fixed">
                 <colgroup>
-                    <col className="w-10" />   
-                    <col />                     
-                    <col className="w-8" />    
-                    <col className="w-20" />   
-                    <col className="w-20" />   
-                    <col className="w-24" />   
-                    <col className="w-24" />   
-                </colgroup>
+    <col className="w-16" />
+    <col className="w-32"/>    
+    <col className="w-12" />   
+    <col className="w-24" />    
+    <col className="w-24" />   
+    <col className="w-20" />   
+    <col className="w-28" />   
+</colgroup>
                 <thead>
                     <tr className="border-b border-gray-800">
                         {['Invoice', 'Customer', 'Items', 'Total', 'Balance', 'Status', 'Time'].map(h => (
@@ -555,9 +552,11 @@ const todayFormatted = new Date().toLocaleDateString('en-EG', {
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800/60">
+                
                     {recentOrders
                         .filter(o => ordersFilter === 'all' || o.status === ordersFilter)
                         .map(order => (
+                            
                             <tr
                                 key={order.id}
                                 onClick={() => navigate(`/orders/${order.id}`)}
@@ -602,6 +601,7 @@ const todayFormatted = new Date().toLocaleDateString('en-EG', {
                                 </td>
                             </tr>
                         ))}
+                        
                 </tbody>
             </table>
         )}
