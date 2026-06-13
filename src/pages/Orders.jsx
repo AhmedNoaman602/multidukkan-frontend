@@ -96,7 +96,7 @@ useEffect(() => {
                 setPayTarget(null)
                 setPayForm({ amount: '', method: 'cash' })
                 fetchOrders()
-            }, 1500)
+            }, 1000)
         } catch (err) {
             showToast(err.response?.data?.message || 'Failed to process payment', 'error')
         } finally {

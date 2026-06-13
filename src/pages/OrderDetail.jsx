@@ -249,7 +249,7 @@ const displayTotal = editMode
                 <table className="w-full">
                     <thead>
                         <tr className="border-b border-gray-800">
-                            {['Product', 'Qty', 'Unit Price', 'Total' , 'Actions'].map(h => (
+                            {['Product', 'Qty', 'Unit Price', 'Warehouses' , 'Total' , 'Actions'].map(h => (
                                 <th key={h} className="text-left text-xs text-gray-400 uppercase tracking-wider pb-3">
                                     {h}
                                 </th>
@@ -258,6 +258,7 @@ const displayTotal = editMode
                     </thead>
                     <tbody className="divide-y divide-gray-800">
                        {order.items.map((item) => (
+                        
     <tr key={item.id}>
         <td className="py-3 text-white text-sm">{item.product_name}</td>
         
@@ -283,6 +284,9 @@ const displayTotal = editMode
                 : `${item.unit_price} EGP`
             }
         </td>
+        <td className="px-4 py-3 text-gray-400 text-sm">
+    {item.warehouse_name ?? '—'}
+</td>
 
         <td className="py-3 text-white text-sm font-medium">{item.total} EGP</td>
 
@@ -407,6 +411,7 @@ const displayTotal = editMode
             
             {showAddItem && (
             <AddItemModal
+            open={showAddItem}
     onClose={() => setShowAddItem(false)}
     onSave={handleAddItem}
     products={products}
