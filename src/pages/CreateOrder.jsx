@@ -370,7 +370,7 @@ export default function CreateOrder() {
                                                     )}
                                                 </td>
                                                 <td className="px-2.5 py-1.5 text-white text-sm font-medium whitespace-nowrap">
-                                                    {lineTotal} <span className="text-gray-500 text-[10px]">EGP</span>
+                                                    {lineTotal.toFixed(2)} <span className="text-gray-500 text-[10px]">EGP</span>
                                                 </td>
                                                 <td className="px-2.5 py-1.5">
                                                     <button
@@ -414,7 +414,7 @@ export default function CreateOrder() {
 
                             <div className="flex justify-between text-sm text-gray-400">
                                 <span>Subtotal</span>
-                                <span className="text-white">{subtotal} EGP</span>
+                                <span className="text-white">{subtotal.toFixed(2)} EGP</span>
                             </div>
 
                             {/* Discount */}
@@ -457,7 +457,7 @@ export default function CreateOrder() {
 
                             <div className="flex justify-between text-lg font-bold text-white border-t border-gray-800 pt-3">
                                 <span>Total</span>
-                                <span>{grandTotal} EGP</span>
+                                <span>{grandTotal.toFixed(2)} EGP</span>
                             </div>
 
                             <button
