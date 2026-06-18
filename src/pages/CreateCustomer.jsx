@@ -2,11 +2,12 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import BackButton from '../components/BackButton'
+import {useToast} from '../hooks/useToast'
 
 export default function CreateCustomer() {
     const [saving, setSaving] = useState(false)
-    const [error, setError] = useState('')
-    const [form, setForm] = useState({
+const {showToast} = useToast()   
+ const [form, setForm] = useState({
         code: '',
         name: '',
         phone: '',
@@ -19,15 +20,15 @@ export default function CreateCustomer() {
     const handleSubmit = async (e) => {
         e.preventDefault()
         setSaving(true)
-        setError('')
         try {
             await api.post('/customers', {
                 ...form,
                 code: form.code || null,
             })
             navigate('/customers')
+            showToast('تم إضافة العميل بنجاح','success')
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to create customer')
+            showToast(err.response?.data?.message || 'Failed to create customer','error')
         } finally {
             setSaving(false)
         }
@@ -39,13 +40,6 @@ export default function CreateCustomer() {
                 <BackButton label="Back to Customers" to="/customers" />
                 <h2 className="text-2xl font-bold text-white">Add New Customer</h2>
             </div>
-
-            {error && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg mb-6 text-sm">
-                    {error}
-                </div>
-            )}
-
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
                 <form onSubmit={handleSubmit} className="space-y-5">
                     

@@ -3,15 +3,16 @@ import { useNavigate, useParams } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import BackButton from '../components/BackButton'
+import { useToast } from '../hooks/useToast'
 
 export default function EditCustomer() {
     const { id } = useParams()
     const navigate = useNavigate()
+    const {showToast} = useToast()
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
-    const [error, setError] = useState('')
     const [form, setForm] = useState({
-        name: '', phone: '', address: '', price_tier: ''
+       code: '', name: '', phone: '', address: '', area: '', price_tier: ''
     })
 
     useEffect(() => {
@@ -19,20 +20,21 @@ export default function EditCustomer() {
             .then(res => {
                 const c = res.data.data
                 setForm({
+                    code: c.code || '',
                     name: c.name || '',
                     phone: c.phone || '',
                     address: c.address || '',
+                    area: c.area || '',
                     price_tier: c.price_tier === 'default' ? '' : (c.price_tier || ''),
                 })
             })
-            .catch(() => setError('Failed to load customer'))
+            .catch(() => showToast('Failed to load customer','error'))
             .finally(() => setLoading(false))
     }, [id])
 
     const handleSubmit = async (e) => {
         e.preventDefault()
         setSaving(true)
-        setError('')
         try {
             await api.put(`/customers/${id}`, {
                 ...form,
@@ -40,7 +42,7 @@ export default function EditCustomer() {
             })
             navigate('/customers')
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to update customer')
+            showToast(err.response?.data?.message || 'Failed to update customer','error')
         } finally {
             setSaving(false)
         }
@@ -55,14 +57,16 @@ export default function EditCustomer() {
                 <h2 className="text-2xl font-bold text-white">Edit Customer</h2>
             </div>
 
-            {error && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg mb-6 text-sm">
-                    {error}
-                </div>
-            )}
-
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
                 <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm text-gray-400 mb-1">Code</label>
+                        <input
+                            value={form.code}
+                            onChange={(e) => setForm({ ...form, code: e.target.value })}
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
+                        />
+                    </div>
                     <div>
                         <label className="block text-sm text-gray-400 mb-1">Name</label>
                         <input
@@ -89,6 +93,15 @@ export default function EditCustomer() {
                             value={form.address}
                             onChange={(e) => setForm({ ...form, address: e.target.value })}
                             className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
+                        />
+                    </div>
+
+                    <div className='col-span-2'>
+                        <label className="block text-sm text-gray-400 mb-1">Area</label>
+                        <input
+                            value={form.area}
+                            onChange={e => setForm({ ...form, area: e.target.value })}
+                            className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                         />
                     </div>
 

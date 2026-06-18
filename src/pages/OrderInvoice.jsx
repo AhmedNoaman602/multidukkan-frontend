@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
+import { useToast } from '../hooks/useToast'
 
 export default function OrderInvoice() {
     const { id } = useParams()
     const [order, setOrder] = useState(null)
     const [loading, setLoading] = useState(true)
-    const [error, setError] = useState('')
+    const {showToast} = useToast()
    let user = {}
 
 try {
@@ -19,7 +20,7 @@ try {
     useEffect(() => {
         api.get(`/orders/${id}`)
             .then(res => setOrder(res.data))
-            .catch(() => setError('Failed to load invoice'))
+            .catch(() => showToast('Failed to load invoice', 'error'))
             .finally(() => setLoading(false))
     }, [id])
 
@@ -29,13 +30,28 @@ try {
         </div>
     )
 
-    if (error || !order) return (
+    if (!order) return (
         <div className="flex items-center justify-center min-h-screen bg-white">
-            <p className="text-red-500">{error || 'Order not found'}</p>
+            <p className="text-red-500">Order not found</p>
         </div>
     )
 
     const hasDiscount = order.discount > 0
+
+    // Merge items with same product_name and unit_price
+const mergedItems = order.items?.reduce((acc, item) => {
+    const existing = acc.find(i => 
+        i.product_name === item.product_name && 
+        i.unit_price === item.unit_price
+    )
+    if (existing) {
+        existing.quantity += item.quantity
+        existing.total = existing.quantity * existing.unit_price
+    } else {
+        acc.push({ ...item })
+    }
+    return acc
+}, []) ?? []
 
     return (
         <>
@@ -124,7 +140,7 @@ try {
                         </tr>
                     </thead>
                     <tbody>
-                        {order.items?.map((item, index) => (
+                        {mergedItems.map((item, index) => (
                             <tr key={index} className="border-b border-gray-100">
                                 <td className="py-3 text-gray-900 text-sm">{item.product_name}</td>
                                 <td className="py-3 text-center text-gray-600 text-sm">{item.quantity}</td>

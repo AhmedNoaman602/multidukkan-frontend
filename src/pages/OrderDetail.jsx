@@ -56,6 +56,7 @@ export default function OrderDetail() {
         try {
             await api.delete(`/orders/${id}`)
             navigate('/orders')
+            showToast('Order cancelled successfully.', 'success')
         } catch (err) {
             showToast(err.response?.data?.message || 'Failed to cancel order', 'error')
             setShowConfirm(false)

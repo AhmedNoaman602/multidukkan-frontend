@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
-import Modal from '../components/Modal'
 import SearchInput from '../components/SearchInput'
 import StatBoxes from '../components/StatBoxes'
 import {useToast} from '../hooks/useToast'
@@ -18,7 +17,6 @@ export default function Customers() {
     const [lastPage, setLastPage] = useState(1)
     const [stats, setStats] = useState([])
     const navigate = useNavigate()
-    const [error, setError] = useState('')
     const {showToast} = useToast()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
 
@@ -29,7 +27,9 @@ export default function Customers() {
                 setLastPage(res.data.meta.last_page)
                 setStats(res.data.stats)
             })
-            .catch(() => setError('Failed to load customers'))
+            .catch(() => {
+                showToast('Failed to load customers', 'error')
+            })
             .finally(() => setLoading(false))
     }
 
@@ -92,7 +92,7 @@ export default function Customers() {
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>
-                            {['Code', 'Name', 'Phone', 'Address', 'Price Tier', 'Actions'].map(h => (
+                            {['Code', 'Name', 'Phone', 'Address', 'Area', 'Price Tier', 'Actions'].map(h => (
                                 <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                                     {h}
                                 </th>
@@ -117,6 +117,9 @@ export default function Customers() {
                                 </td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">
                                     {customer.address || '—'}
+                                </td>
+                                <td className="px-4 py-3 text-gray-400 text-sm">
+                                    {customer.area || '—'}
                                 </td>
                                 <td className="px-4 py-3">
                                     <span className={`px-2 py-1 rounded text-xs font-medium ${
