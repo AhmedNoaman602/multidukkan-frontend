@@ -6,6 +6,7 @@ const api = axios.create({
     // All requests will be prefixed with this URL.
     // api.get('/products') → http://multidukkan.test/api/products
     baseURL: 'http://multidukkan.test/api',
+    withCredentials: true,
     headers: {
         // Tells the backend we're sending JSON data
         'Content-Type': 'application/json',
