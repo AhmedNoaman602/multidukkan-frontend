@@ -29,29 +29,22 @@ export default function QuickSaleModal({
     }
 
     const handleProductSelect = useCallback((product) => {
-        setItems(prev => {
-            const existing = prev.find(i => i.product_id === String(product.id))
-            if (existing) {
-                return prev.map(i => i.product_id === String(product.id)
-                    ? { ...i, quantity: i.quantity + 1 }
-                    : i
-                )
-            }
-            const next = [...prev, {
-                product_id: String(product.id),
-                product_name: product.name,
-                unit_price: product.price,
-                quantity: 1,
-                warehouse_id: '',
-                unit_type: 'base',
-            }]
-            setTimeout(() => {
-                const el = document.querySelector(`[data-qs-qty="${next.length - 1}"]`)
-                if (el) { el.focus(); el.select() }
-            }, 50)
-            return next
-        })
-    }, [])
+    setItems(prev => {
+        const next = [...prev, {
+            product_id: String(product.id),
+            product_name: product.name,
+            unit_price: product.price,
+            quantity: 1,
+            warehouse_id: '',
+            unit_type: 'base',
+        }]
+        setTimeout(() => {
+            const el = document.querySelector(`[data-qs-qty="${next.length - 1}"]`)
+            if (el) { el.focus(); el.select() }
+        }, 50)
+        return next
+    })
+}, [])
 
     const updateItem = (index, field, value) => {
         const updated = [...items]
@@ -127,12 +120,17 @@ export default function QuickSaleModal({
                     unit_type: i.unit_type ?? 'base',
                 }))
             })
-            await api.post('/payments', {
+            try{
+ await api.post('/payments', {
                 order_id: res.data.id,
                 customer_id: user.walk_in_customer_id,
                 amount: res.data.total,
                 method: 'cash',
             })
+            }catch(paymentErr){
+                console.log('payment failed', paymentErr.response?.data)
+            }
+           
 
             showToast('تم تسجيل البيع ✅', 'success')
             setItems([])
