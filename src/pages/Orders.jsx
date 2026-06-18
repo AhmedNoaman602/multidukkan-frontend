@@ -489,8 +489,11 @@ useEffect(() => {
                 onClose={() => setRefundTarget(null)}
                 orders={refundTarget ? [{
                     ...refundTarget,
-                    paid: refundTarget.total - (refundTarget.amount_remaining ?? 0)
+                    paid: refundTarget.total - (refundTarget.amount_remaining ?? 0),
+                    refundable: refundTarget.paid ?? (refundTarget.total - (refundTarget.amount_remaining ?? 0))
+
                 }] : []}
+                payments={[]}
                 customerId={refundTarget?.customer_id}
                 onSuccess={() => {
                     setRefundTarget(null)
