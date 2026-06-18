@@ -51,13 +51,13 @@ const [inventory, setInventory] = useState([])
     if (day === 5) return 'جمعة مباركة،'
     
     // Based on stats
-    if (stats?.todayRevenue > 0) {
-        const messages = [
-            `شغل تمام،`,
-            `أداء ممتاز النهارده`,
-        ]
-        return messages[Math.floor(Math.random() * messages.length)]
-    }
+    // if (stats?.todayRevenue > 0) {
+    //     const messages = [
+    //         `شغل تمام،`,
+    //         `أداء ممتاز النهارده`,
+    //     ]
+    //     return messages[Math.floor(Math.random() * messages.length)]
+    // }
 
     // Time based
     if (hour < 5)  return 'سهران لسه؟'
@@ -683,10 +683,7 @@ const todayFormatted = new Date().toLocaleDateString('en-EG', {
             {showQuickSale && (
     <QuickSaleModal
         open={showQuickSale}
-        onClose={() => {
-            setShowQuickSale(false),
-            fetchData()
-        }}
+        onClose={() => setShowQuickSale(false)}
         products={products}
         warehouses={warehouses}
          inventory={inventory} 
