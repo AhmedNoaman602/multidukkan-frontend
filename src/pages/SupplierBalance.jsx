@@ -96,7 +96,7 @@ export default function SupplierBalance() {
                     <div>
                         <p className="text-gray-400 text-sm mb-1">Current Balance</p>
                         <p className={`text-4xl font-bold ${isOwed ? 'text-red-400' : isOverpaid ? 'text-yellow-400' : 'text-gray-400'}`}>
-                            {balance.balance} EGP
+                            {parseFloat(balance.balance).toFixed(2)} EGP
                         </p>
                         <p className={`text-sm mt-1 ${isOwed ? 'text-red-400' : isOverpaid ? 'text-yellow-400' : 'text-green-400'}`}>
                             {isOwed ? 'You owe this supplier' : isOverpaid ? 'Overpaid' : 'Fully settled'}

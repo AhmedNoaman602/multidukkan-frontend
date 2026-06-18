@@ -20,8 +20,9 @@ export default function CustomerBalance() {
     
     const [paymentModal, setPaymentModal] = useState(false)
     const [autoForm, setAutoForm] = useState({ amount: '', method: 'cash', order_id: '' })
-
     const [refundModal, setRefundModal] = useState(false)
+
+
     const fetchData = async () => {
         try {
             const res = await api.get(`/customers/${id}/summary`)
@@ -72,12 +73,13 @@ export default function CustomerBalance() {
                 amount: parseFloat(editForm.amount),
                 method: editForm.method,
             })
-            showToast('Payment updated successfully.', 'success')
+            showToast('تم تعديل الدفعة بنجاح', 'success')
             setEditPayment(false)
             setEditForm({amount: '', method: 'cash'})
             fetchData()
         }catch(err){
-showToast(err.response?.data?.message || 'Failed to update payment', 'error')        }finally{
+            showToast(err.response?.data?.message || 'فشل تعديل الدفعة', 'error')
+        }finally{
             setSaving(false)
         }
     }
@@ -85,6 +87,8 @@ showToast(err.response?.data?.message || 'Failed to update payment', 'error')   
     if (loading) return <LoadingSpinner />
     if (!data) return null
 
+        const visiblePayments = data.payments.filter(p => !p.is_auto_reversible)
+        
     const isOwed  = data.balance > 0
     const isCredit = data.balance < 0
     const unpaidOrders = data.orders.filter(o => o.status === 'unpaid')
@@ -118,18 +122,13 @@ showToast(err.response?.data?.message || 'Failed to update payment', 'error')   
                     <div>
                         <p className="text-gray-400 text-sm mb-1">Current Balance</p>
                         <p className={`text-4xl font-bold ${isOwed ? 'text-red-400' : isCredit ? 'text-green-400' : 'text-gray-400'}`}>
-                            {data.balance} EGP
+                            {parseFloat(data.balance).toFixed(2)} EGP
                         </p>
                         <p className={`text-sm mt-1 ${isOwed ? 'text-red-400' : isCredit ? 'text-green-400' : 'text-gray-500'}`}>
                             {data.status === 'owes' ? 'Customer owes money' :
                              data.status === 'credit' ? 'Customer has credit' :
                              'Fully settled'}
                         </p>
-                        {data.credit > 0 && (
-                            <p className="text-blue-400 text-sm mt-1">
-                                Credit on account: {data.credit} EGP
-                            </p>
-                        )}
                     </div>
                     <div className="flex gap-2">
                         <button onClick={() => setRefundModal(true)}
@@ -215,7 +214,7 @@ showToast(err.response?.data?.message || 'Failed to update payment', 'error')   
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-800">
-                        {data.payments.map(p => (
+                        {visiblePayments.map(p => (
                             <tr key={p.id}
                                 className="hover:bg-gray-800/50 transition-colors">
                                 <td className="px-4 py-3 text-gray-400 text-sm font-mono">{p.invoice_number}</td>
@@ -248,7 +247,7 @@ showToast(err.response?.data?.message || 'Failed to update payment', 'error')   
                         ))}
                     </tbody>
                 </table>
-                {data.payments.length === 0 && (
+                {visiblePayments.length === 0 && (
                     <div className="text-center py-16 text-gray-500">No payments yet.</div>
                 )}
             </div>
