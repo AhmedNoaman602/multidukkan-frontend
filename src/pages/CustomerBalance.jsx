@@ -6,7 +6,33 @@ import BackButton from '../components/BackButton'
 import Modal from '../components/Modal'
 import { useToast } from '../hooks/useToast'
 import RefundModal from '../components/RefundModal'
+import AddCreditModal from '../components/AddCreditModal'
 
+const typeStyles = {
+        ORDER_CHARGE:    'bg-red-500/20 text-red-400',
+        PAYMENT:         'bg-green-500/20 text-green-400',
+        REVERSAL:        'bg-yellow-500/20 text-yellow-400',
+        CREDIT_APPLY:    'bg-blue-500/20 text-blue-400',
+        CREDIT_CONSUMED: 'bg-purple-500/20 text-purple-400',
+        REFUND:          'bg-orange-500/20 text-orange-400',
+    }
+
+const referenceLabel = {
+    bank_transfer:  'Reference Number',
+    instapay:       'Transaction ID',
+    vodafone_cash:  'Sender Phone',
+    orange_cash:    'Sender Phone',
+    check:          'Check Number',
+}
+
+const methodLabel = {
+    cash:          'Cash',
+    bank_transfer: 'Bank Transfer',
+    instapay:      'Instapay',
+    vodafone_cash: 'Vodafone Cash',
+    orange_cash:   'Orange Cash',
+    check:         'Check',
+}
 export default function CustomerBalance() {
     const { id } = useParams()
     const navigate = useNavigate()
@@ -19,8 +45,9 @@ export default function CustomerBalance() {
     const [editForm, setEditForm] = useState({amount:'' , method:'cash'})
     
     const [paymentModal, setPaymentModal] = useState(false)
-    const [autoForm, setAutoForm] = useState({ amount: '', method: 'cash', order_id: '' })
+    const [autoForm, setAutoForm] = useState({ amount: '', method: 'cash', order_id: '', payment_reference: '' })
     const [refundModal, setRefundModal] = useState(false)
+    const [showCreditModal, setShowCreditModal] = useState(false)
 
 
     const fetchData = async () => {
@@ -46,12 +73,15 @@ export default function CustomerBalance() {
                     customer_id: parseInt(id),
                     amount:      parseFloat(autoForm.amount),
                     method:      autoForm.method,
+                    payment_reference: autoForm.payment_reference || null,
                 })
             } else {
                 await api.post('/payments/auto', {
                     customer_id: parseInt(id),
                     amount:      parseFloat(autoForm.amount),
                     method:      autoForm.method,
+                    payment_reference: autoForm.payment_reference || null,
+
                 })
             }
             showToast('Payment received successfully.', 'success')
@@ -94,20 +124,7 @@ export default function CustomerBalance() {
     const unpaidOrders = data.orders.filter(o => o.status === 'unpaid')
     const paidOrders   = data.orders.filter(o => o.paid > 0)
 
-    const typeStyles = {
-        ORDER_CHARGE:    'bg-red-500/20 text-red-400',
-        PAYMENT:         'bg-green-500/20 text-green-400',
-        REVERSAL:        'bg-yellow-500/20 text-yellow-400',
-        CREDIT_APPLY:    'bg-blue-500/20 text-blue-400',
-        CREDIT_CONSUMED: 'bg-purple-500/20 text-purple-400',
-        REFUND:          'bg-orange-500/20 text-orange-400',
-    }
 
-    const methodLabel = {
-        cash: 'Cash',
-        bank_transfer: 'Bank Transfer',
-        check: 'Check',
-    }
 
     return (
         <div className="max-w-4xl">
@@ -134,6 +151,12 @@ export default function CustomerBalance() {
                         <button onClick={() => setRefundModal(true)}
                             className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-lg transition-colors">
                             ↩ Issue Refund
+                        </button>
+                        <button
+                            onClick={() => setShowCreditModal(true)}
+                            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+                        >
+                            + Add Credit
                         </button>
                         <button onClick={() => setPaymentModal(true)}
                             className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors">
@@ -208,7 +231,7 @@ export default function CustomerBalance() {
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>
-                            {['Invoice', 'Amount', 'Refunded', 'Net', 'Method', 'Date','Actions'].map(h => (
+                            {['Invoice', 'Amount', 'Refunded', 'Net', 'Method', 'Reference', 'Date','Actions'].map(h => (
                                 <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>
                             ))}
                         </tr>
@@ -224,6 +247,10 @@ export default function CustomerBalance() {
                                 </td>
                                 <td className="px-4 py-3 text-green-400 text-sm">{p.net_amount} EGP</td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">{methodLabel[p.method] ?? p.method}</td>
+                                    <td className="px-4 py-3 text-gray-400 text-sm">
+    {p.payment_reference ? p.payment_reference : '—'}
+</td>
+
                                 <td className="px-4 py-3 text-gray-400 text-sm">
                                     {new Date(p.paid_at).toLocaleDateString('en-GB')}
                                 </td>
@@ -332,14 +359,30 @@ export default function CustomerBalance() {
                             </div>
                             <div>
                                 <label className="block text-sm text-gray-400 mb-1">Method</label>
-                                <select value={autoForm.method}
+                                <select
+                                    value={autoForm.method}
                                     onChange={e => setAutoForm({ ...autoForm, method: e.target.value })}
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-purple-500 text-sm">
-                                    <option value="cash">Cash</option>
-                                    <option value="bank_transfer">Bank Transfer</option>
-                                    <option value="check">Check</option>
+                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-purple-500 text-sm"
+                                >
+                                    {Object.entries(methodLabel).map(([value, label]) => (
+                                        <option key={value} value={value}>{label}</option>
+                                    ))}
                                 </select>
                             </div>
+                              {referenceLabel[autoForm.method] && (
+    <div>
+        <label className="block text-sm text-gray-400 mb-1">
+            {referenceLabel[autoForm.method]}
+        </label>
+        <input
+            type="text"
+            value={autoForm.payment_reference}
+            onChange={e => setAutoForm({ ...autoForm, payment_reference: e.target.value })}
+            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-purple-500 text-sm"
+            placeholder={referenceLabel[autoForm.method]}
+        />
+    </div>
+)}
                         </div>
                         <div className="flex justify-end gap-2 pt-2">
                             <button type="button" onClick={() => setPaymentModal(false)}
@@ -398,6 +441,13 @@ export default function CustomerBalance() {
                 customerId={id}
                 onSuccess={fetchData}
             />
+            {showCreditModal && (
+                <AddCreditModal
+                    customer={data}
+                    onClose={() => setShowCreditModal(false)}
+                    onSuccess={fetchData}
+                />
+            )}
          
         </div>
     )
