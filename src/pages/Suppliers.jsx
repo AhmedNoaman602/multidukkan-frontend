@@ -11,7 +11,6 @@ import DeleteModal from '../components/DeleteModal'
 export default function Suppliers() {
     const [suppliers, setSuppliers] = useState([])
     const [loading, setLoading] = useState(true)
-    const [error, setError] = useState('')
     const [search, setSearch] = useState('')
     const [deleteTarget, setDeleteTarget] = useState(null)
     const [deleting, setDeleting] = useState(false)
@@ -29,7 +28,7 @@ export default function Suppliers() {
                 setLastPage(res.data.meta.last_page)
                 setStats(res.data.stats)
             })
-            .catch(() => setError('Failed to load suppliers'))
+            .catch(() => showToast('Failed to load suppliers', 'error'))
             .finally(() => setLoading(false))
     }
 
@@ -78,12 +77,6 @@ export default function Suppliers() {
                     )}
                 </div>
             </div>
-
-            {error && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg mb-6 text-sm">
-                    {error}
-                </div>
-            )}
 
             {
                 stats && (
@@ -144,6 +137,7 @@ export default function Suppliers() {
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation()
+                                                     console.log('delete clicked', supplier.id)
                                                     setDeleteTarget(supplier)
                                                 }}
                                                 className="px-3 py-1 bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium rounded-lg hover:bg-red-500/20 transition-colors"
@@ -184,14 +178,14 @@ export default function Suppliers() {
                     </button>
                 </div>
             )}
-            <DeleteModal
-                isOpen={!!deleteTarget}
-                onClose={() => setDeleteTarget(null)}
-                onConfirm={handleDelete}
-                loading={deleting}
-                title="Delete Supplier"
-                message={`Are you sure you want to delete ${deleteTarget?.name}?`}
-            />
+          <DeleteModal
+    open={!!deleteTarget}
+    onClose={() => setDeleteTarget(null)}
+    onConfirm={handleDelete}
+    deleting={deleting}
+    title="Delete Supplier"
+    name={deleteTarget?.name}
+/>
         </div>
     )
 }

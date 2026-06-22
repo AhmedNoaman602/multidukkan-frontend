@@ -4,38 +4,35 @@ import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import BackButton from '../components/BackButton'
 import Modal from '../components/Modal'
+import { useToast } from '../hooks/useToast'
 
 export default function SupplierBalance() {
     const { id } = useParams()
     const navigate = useNavigate()
+    const { showToast } = useToast()
     const [data, setData] = useState(null)
     const [loading, setLoading] = useState(true)
-    const [error, setError] = useState('')
     const [purchaseOrders, setPurchaseOrders] = useState([])
     const [attachedProducts, setAttachedProducts] = useState([])
     const [saving, setSaving] = useState(false)
-    const [success, setSuccess] = useState('')
     const [paymentModal, setPaymentModal] = useState(false)
     const [payForm, setPayForm] = useState({ amount: '', method: 'cash', purchase_order_id: '' })
 
     const fetchData = async () => {
-        try {
-            const [balanceRes, historyRes, ordersRes, productsRes] = await Promise.all([
-                api.get(`/suppliers/${id}/balance`),
-                api.get(`/suppliers/${id}/ledger`),
-                api.get('/purchase-orders'),
-                api.get(`/suppliers/${id}/stock`),
-            ])
-            setData({
-                balance: balanceRes.data,
-                history: historyRes.data.history,
-            })
-            setPurchaseOrders(
-                ordersRes.data.data.filter(o => o.supplier_id === parseInt(id))
-            )
-            setAttachedProducts(productsRes.data.data)
-        } catch {
-            setError('Failed to load supplier data')
+         try {
+            const res = await api.get(`/suppliers/${id}/summary`)
+            const d = res.data
+setData({
+    balance: {
+        balance: d.balance,
+        supplier_name: d.supplier_name,
+    },
+    history: d.history,
+})
+            setPurchaseOrders(d.purchase_orders)
+            setAttachedProducts(d.products)
+        } catch (err) {
+            showToast(err.response?.data?.message || 'Failed to load supplier data', 'error')
         } finally {
             setLoading(false)
         }
@@ -46,7 +43,6 @@ export default function SupplierBalance() {
     const handlePayment = async (e) => {
         e.preventDefault()
         setSaving(true)
-        setError('')
         try {
             await api.post('/supplier-payments', {
                 supplier_id: parseInt(id),
@@ -56,21 +52,18 @@ export default function SupplierBalance() {
                     purchase_order_id: parseInt(payForm.purchase_order_id)
                 }),
             })
-            setSuccess('Payment added successfully!')
+            showToast('تم إضافة الدفعة بنجاح', 'success')
             setPaymentModal(false)
             setPayForm({ amount: '', method: 'cash', purchase_order_id: '' })
-            setTimeout(() => setSuccess(''), 3000)
             fetchData()
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to add payment')
+            showToast(err.response?.data?.message || 'Failed to add payment', 'error')
         } finally {
             setSaving(false)
         }
     }
 
     if (loading) return <LoadingSpinner />
-    if (error && !data) return <p className="text-red-400">{error}</p>
-
     const { balance, history } = data
     const isOwed = balance.balance > 0
     const isOverpaid = balance.balance < 0
@@ -81,7 +74,9 @@ export default function SupplierBalance() {
         SUPPLIER_PAYMENT: 'bg-green-500/20 text-green-400',
     }
 
-    const unpaidOrders = purchaseOrders.filter(o => o.status === 'unpaid')
+    const unpaidOrders = purchaseOrders.
+    filter(o => o.status === 'unpaid')
+    .sort((a, b) => a.id - b.id)
 
     return (
         <div className="max-w-4xl">
@@ -102,25 +97,20 @@ export default function SupplierBalance() {
                             {isOwed ? 'You owe this supplier' : isOverpaid ? 'Overpaid' : 'Fully settled'}
                         </p>
                     </div>
-                    <button
-                        onClick={() => setPaymentModal(true)}
-                        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors"
-                    >
-                        💰 Pay Supplier
-                    </button>
+                  <div className="flex flex-col items-end gap-1">
+    <button
+        onClick={() => setPaymentModal(true)}
+        disabled={!isOwed}
+        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+    >
+        💰 Pay Supplier
+    </button>
+    {!isOwed && (
+        <p className="text-xs text-gray-500">No balance owed</p>
+    )}
+</div>
                 </div>
             </div>
-
-            {success && (
-                <div className="bg-green-500/10 border border-green-500/20 text-green-400 px-4 py-3 rounded-lg mb-6 text-sm">
-                    {success}
-                </div>
-            )}
-            {error && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg mb-6 text-sm">
-                    {error}
-                </div>
-            )}
 
             {/* Products & Stock */}
 <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden mb-6">
