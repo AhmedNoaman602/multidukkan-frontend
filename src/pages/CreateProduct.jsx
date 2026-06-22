@@ -29,6 +29,7 @@ export default function CreateProduct() {
     price_d: duplicate?.price_d || '',
     price_e: duplicate?.price_e || '',
     cost_price: duplicate?.cost_price || '',
+    opening_quantity: '',
     secondary_unit: duplicate?.secondary_unit || '',
     conversion_factor: duplicate?.conversion_factor || '',
     description: '',
@@ -130,12 +131,18 @@ export default function CreateProduct() {
         setSaving(false)
         return
     }
+    if (form.cost_price && !form.opening_quantity && stocks.every(s => !s.quantity || parseInt(s.quantity) <= 0)) {
+    showToast('Please add opening quantity or warehouse stock when setting a cost price.', 'error')
+    setSaving(false)
+    return
+}
         try {
             await api.post('/products', {
                 ...form,
                 supplier_id: supplierId ?? null,
                 price: parseFloat(form.price),
                 cost_price: form.cost_price ? parseFloat(form.cost_price) : null,
+                opening_quantity: form.opening_quantity ? parseFloat(form.opening_quantity) : 0,
                 stocks: stocks
                     .filter(s => s.warehouse_id)
                     .map(s => ({
@@ -146,6 +153,7 @@ export default function CreateProduct() {
                         threshold: parseInt(s.threshold) || 10,
                     }))
             })
+            showToast('Product created successfully', 'success')
             navigate('/products')
         } catch (err) {
             showToast(err.response?.data?.message || 'Failed to create product', 'error')
@@ -220,6 +228,24 @@ export default function CreateProduct() {
         placeholder="What you paid for it"
         className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm placeholder-gray-600"
     />
+</div>
+<div>
+    <label className="block text-sm text-gray-400 mb-1">
+        Opening Quantity <span className="text-gray-600">(optional)</span>
+    </label>
+    <input
+        type="number"
+        min="0"
+        value={form.opening_quantity}
+        onChange={(e) => setForm({ ...form, opening_quantity: e.target.value })}
+        placeholder="Units currently on shelf"
+        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm placeholder-gray-600"
+    />
+    {form.opening_quantity && form.cost_price && (
+        <p className="text-xs text-blue-400 mt-1">
+            Opening stock value: {(parseFloat(form.opening_quantity) * parseFloat(form.cost_price)).toFixed(2)} EGP
+        </p>
+    )}
 </div>
 
                         <div>
