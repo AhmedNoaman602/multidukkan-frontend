@@ -128,7 +128,7 @@ export default function QuickSaleModal({
                 method: 'cash',
             })
             }catch(paymentErr){
-                console.log('payment failed', paymentErr.response?.data)
+                showToast('payment failed' , 'error')
             }
            
 
