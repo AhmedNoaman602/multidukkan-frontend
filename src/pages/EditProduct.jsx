@@ -160,7 +160,7 @@ export default function EditProduct() {
             </div>
 
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-                <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
+                <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                     <div>
                         <label className="block text-sm text-gray-400 mb-1">Name</label>
@@ -304,7 +304,7 @@ export default function EditProduct() {
 
                         <div className="space-y-3">
                             {stocks.map((stock, i) => (
-                                <div key={i} className="grid grid-cols-7 gap-3 items-end bg-gray-800 p-3 rounded-lg">
+                                <div key={i} className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 items-end bg-gray-800 p-3 rounded-lg">
 
                                     <div className="col-span-3">
                                         <label className="block text-xs text-gray-400 mb-1">Warehouse</label>
