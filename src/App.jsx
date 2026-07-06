@@ -1,9 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import api from './api/axios'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Products from './pages/Products'
+import ProductDetail from './pages/ProductDetail'
 import CreateProduct from './pages/CreateProduct'
 import Customers from './pages/Customers'
 import CreateCustomer from './pages/CreateCustomer'
@@ -33,6 +34,9 @@ import ScrollToTop from './components/ScrollToTop'
 import { ToastProvider } from './hooks/useToast'
 import Toast from './components/Toast'
 import ChatWidget from './components/ChatWidget'
+import ReportPrint from './pages/ReportPrint'
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
+import GlobalSearch from './components/GlobalSearch'
 
 // Simple auth check — is the user logged in at all?
 // Does NOT check has_store here. That's AuthGate's job with fresh data.
@@ -51,12 +55,15 @@ function ChatWidgetGuard() {
     ]
 
     const isInvoicePage =
-        location.pathname.startsWith('/orders/') &&
-        location.pathname.endsWith('/invoice')
+    location.pathname.endsWith('/invoice') &&
+    (location.pathname.startsWith('/orders/') || location.pathname.startsWith('/purchase-orders/')) 
+    
+    const isReportPrint = location.pathname === '/reports/print'
 
     if (
         hiddenRoutes.includes(location.pathname) ||
-        isInvoicePage
+        isInvoicePage ||
+        isReportPrint
     ) {
         return null
     }
@@ -71,6 +78,9 @@ function ChatWidgetGuard() {
 function AuthGate({ children }) {
     const navigate = useNavigate()
     const location = useLocation()
+
+   const [searchOpen, setSearchOpen] = useState(false)
+    useKeyboardShortcuts({ onSearchOpen: () => setSearchOpen(true) })
 
     useEffect(() => {
         const token = localStorage.getItem('token')
@@ -96,8 +106,12 @@ function AuthGate({ children }) {
             })
     }, [location.pathname])
 
-    return children
-}
+return (
+    <>
+        {children}
+        <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
+    </>
+)}
 
 
 
@@ -131,6 +145,12 @@ export default function App() {
                         <PrivateRoute>
                             <Navbar />
                             <Layout><Products /></Layout>
+                        </PrivateRoute>
+                    } />
+                    <Route path="/products/:id" element={
+                        <PrivateRoute>
+                            <Navbar />
+                            <Layout><ProductDetail /></Layout>
                         </PrivateRoute>
                     } />
                     <Route path="/products/create" element={
@@ -203,6 +223,11 @@ export default function App() {
                             <Navbar />
                             <Layout><Reports /></Layout>
                         </PrivateRoute>
+                    } />
+                    <Route path="/reports/print" element={
+                        <PrivateRoute>
+                            <ReportPrint />
+                            </PrivateRoute>
                     } />
                     <Route path="/suppliers" element={
                         <PrivateRoute>
