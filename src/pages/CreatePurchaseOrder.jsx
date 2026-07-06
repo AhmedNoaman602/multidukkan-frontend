@@ -12,6 +12,7 @@ export default function CreatePurchaseOrder() {
     const [warehouses, setWarehouses] = useState([])
     const [suppliers, setSuppliers] = useState([])
     const [products, setProducts] = useState([])
+    const [supplierProducts, setSupplierProducts] = useState([])
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [stores, setStores] = useState([])
@@ -19,6 +20,7 @@ export default function CreatePurchaseOrder() {
     const navigate = useNavigate()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
     const productSearchRef = useRef(null)
+
     const {showToast} = useToast()
 
     // ---- Form state (restored from draft) ----
@@ -30,16 +32,29 @@ export default function CreatePurchaseOrder() {
 
     const [storeId, setStoreId] = useState(draft.storeId || '')
     const [supplierId, setSupplierId] = useState(draft.supplierId || '')
+
     const [items, setItems] = useState(draft.items || [])
+
+    const [pricedForSupplier, setPricedForSupplier] = useState(supplierId)
+
+    useEffect(() => {
+    if (items.length === 0) {
+        setPricedForSupplier(supplierId)
+    }
+}, [items.length])
+
+const supplierChanged = items.length > 0 && supplierId !== pricedForSupplier
 
     const [orderDate, setOrderDate] = useState(() => {
         const today = new Date().toISOString().split('T')[0]
         const saved = localStorage.getItem('order_draft_date')
         return saved || today
     })
+
     useEffect(() => {
         localStorage.setItem('order_draft_date', orderDate)
     }, [orderDate])
+
     // Set store from user or saved default
     useEffect(() => {
         if (user.store_id) {
@@ -57,8 +72,7 @@ export default function CreatePurchaseOrder() {
             localStorage.setItem('default_store_id', id)
         }
     }, [stores])
-
-
+    
     // Fetch data
     useEffect(() => {
         const fetchData = async () => {
@@ -106,13 +120,26 @@ export default function CreatePurchaseOrder() {
         }
     }, [supplierId])
 
+    useEffect(() => {
+    if (!supplierId) {
+        setSupplierProducts([])
+        return
+    }
+    api.get(`/suppliers/${supplierId}/products`)
+        .then(res => setSupplierProducts(res.data.data.products || []))
+        .catch(() => setSupplierProducts([]))
+}, [supplierId])
+
     const handleStoreChange = (id) => {
         setStoreId(id)
         localStorage.setItem('default_store_id', id)
     }
 
-  const getCostPrice = (product) => {
-    return product.cost_price ?? product.price ?? 0
+
+const getCostPrice = (product) => {
+    const supplierProduct = supplierProducts.find(sp => sp.id === product.id)
+    const supplierCost = supplierProduct?.cost_price ?? supplierProduct?.last_purchase_price
+    return supplierCost ?? product.cost_price ?? product.price ?? 0
 }
 
     const subtotal = items.reduce((total, item) => {
@@ -122,6 +149,14 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
     }, 0)
 
   const grandTotal = subtotal
+
+    const itemsWithTotals = items.map((item, index) => {
+        const product = products.find(p => p.id === parseInt(item.product_id))
+        const lineTotal = item.unit_price
+            ? parseFloat(item.unit_price) * (parseInt(item.quantity) || 0)
+            : 0
+        return { item, index, product, lineTotal }
+    })
 
     const handleProductSelect = useCallback((product) => {
         setItems(prev => {
@@ -140,7 +175,16 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
             }, 50)
             return next
         })
-    }, [])
+    }, [supplierProducts])
+
+    const productsWithSupplierPricing = products.map(product => {
+    const supplierProduct = supplierProducts.find(sp => sp.id === product.id)
+    const supplierCost = supplierProduct?.cost_price ?? supplierProduct?.last_purchase_price
+    return {
+        ...product,
+        cost_price: supplierCost ?? product.cost_price
+    }
+})
 
     const removeItem = (index) => setItems(items.filter((_, i) => i !== index))
 
@@ -207,7 +251,7 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
 
             <form onSubmit={handleSubmit}>
                 {/* Store + Supplier row */}
-                <div className="grid grid-cols-3 gap-4 mb-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                     {!user.store_id && (
                         <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
                             <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wider">Store</label>
@@ -245,10 +289,10 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
                 </div>
 
                 {/* Main: items table (left) + sticky panel (right) */}
-                <div className="flex gap-4 items-start">
+                <div className="flex flex-col lg:flex-row gap-4 items-start">
 
                     {/* Items table */}
-                    <div className="flex-1 bg-gray-900 border border-gray-800 rounded-xl overflow-hidden min-w-0">
+                    <div className="flex-1 bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto min-w-0">
                         <div className="px-4 py-2.5 border-b border-gray-800 flex items-center justify-between">
                             <h3 className="text-white text-sm font-semibold">
                                 Items
@@ -258,13 +302,28 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
                                 <span className="text-xs text-gray-500">Enter = next field</span>
                             )}
                         </div>
+                        {supplierChanged && (
+    <div className="px-4 py-2 bg-yellow-500/10 border-b border-yellow-500/20 flex items-start sm:items-center justify-between gap-2">
+        <span className="text-yellow-400 text-xs">
+            ⚠️ Supplier changed — prices below may be outdated. Remove and re-add a product to refresh its price.
+        </span>
+      <button
+    onClick={() => setPricedForSupplier(supplierId)}
+    className="text-yellow-400 hover:text-yellow-300 text-xs shrink-0"
+>
+    ✕
+</button>
+    </div>
+)}
 
                         {items.length === 0 ? (
                             <div className="text-center py-10 text-gray-500 text-sm">
                                 Search or browse products to add items →
                             </div>
                         ) : (
-                            <table className="w-full">
+                            <>
+                            {/* Desktop table */}
+                            <table className="w-full hidden md:table">
                                 <thead className="bg-gray-800">
                                     <tr>
                                         {['Product', 'Qty', 'Unit Price', 'Warehouse', 'Unit', 'Total', ''].map(h => (
@@ -273,11 +332,7 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-800/60">
-                                    {items.map((item, index) => {
-                                        const product = products.find(p => p.id === parseInt(item.product_id))
-                                        const lineTotal = item.unit_price 
-    ? parseFloat(item.unit_price) * (parseInt(item.quantity) || 0)
-    : 0
+                                    {itemsWithTotals.map(({ item, index, product, lineTotal }) => {
                                         const isFlash = flashIndex === index
 
                                         return (
@@ -364,17 +419,103 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
                                     })}
                                 </tbody>
                             </table>
+
+                            {/* Mobile cards */}
+                            <div className="md:hidden divide-y divide-gray-800/60">
+                                {itemsWithTotals.map(({ item, index, product, lineTotal }) => {
+                                    const isFlash = flashIndex === index
+
+                                    return (
+                                        <div
+                                            key={index}
+                                            className={`p-3 space-y-2 transition-colors duration-500 ${isFlash ? 'bg-blue-600/15' : ''}`}
+                                        >
+                                            <div className="flex items-start justify-between gap-2">
+                                                <div className="min-w-0">
+                                                    <p className="text-white text-sm leading-tight truncate">{product?.name ?? '—'}</p>
+                                                    {product?.sku && <p className="text-gray-500 text-[10px] truncate">{product.sku}</p>}
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeItem(index)}
+                                                    className="text-gray-600 hover:text-red-400 transition-colors text-sm shrink-0"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    type="number"
+                                                    min="1"
+                                                    step="1"
+                                                    data-qty={index}
+                                                    value={item.quantity}
+                                                    onChange={e => updateItem(index, 'quantity', e.target.value)}
+                                                    onKeyDown={e => handleQtyKeyDown(e, index)}
+                                                    className="w-14 shrink-0 px-1.5 py-1.5 bg-gray-800 border border-gray-700 text-white rounded text-sm text-center focus:outline-none focus:border-blue-500"
+                                                />
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    step="0.01"
+                                                    value={item.unit_price}
+                                                    onChange={e => updateItem(index, 'unit_price', e.target.value)}
+                                                    className="w-16 shrink-0 px-1.5 py-1.5 bg-gray-800 border border-gray-700 text-white rounded text-sm text-center focus:outline-none focus:border-blue-500"
+                                                />
+                                                <select
+                                                    data-wh={index}
+                                                    value={item.warehouse_id}
+                                                    onChange={e => handleWhChange(index, e.target.value)}
+                                                    required
+                                                    className="flex-1 min-w-0 px-1.5 py-1.5 bg-gray-800 border border-gray-700 text-white rounded text-xs focus:outline-none focus:border-blue-500"
+                                                >
+                                                    <option value="">Select warehouse</option>
+                                                    {warehouses
+                                                        .filter(w => !storeId || w.store_id === parseInt(storeId))
+                                                        .map(w => (
+                                                            <option key={w.id} value={w.id}>{w.name}</option>
+                                                        ))}
+                                                </select>
+                                                {product?.secondary_unit ? (
+                                                    <div className="flex gap-0.5 shrink-0">
+                                                        {['base', 'secondary'].map(u => (
+                                                            <button
+                                                                key={u}
+                                                                type="button"
+                                                                onClick={() => updateItem(index, 'unit_type', u)}
+                                                                className={`px-1.5 py-1 rounded text-[11px] font-medium transition-colors ${
+                                                                    item.unit_type === u ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400'
+                                                                }`}
+                                                            >
+                                                                {u === 'base' ? product.unit : product.secondary_unit}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-gray-500 text-xs shrink-0">{product?.unit ?? '—'}</span>
+                                                )}
+                                            </div>
+
+                                            <p className="text-right text-white text-sm font-medium">
+                                                {lineTotal.toFixed(2)} <span className="text-gray-500 text-[10px]">EGP</span>
+                                            </p>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                            </>
                         )}
                     </div>
 
                     {/* Sticky right panel */}
-                    <div className="w-[340px] shrink-0 sticky top-4 space-y-3">
+                    <div className="w-full lg:w-[340px] shrink-0 lg:sticky lg:top-4 space-y-3">
 
                         {/* Product search */}
-                        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+                        <div id="add-product-panel" className="bg-gray-900 border border-gray-800 rounded-xl p-4 scroll-mt-20">
                             <p className="text-[11px] text-gray-400 mb-2 uppercase tracking-wider font-medium">Add Product</p>
                             <ProductSearchInput
-                                products={products}
+                                products={productsWithSupplierPricing}
                                 onSelect={handleProductSelect}
                                 showCostPrice={true}
                                 placeholder="Name or SKU..."
@@ -412,6 +553,7 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
                     </div>
                 </div>
             </form>
+
         </div>
     )
 }

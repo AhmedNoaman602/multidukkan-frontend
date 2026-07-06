@@ -154,6 +154,14 @@ export default function CreateOrder() {
 
     const grandTotal = Math.max(0, subtotal - discountAmount)
 
+    const itemsWithTotals = items.map((item, index) => {
+        const product = products.find(p => p.id === parseInt(item.product_id))
+        const lineTotal = product
+            ? getUnitPrice(product, item.unit_type) * (parseInt(item.quantity) || 0)
+            : 0
+        return { item, index, product, lineTotal }
+    })
+
     const handleProductSelect = useCallback((product) => {
         setItems(prev => {
             const next = [...prev, {
@@ -161,6 +169,7 @@ export default function CreateOrder() {
                 quantity: 1,
                 warehouse_id: '',
                 unit_type: 'base',
+                unit_price: getPriceForCustomer(product)
             }]
             setFlashIndex(next.length - 1)
             // Focus the qty input of the new row after render
@@ -238,7 +247,7 @@ export default function CreateOrder() {
 
             <form onSubmit={handleSubmit}>
                 {/* Store + Customer row */}
-                <div className="grid grid-cols-3 gap-4 mb-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                     {!user.store_id && (
                         <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
                             <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wider">Store</label>
@@ -276,10 +285,10 @@ export default function CreateOrder() {
                 </div>
 
                 {/* Main: items table (left) + sticky panel (right) */}
-                <div className="flex gap-4 items-start">
+                <div className="flex flex-col lg:flex-row gap-4 items-start">
 
                     {/* Items table */}
-                    <div className="flex-1 bg-gray-900 border border-gray-800 rounded-xl overflow-hidden min-w-0">
+                    <div className="flex-1 bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto min-w-0">
                         <div className="px-4 py-2.5 border-b border-gray-800 flex items-center justify-between">
                             <h3 className="text-white text-sm font-semibold">
                                 Items
@@ -295,20 +304,18 @@ export default function CreateOrder() {
                                 Search or browse products to add items →
                             </div>
                         ) : (
-                            <table className="w-full">
+                            <>
+                            {/* Desktop table */}
+                            <table className="w-full hidden md:table">
                                 <thead className="bg-gray-800">
                                     <tr>
-                                        {['Product', 'Qty', 'Warehouse', 'Unit', 'Total', ''].map(h => (
+                                        {['Product', 'Qty', 'Price', 'Warehouse', 'Unit', 'Total', ''].map(h => (
                                             <th key={h} className="px-2.5 py-1.5 text-left text-[11px] font-medium text-gray-400 uppercase tracking-wider">{h}</th>
                                         ))}
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-800/60">
-                                    {items.map((item, index) => {
-                                        const product = products.find(p => p.id === parseInt(item.product_id))
-                                        const lineTotal = product
-                                            ? getUnitPrice(product, item.unit_type) * (parseInt(item.quantity) || 0)
-                                            : 0
+                                    {itemsWithTotals.map(({ item, index, product, lineTotal }) => {
                                         const isFlash = flashIndex === index
 
                                         return (
@@ -333,6 +340,16 @@ export default function CreateOrder() {
                                                     />
                                                 </td>
                                                 <td className="px-2.5 py-1.5">
+    <input
+        type="number"
+        min="0"
+          step="0.01"
+           value={item.unit_price}
+           onChange={e => updateItem(index, 'unit_price', e.target.value)}
+          className="w-20 px-1.5 py-1 bg-gray-800 border border-gray-700 text-white rounded text-sm text-center focus:outline-none focus:border-blue-500"
+    />
+</td>
+                                                <td className="px-2.5 py-1.5">
                                                     <select
                                                         data-wh={index}
                                                         value={item.warehouse_id}
@@ -356,7 +373,10 @@ export default function CreateOrder() {
                                                                 <button
                                                                     key={u}
                                                                     type="button"
-                                                                    onClick={() => updateItem(index, 'unit_type', u)}
+                                                                    onClick={() => {
+                                                                        updateItem(index, 'unit_type', u)
+                                                                        updateItem(index, 'unit_price', getUnitPrice(product, u))
+                                                                    }}
                                                                     className={`px-1.5 py-0.5 rounded text-[11px] font-medium transition-colors ${
                                                                         item.unit_type === u ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400'
                                                                     }`}
@@ -386,14 +406,96 @@ export default function CreateOrder() {
                                     })}
                                 </tbody>
                             </table>
+
+                            {/* Mobile cards */}
+                            <div className="md:hidden divide-y divide-gray-800/60">
+                                {itemsWithTotals.map(({ item, index, product, lineTotal }) => {
+                                    const isFlash = flashIndex === index
+
+                                    return (
+                                        <div
+                                            key={index}
+                                            className={`p-3 space-y-2 transition-colors duration-500 ${isFlash ? 'bg-blue-600/15' : ''}`}
+                                        >
+                                            <div className="flex items-start justify-between gap-2">
+                                                <div className="min-w-0">
+                                                    <p className="text-white text-sm leading-tight truncate">{product?.name ?? '—'}</p>
+                                                    {product?.sku && <p className="text-gray-500 text-[10px] truncate">{product.sku}</p>}
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeItem(index)}
+                                                    className="text-gray-600 hover:text-red-400 transition-colors text-sm shrink-0"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    type="number"
+                                                    min="1"
+                                                    step="1"
+                                                    data-qty={index}
+                                                    value={item.quantity}
+                                                    onChange={e => updateItem(index, 'quantity', e.target.value)}
+                                                    onKeyDown={e => handleQtyKeyDown(e, index)}
+                                                    className="w-14 shrink-0 px-1.5 py-1.5 bg-gray-800 border border-gray-700 text-white rounded text-sm text-center focus:outline-none focus:border-blue-500"
+                                                />
+                                                <select
+                                                    data-wh={index}
+                                                    value={item.warehouse_id}
+                                                    onChange={e => handleWhChange(index, e.target.value)}
+                                                    required
+                                                    className="flex-1 min-w-0 px-1.5 py-1.5 bg-gray-800 border border-gray-700 text-white rounded text-xs focus:outline-none focus:border-blue-500"
+                                                >
+                                                    <option value="">Select warehouse</option>
+                                                    {warehouses
+                                                        .filter(w => !storeId || w.store_id === parseInt(storeId))
+                                                        .map(w => {
+                                                            const qty = getAvailableStock(w.id, parseInt(item.product_id), index)
+                                                            return <option key={w.id} value={w.id}>{w.name} ({qty})</option>
+                                                        })}
+                                                </select>
+                                                {product?.secondary_unit ? (
+                                                    <div className="flex gap-0.5 shrink-0">
+                                                        {['base', 'secondary'].map(u => (
+                                                            <button
+                                                                key={u}
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    updateItem(index, 'unit_type', u)
+                                                                    updateItem(index, 'unit_price', getUnitPrice(product, u))
+                                                                }}
+                                                                className={`px-1.5 py-1 rounded text-[11px] font-medium transition-colors ${
+                                                                    item.unit_type === u ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400'
+                                                                }`}
+                                                            >
+                                                                {u === 'base' ? product.unit : product.secondary_unit}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-gray-500 text-xs shrink-0">{product?.unit ?? '—'}</span>
+                                                )}
+                                            </div>
+
+                                            <p className="text-right text-white text-sm font-medium">
+                                                {lineTotal.toFixed(2)} <span className="text-gray-500 text-[10px]">EGP</span>
+                                            </p>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                            </>
                         )}
                     </div>
 
                     {/* Sticky right panel */}
-                    <div className="w-[340px] shrink-0 sticky top-4 space-y-3">
+                    <div className="w-full lg:w-[340px] shrink-0 lg:sticky lg:top-4 space-y-3">
 
                         {/* Product search */}
-                        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+                        <div id="add-product-panel" className="bg-gray-900 border border-gray-800 rounded-xl p-4 scroll-mt-20">
                             <p className="text-[11px] text-gray-400 mb-2 uppercase tracking-wider font-medium">Add Product</p>
                             <ProductSearchInput
                                 products={products}
@@ -471,6 +573,7 @@ export default function CreateOrder() {
                     </div>
                 </div>
             </form>
+
         </div>
     )
 }

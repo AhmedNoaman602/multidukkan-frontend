@@ -174,7 +174,7 @@ export default function CreateProduct() {
                 {/* Basic Info */}
                 <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
                     <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">Basic Info</h3>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                         <div>
                             <label className="block text-sm text-gray-400 mb-1">Name</label>
@@ -316,7 +316,7 @@ export default function CreateProduct() {
                 {/* Price Tiers */}
                 <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
                     <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">Price Tiers</h3>
-                    <div className="grid grid-cols-5 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                         {['a', 'b', 'c', 'd', 'e'].map(tier => (
                             <div key={tier}>
                                 <label className="block text-sm text-gray-400 mb-1">سعر {tier.toUpperCase()}</label>
@@ -335,7 +335,7 @@ export default function CreateProduct() {
                 {/* Secondary Unit */}
                 <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
                     <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">Secondary Unit <span className="text-gray-600 normal-case font-normal">(optional)</span></h3>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm text-gray-400 mb-1">Secondary Unit</label>
                             <input
@@ -364,7 +364,7 @@ export default function CreateProduct() {
                 </div>
 
                 {/* Warehouse Stock */}
-<div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+<div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
     <div className="px-4 py-2.5 border-b border-gray-800 flex items-center justify-between">
         <h3 className="text-white text-sm font-semibold">
             Warehouse Stock

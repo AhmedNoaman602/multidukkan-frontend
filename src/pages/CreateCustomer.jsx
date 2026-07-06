@@ -44,7 +44,7 @@ const {showToast} = useToast()
                 <form onSubmit={handleSubmit} className="space-y-5">
                     
                     {/* Code + Name */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm text-gray-400 mb-1.5">Code</label>
                             <input
@@ -71,7 +71,7 @@ const {showToast} = useToast()
                     </div>
 
                     {/* Phone + Area */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm text-gray-400 mb-1.5">
                                 Phone <span className="text-red-400">*</span>
@@ -110,7 +110,7 @@ const {showToast} = useToast()
                     {/* Price Tier */}
                     <div>
                         <label className="block text-sm text-gray-400 mb-2">Price Tier</label>
-                        <div className="grid grid-cols-6 gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
                             {[
                                 { value: 'default', label: 'Default' },
                                 { value: 'a', label: 'سعر أ' },

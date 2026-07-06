@@ -42,7 +42,7 @@ export default function CreateSupplier() {
             )}
 
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-                <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
+                <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                      <div>
                         <label className="block text-sm text-gray-400 mb-1">Code</label>
                         <input
