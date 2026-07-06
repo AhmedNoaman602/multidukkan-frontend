@@ -4,9 +4,10 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import Modal from '../components/Modal'
 import SearchInput from '../components/SearchInput'
 import { useToast } from '../hooks/useToast'
+import { useLocation } from 'react-router-dom'
 
 export default function Inventory() {
-    const [inventory, setInventory] = useState([])
+    const [inventory, setInventory] = useState([]) 
     const [stores, setStores] = useState([])
     const [selectedStore, setSelectedStore] = useState('')
     const [page, setPage] = useState(1)
@@ -25,12 +26,17 @@ export default function Inventory() {
     const isAdmin = user.role === 'tenant_admin'
 
     const { showToast } = useToast()
+    const location = useLocation()
+
+    const [lowStockOnly , setLowStockOnly] = useState(
+        new URLSearchParams(location.search).get('low_stock') === '1'
+    )
 
     const fetchInventory = async () => {
         try {
             const [inventoryRes, storesRes, warehousesRes] = await Promise.all([
                 api.get('/inventory', { 
-                    params: { page, search, warehouse_id: selectedWarehouse } 
+                    params: { page, search, warehouse_id: selectedWarehouse, low_stock: lowStockOnly ? 1 : undefined } 
                 }),               
                  api.get('/stores'),
                  api.get('/warehouses'),
@@ -46,9 +52,9 @@ export default function Inventory() {
         }
     }
 
-    useEffect(() => { fetchInventory() }, [page,search,selectedWarehouse])
+    useEffect(() => { fetchInventory() }, [page, search, selectedWarehouse , lowStockOnly])
 
-    const openAdjustModal = (item, direction) => {
+    const openAdjustModal = (item, direction) => { 
         setAdjustingItem(item)
         setAdjustDirection(direction)
         setAdjustQty('')
@@ -103,20 +109,30 @@ export default function Inventory() {
 
     return (
         <div>
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
                 <h2 className="text-2xl font-bold text-white">Inventory</h2>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                     <SearchInput
                         value={search}
                         onChange={(e) => handleSearch(e.target.value)}
                         placeholder="Search by product name..."
                     />
+                    <button
+    onClick={() => { setLowStockOnly(!lowStockOnly); setPage(1) }}
+    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors border ${
+        lowStockOnly
+            ? 'bg-orange-500/20 border-orange-500/40 text-orange-400'
+            : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-white'
+    }`}
+>
+    ⚠️ Low Stock Only
+</button>
                     {isAdmin && stores.length > 0 && (
                         <select
                         value={selectedStore}
                         onChange={(e) => setSelectedStore(e.target.value)}
-                        className="px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                        className="px-3 py-1.5 bg-gray-800 border border-gray-700 text-white rounded-lg text-sm focus:outline-none focus:border-blue-500"
                     >
                         <option value="">All Stores</option>
                         {stores.map(s => (
@@ -126,13 +142,25 @@ export default function Inventory() {
                 )}
                 </div>
             </div>
+{/* Low stock toggle */}
+    {lowStockOnly && (
+        <div className="flex items-center gap-2 mb-4 px-3 py-2 bg-orange-500/10 border border-orange-500/20 rounded-lg">
+           <span className="text-orange-400 text-sm">⚠️ Showing low stock items only</span>
+            <button 
+                onClick={() => setLowStockOnly(false)} 
+                className="text-xs text-gray-500 hover:text-white ml-auto"
+            >
+                Clear filter ✕
+            </button>
+        </div>
+    )}
 
-            <div className="flex gap-2 mb-4 border-b border-gray-800 pb-3">
+            <div className="flex gap-2 mb-4 border-b border-gray-800 pb-3 overflow-x-auto">
     {[{ key: '', label: 'All Warehouses' }, ...warehousesList.map(w => ({ key: w.id, label: w.name }))].map(tab => (
         <button
             key={tab.key}
             onClick={() => { setSelectedWarehouse(tab.key) ; setPage(1) }}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
                 String(selectedWarehouse) === String(tab.key)
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700'
@@ -142,7 +170,7 @@ export default function Inventory() {
         </button>
     ))}
 </div>
-            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>
