@@ -1,8 +1,17 @@
-import { useState } from 'react'
+import { useState , useEffect } from 'react'
 import ProductSearchInput from './ProductSearchInput'
+import {useToast} from '../hooks/useToast'
+import api from '../api/axios'
 
-export default function AddItemModal({ open, onClose, onSave, products, warehouses, inventory, saving }) {
+export default function AddItemModal({ open, onClose,orderId, onSuccess }) {
     const [selectedProduct, setSelectedProduct] = useState(null)
+    const [products,setProducts] = useState([])
+    const[warehouses,setWarehouses] = useState([])
+    const [inventory, setInventory] = useState([])
+    const [saving, setSaving] = useState(false)
+    const [loadingData, setLoadingData] = useState(false)
+    const {showToast} = useToast()
+
     const [form, setForm] = useState({
         product_id: '',
         quantity: 1,
@@ -10,6 +19,22 @@ export default function AddItemModal({ open, onClose, onSave, products, warehous
         unit_type: 'base',
         unit_price: '',
     })
+
+    useEffect(() => {
+       if (!open) return
+       Promise.all([
+        api.get('/products?per_page=all'),
+        api.get('/warehouses'),
+        api.get('/inventory?per_page=all'),
+    ])
+    .then(([productsRes, warehousesRes, inventoryRes]) => {
+        setProducts(productsRes.data.data)
+        setWarehouses(warehousesRes.data.data)
+        setInventory(inventoryRes.data.data)
+    })
+    .catch(err => showToast(err.response?.data?.message || 'Failed to load data', 'error'))
+    },[open , orderId])
+
 
     const handleProductSelect = (product) => {
         setSelectedProduct(product)
@@ -35,8 +60,24 @@ export default function AddItemModal({ open, onClose, onSave, products, warehous
         onClose()
     }
 
-    const handleSave = () => {
-        onSave(form)
+    const handleSave = async() => {
+        setSaving(true)
+        try{
+            await api.post(`/orders/${orderId}/items` , {
+                product_id:form.product_id,
+                unit_price:form.unit_price,
+                unit_type:form.unit_type,
+                quantity:form.quantity,
+                warehouse_id:form.warehouse_id,
+            })
+            showToast('Item added successfully.', 'success')
+            onSuccess()
+            handleClose()
+        } catch (err) {
+    showToast(err.response?.data?.message || 'Failed to add item', 'error')
+} finally {
+    setSaving(false)
+}
     }
 
     if (!open) return null

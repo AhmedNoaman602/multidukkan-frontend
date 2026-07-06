@@ -19,9 +19,6 @@ export default function OrderDetail() {
     const [editingItem, setEditingItem] = useState(null) // holds item id being edited
     const [itemForm, setItemForm] = useState({ quantity: '', unit_price: '' })
     const[showAddItem,setShowAddItem] = useState(false)
-    const [products,setProducts] = useState([])
-    const[warehouses,setWarehouses] = useState([])
-    const [inventory, setInventory] = useState([])
     const [saving, setSaving] = useState(false)
     const [discountType, setDiscountType] = useState('amount')
     const { showToast } = useToast()
@@ -44,12 +41,6 @@ export default function OrderDetail() {
     }
 
     useEffect(() => { fetchOrder() }, [id])
-
-    useEffect(() => {
-    api.get('/products?per_page=all').then(res => setProducts(res.data.data))
-    api.get('/warehouses').then(res => setWarehouses(res.data.data))
-    api.get('/inventory?per_page=all').then(res => setInventory(res.data.data))
-}, []) // ← empty array = runs once only
 
     const handleCancel = async () => {
         setCancelling(true)
@@ -104,25 +95,6 @@ export default function OrderDetail() {
 }
     }
 
-    const handleAddItem = async(formData) =>{
-        setSaving(true)
-        try{
-            await api.post(`/orders/${id}/items` , {
-                product_id:formData.product_id,
-                unit_price:formData.unit_price,
-                unit_type:formData.unit_type,
-                quantity:formData.quantity,
-                warehouse_id:formData.warehouse_id,
-            })
-            showToast('Item added successfully.', 'success')
-            setShowAddItem(false)
-            fetchOrder()
-        } catch (err) {
-    showToast(err.response?.data?.message || 'Failed to add item', 'error')
-} finally {
-    setSaving(false)
-}
-    }
     const handleCancelEdit = () => {
         setEditMode(false)
         setEditForm({
@@ -214,7 +186,7 @@ const displayTotal = editMode
                     </span>
                 </div>
 
-                <div className="grid grid-cols-3 gap-6 mt-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
                     <div>
                         <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Customer</p>
                         <p className="text-white text-sm font-medium">{order.customer_name}</p>
@@ -247,6 +219,7 @@ const displayTotal = editMode
             {/* Items */}
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
                 <h3 className="text-white font-semibold mb-4">Order Items</h3>
+                <div className="overflow-x-auto">
                 <table className="w-full">
                     <thead>
                         <tr className="border-b border-gray-800">
@@ -270,8 +243,8 @@ const displayTotal = editMode
             className="w-20 px-2 py-1 bg-gray-800 border border-gray-600 text-white rounded-lg text-sm"/>
         : <>
             {item.quantity}
-            {item.unit_type && item.unit_type !== 'base' && (
-                <span className="ml-1 text-xs text-blue-400">{item.unit_type}</span>
+            {item.unit_label && (
+                <span className={`ml-1 text-xs ${item.unit_type !== 'base' ? 'text-blue-400' : 'text-gray-500'}`}>{item.unit_label}</span>
             )}
           </>
     }
@@ -319,10 +292,13 @@ const displayTotal = editMode
 ))}
                     </tbody>
                 </table>
+                </div>
                 {/* Add Item */}
 {canEdit && (
     <button
-        onClick={() => setShowAddItem(true)}
+        onClick={() => {
+    setShowAddItem(true)
+}}
         className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors"
     >
         + Add Item
@@ -383,6 +359,37 @@ const displayTotal = editMode
                     </div>
                 </div>
             </div>
+{/* Profit */}
+{order.items.some(i => i.cost_price !== null) && (
+    <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
+        <p className="text-gray-400 text-xs uppercase tracking-wider mb-4">Profit Summary</p>
+        <div className="flex gap-8">
+            <div>
+                <p className="text-gray-500 text-xs mb-1">Revenue</p>
+                <p className="text-white font-semibold">{order.total} EGP</p>
+            </div>
+            <div>
+                <p className="text-gray-500 text-xs mb-1">Cost</p>
+                <p className="text-white font-semibold">
+                    {order.items.reduce((sum, i) => sum + ((i.cost_price ?? 0) * i.quantity), 0).toFixed(2)} EGP
+                </p>
+            </div>
+            <div>
+                <p className="text-gray-500 text-xs mb-1">Gross Profit</p>
+                {(() => {
+                    const cost = order.items.reduce((sum, i) => sum + ((i.cost_price ?? 0) * i.quantity), 0)
+                    const profit = order.total - cost
+                    const margin = order.total > 0 ? ((profit / order.total) * 100).toFixed(1) : 0
+                    return (
+                        <p className={`font-semibold ${profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                            {profit.toFixed(2)} EGP <span className="text-xs text-gray-500">({margin}%)</span>
+                        </p>
+                    )
+                })()}
+            </div>
+        </div>
+    </div>
+)}
 
             {/* Notes */}
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
@@ -413,13 +420,13 @@ const displayTotal = editMode
             {showAddItem && (
             <AddItemModal
             open={showAddItem}
-    onClose={() => setShowAddItem(false)}
-    onSave={handleAddItem}
-    products={products}
-    warehouses={warehouses}
-    inventory={inventory}
-    saving={saving}
-/>
+            orderId={id}
+            onSuccess={() => {
+                fetchOrder()
+                setShowAddItem(false)
+            }}
+            onClose={() => setShowAddItem(false)}
+            />
     )}
         </div>
     )
