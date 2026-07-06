@@ -56,9 +56,9 @@ export default function Products() {
     return (
         <div>
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
                 <h2 className="text-2xl font-bold text-white">Products</h2>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                     <SearchInput
                         value={search}
                         onChange={(e) => handleSearch(e.target.value)}
@@ -88,7 +88,7 @@ export default function Products() {
                     </thead>
                     <tbody className="divide-y divide-gray-800">
                         {products.map(product => (
-                            <tr key={product.id} className="hover:bg-gray-800/50 transition-colors">
+                            <tr key={product.id} onClick={() => navigate(`/products/${product.id}`)} className="hover:bg-gray-800/50 transition-colors cursor-pointer">
                                 <td className="px-4 py-3 text-white text-sm">{product.name}</td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">{product.sku}</td>
                                 <td className="px-4 py-3 text-white text-sm">{product.price} EGP</td>
@@ -103,7 +103,7 @@ export default function Products() {
                     ? 'text-green-400' 
                     : 'text-red-400'
             }`}>
-                {product[`profit_margin_${tier}`] > 0 ? '+' : ''}{product[`profit_margin_${tier}`]} EGP
+                {product[`profit_margin_${tier}`]}%
             </div>
         )}
     </td>
@@ -117,20 +117,20 @@ export default function Products() {
     product.profit_margin === null ? 'text-gray-500' :
     product.profit_margin >= 0 ? 'text-green-400' : 'text-red-400'
     }`}>
-    {product.profit_margin !== null ? `${product.profit_margin} EGP` : '—'}
+    {product.profit_margin !== null ? `${product.profit_margin}%` : '—'}
 </td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">{product.unit}</td>
                                 <td className="px-4 py-3">
     <div className="flex gap-2">
         <button
-    onClick={() => navigate('/products/create', { state: { duplicate: product } })}
+    onClick={(e) => { e.stopPropagation(); navigate('/products/create', { state: { duplicate: product } }) }}
     className="px-3 py-1 bg-gray-500/10 border border-gray-500/20 text-gray-400 text-xs font-medium rounded-lg hover:bg-gray-500/20 transition-colors"
 >
     Duplicate
 </button>
         {user.role !== 'store_staff' && (
             <button
-                onClick={() => navigate(`/products/${product.id}/edit`)}
+    onClick={(e) => { e.stopPropagation(); navigate(`/products/${product.id}/edit`) }}
                 className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium rounded-lg hover:bg-blue-500/20 transition-colors"
             >
                 Edit
@@ -138,7 +138,7 @@ export default function Products() {
         )}
         {user.role === 'tenant_admin' && (
             <button
-                onClick={() => setDeleteTarget(product)}
+    onClick={(e) => { e.stopPropagation(); setDeleteTarget(product) }}
                 className="px-3 py-1 bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium rounded-lg hover:bg-red-500/20 transition-colors"
             >
                 Delete
