@@ -13,6 +13,7 @@ export default function QuickSaleModal({
 }) {
     const [items, setItems] = useState([])
     const [saving, setSaving] = useState(false)
+    const [manualTotal , setManualTotal] = useState(null)
     const [discount, setDiscount] = useState(0)
     const [discountType, setDiscountType] = useState('amount')
     const { showToast } = useToast()
@@ -79,6 +80,10 @@ export default function QuickSaleModal({
 
     const grandTotal = Math.max(0, subtotal - discountAmount)
 
+    const finalTotal = manualTotal !== null && manualTotal !== ''
+    ? parseFloat(manualTotal)
+    : grandTotal
+
     const handleSubmit = async () => {
            const user = JSON.parse(localStorage.getItem('user') || '{}') 
     
@@ -113,35 +118,23 @@ export default function QuickSaleModal({
                 store_id: finalStoreId,
                 order_date: new Date().toISOString().split('T')[0],
                 discount: discountAmount,
+                pay_immediately: true,       
+                payment_method: 'cash', 
                 items: items.map(i => ({
                     product_id: parseInt(i.product_id),
                     quantity: parseInt(i.quantity),
                     warehouse_id: parseInt(i.warehouse_id),
                     unit_type: i.unit_type ?? 'base',
+                    unit_price: parseFloat(i.unit_price),
                 }))
             })
-            try{
- await api.post('/payments', {
-                order_id: res.data.id,
-                customer_id: user.walk_in_customer_id,
-                amount: res.data.total,
-                method: 'cash',
-            })
-            }catch(paymentErr){
-                showToast('payment failed' , 'error')
-            }
-           
-
-            showToast('تم تسجيل البيع ✅', 'success')
-            setItems([])
-            setDiscount(0)
 showToast('تم تسجيل البيع ✅', 'success')
 setItems([])
 setDiscount(0)
 try {
     onClose()
 } catch(e) {
-    console.error('onClose error:', e)
+    showToast('Failed to close modal', 'error')
 }
         } catch (err) {
             showToast(err.response?.data?.message || 'Failed to create order', 'error')
@@ -185,6 +178,9 @@ try {
                             ابحث عن منتج لإضافته
                         </div>
                     ) : (
+                        <>
+                        {/* Desktop table */}
+                        <div className="overflow-x-auto hidden md:block">
                         <table className="w-full">
                             <thead className="bg-gray-800 sticky top-0">
                                 <tr>
@@ -251,6 +247,61 @@ try {
                                 ))}
                             </tbody>
                         </table>
+                        </div>
+
+                        {/* Mobile cards */}
+                        <div className="md:hidden divide-y divide-gray-800/60">
+                            {items.map((item, index) => (
+                                <div key={index} className="p-2.5 space-y-2">
+                                    <div className="flex items-start justify-between gap-2">
+                                        <p className="text-white text-xs font-medium leading-tight truncate min-w-0">{item.product_name}</p>
+                                        <button
+                                            onClick={() => removeItem(index)}
+                                            className="text-gray-600 hover:text-red-400 transition-colors text-sm shrink-0"
+                                        >✕</button>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            data-qs-qty={index}
+                                            value={item.quantity}
+                                            onChange={e => updateItem(index, 'quantity', e.target.value)}
+                                            onKeyDown={e => handleQtyKeyDown(e, index)}
+                                            className="w-12 shrink-0 px-1 py-1.5 bg-gray-800 border border-gray-700 text-white rounded text-xs text-center focus:outline-none focus:border-blue-500"
+                                        />
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="0.01"
+                                            value={item.unit_price}
+                                            onChange={e => updateItem(index, 'unit_price', e.target.value)}
+                                            className="w-16 shrink-0 px-1 py-1.5 bg-gray-800 border border-gray-700 text-white rounded text-xs text-center focus:outline-none focus:border-blue-500"
+                                        />
+                                        <select
+                                            data-qs-wh={index}
+                                            value={item.warehouse_id}
+                                            onChange={e => handleWhChange(index, e.target.value)}
+                                            className="flex-1 min-w-0 px-1 py-1.5 bg-gray-800 border border-gray-700 text-white rounded text-xs focus:outline-none focus:border-blue-500"
+                                        >
+                                            <option value="">اختر</option>
+                                            {warehouses.map(w => {
+                                                const stock = getStock(w.id, item.product_id)
+                                                return (
+                                                    <option key={w.id} value={w.id}>
+                                                        {w.name} ({stock})
+                                                    </option>
+                                                )
+                                            })}
+                                        </select>
+                                    </div>
+                                    <p className="text-right text-white text-xs font-medium">
+                                        {((parseFloat(item.unit_price) || 0) * (parseInt(item.quantity) || 0)).toFixed(2)}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                        </>
                     )}
                 </div>
 
@@ -285,11 +336,23 @@ try {
                         </div>
                     </div>
 
-                    {/* Total */}
-                    <div className="flex justify-between items-center">
-                        <span className="text-gray-400 text-sm">الإجمالي</span>
-                        <span className="text-white text-xl font-bold">{grandTotal.toFixed(2)} EGP</span>
-                    </div>
+               <div className="flex justify-between items-center">
+    <span className="text-gray-400 text-sm">الإجمالي</span>
+    <div className="text-right">
+        <input
+            type="number"
+            min="0"
+            step="0.01"
+            value={manualTotal ?? ''}
+            onChange={e => setManualTotal(e.target.value)}
+            placeholder={grandTotal.toFixed(2)}
+            className="w-24 px-2 py-1 bg-gray-800 border border-gray-700 text-white rounded-lg text-sm text-right focus:outline-none focus:border-blue-500"
+        />
+        <p className="text-gray-500 text-[10px] mt-0.5">
+            المحسوب تلقائيًا: {grandTotal.toFixed(2)} EGP
+        </p>
+    </div>
+</div>
 
                     <button
                         onClick={handleSubmit}
