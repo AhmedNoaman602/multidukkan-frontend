@@ -82,7 +82,7 @@ export default function PurchaseOrderDetail() {
                     </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6 mt-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
                     <div>
                         <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Supplier</p>
                         <p className="text-white text-sm font-medium">{order.supplier_name}</p>
@@ -102,6 +102,7 @@ export default function PurchaseOrderDetail() {
             {/* Items */}
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
                 <h3 className="text-white font-semibold mb-4">Order Items</h3>
+                <div className="overflow-x-auto">
                 <table className="w-full">
                     <thead>
                         <tr className="border-b border-gray-800">
@@ -123,6 +124,7 @@ export default function PurchaseOrderDetail() {
                         ))}
                     </tbody>
                 </table>
+                </div>
 
                 {/* Totals */}
                 <div className="flex justify-end mt-4">

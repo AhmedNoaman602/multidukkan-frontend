@@ -15,7 +15,7 @@ export default function Customers() {
     const [deleting, setDeleting] = useState(false)
     const [page, setPage] = useState(1)
     const [lastPage, setLastPage] = useState(1)
-    const [stats, setStats] = useState([])
+    const [stats, setStats] = useState(null)
     const navigate = useNavigate()
     const {showToast} = useToast()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
@@ -29,6 +29,8 @@ export default function Customers() {
             })
             .catch(() => {
                 showToast('Failed to load customers', 'error')
+                setCustomers([])
+                setStats(null)
             })
             .finally(() => setLoading(false))
     }
@@ -60,35 +62,35 @@ export default function Customers() {
 
     return (
         <div>
-            <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-white">Customers</h2>
-                <div className="flex items-center gap-3">
-                    <SearchInput
-                        value={search}
-                        onChange={(e) => handleSearch(e.target.value)}
-                        placeholder="Search by name, customer code, or phone..."
-                    />
-                    {user.role !== 'store_staff' && (
-                        <button
-                            onClick={() => navigate('/customers/create')}
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
-                        >
-                            + Add Customer
-                        </button>
-                    )}
-                </div>
-            </div>
+  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <h2 className="text-xl sm:text-2xl font-bold text-white">Customers</h2>
+    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <SearchInput
+            value={search}
+            onChange={(e) => handleSearch(e.target.value)}
+            placeholder="Search by name, customer code, or phone..."
+        />
+        {user.role !== 'store_staff' && (
+            <button
+                onClick={() => navigate('/customers/create')}
+                className="px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors whitespace-nowrap"
+            >
+                + Add Customer
+            </button>
+        )}
+    </div>
+</div>
 
             {
                 stats && (
                     <StatBoxes stats={[
-                        { label: 'Total Customers',   value: stats.total_customers,           color: 'white' },
-                        { label: 'Total Outstanding', value: `${stats.total_outstanding} EGP`, color: 'red'   },
+                        { label: 'Total Customers',   value: stats.total_customers, color: 'white' },
+                        { label: 'Total Outstanding', value: `${stats.total_outstanding} EGP`, color: 'red'},
                     ]} />
                 )
             }
 
-            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>

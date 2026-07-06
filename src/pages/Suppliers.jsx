@@ -59,9 +59,9 @@ export default function Suppliers() {
 
     return (
         <div>
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
                 <h2 className="text-2xl font-bold text-white">Suppliers</h2>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                     <SearchInput
                         value={search}
                         onChange={e => handleSearch(e.target.value)}
@@ -87,7 +87,7 @@ export default function Suppliers() {
                 )
             }
 
-            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>

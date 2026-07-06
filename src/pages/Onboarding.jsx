@@ -196,7 +196,7 @@ export default function Onboarding() {
                                 <label className={lbl}>اسم المتجر *</label>
                                 <input value={storeForm.name} onChange={e => setStoreForm({ ...storeForm, name: e.target.value })} placeholder="مثال: الفرع الرئيسي" className={inp} />
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label className={lbl}>العنوان</label>
                                     <input value={storeForm.address} onChange={e => setStoreForm({ ...storeForm, address: e.target.value })} placeholder="مثال: الإسكندرية" className={inp} />
@@ -235,7 +235,7 @@ export default function Onboarding() {
                         <p className="text-xs font-semibold tracking-widest text-purple-400 uppercase mb-2">الخطوة 3 من 5 · اختياري</p>
                         <h2 className="text-xl font-bold text-white mb-1">أضف أول منتج</h2>
                         <p className="text-gray-400 text-sm mb-6">يمكنك إضافة المزيد من المنتجات لاحقاً من صفحة المنتجات.</p>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label className={lbl}>اسم المنتج *</label>
                                 <input value={productForm.name} onChange={e => setProductForm({ ...productForm, name: e.target.value })} placeholder="مثال: شاكوش كبير" className={inp} />
@@ -290,7 +290,7 @@ export default function Onboarding() {
                                 <label className={lbl}>الاسم *</label>
                                 <input value={customerForm.name} onChange={e => setCustomerForm({ ...customerForm, name: e.target.value })} placeholder="مثال: محمد أحمد" className={inp} />
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label className={lbl}>رقم الهاتف *</label>
                                     <input value={customerForm.phone} onChange={e => setCustomerForm({ ...customerForm, phone: e.target.value })} placeholder="01xxxxxxxxx" className={inp} />
@@ -317,7 +317,7 @@ export default function Onboarding() {
                         <p className="text-xs font-semibold tracking-widest text-purple-400 uppercase mb-2">الخطوة 5 من 5 · اختياري</p>
                         <h2 className="text-xl font-bold text-white mb-1">أضف موظفاً</h2>
                         <p className="text-gray-400 text-sm mb-6">امنح أحد موظفيك صلاحية الدخول لإدارة المتجر معك.</p>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label className={lbl}>الاسم *</label>
                                 <input value={teamForm.name} onChange={e => setTeamForm({ ...teamForm, name: e.target.value })} placeholder="مثال: أحمد محمد" className={inp} />

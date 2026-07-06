@@ -13,7 +13,6 @@ export default function Settings() {
     const [loading, setLoading] = useState(true)
     const [showCreateUser, setShowCreateUser] = useState(false)
     const [saving, setSaving] = useState(false)
-    const [error, setError] = useState('')
     const [showCreateStore, setShowCreateStore] = useState(false)
     const [storeForm, setStoreForm] = useState({ name: '', address: '', phone: '' })
     const user = JSON.parse(localStorage.getItem('user') || '{}')
@@ -60,7 +59,7 @@ export default function Settings() {
                 setWarehouses(warehousesRes.data.data)
                 setUnits(unitsRes.data.data)
             } catch (err) {
-                setError('Failed to load data')
+                showToast('Failed to load data', 'error')
             } finally {
                 setLoading(false)
             }
@@ -71,7 +70,6 @@ export default function Settings() {
     const handleCreateUser = async (e) => {
         e.preventDefault()
         setSaving(true)
-        setError('')
         try {
             const res = await api.post('/users', userForm)
             setUsers([...users, res.data.data])
@@ -104,7 +102,6 @@ export default function Settings() {
     const handleCreateStore = async (e) => {
     e.preventDefault()
     setSaving(true)
-    setError('')
     try {
         const res = await api.post('/stores', storeForm)
         setStores([...stores, res.data.data])
@@ -138,7 +135,6 @@ const handleDeleteStore = async () => {
 const handleCreateWarehouse = async (e) => {
     e.preventDefault()
     setSaving(true)
-    setError('')
     try {
         const res = await api.post('/warehouses', warehouseForm)
         setWarehouses([...warehouses, res.data.data])
@@ -171,7 +167,6 @@ const handleDeleteWarehouse = async () => {
 const handleCreateUnit = async (e) => {
     e.preventDefault()
     setSaving(true)
-    setError('')
     try {
         const res = await api.post('/units', unitForm)
         setUnits([...units, res.data.data])
@@ -210,11 +205,11 @@ const handleDeleteUnit = async () => {
     }
 
     return (
-    <div className="flex gap-6">
+    <div className="flex flex-col md:flex-row gap-6">
         {/* Sidebar */}
-        <div className="w-48 shrink-0">
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-2 sticky top-6">
-                <p className="text-xs text-gray-500 uppercase tracking-wider px-3 py-2">Settings</p>
+        <div className="w-full md:w-48 shrink-0">
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-2 flex md:block gap-1 overflow-x-auto md:sticky md:top-6">
+                <p className="hidden md:block text-xs text-gray-500 uppercase tracking-wider px-3 py-2">Settings</p>
                 {[
                     ...(user.role === 'tenant_admin' ? [
                         { key: 'stores', label: 'Stores', icon: '🏪' },
@@ -226,7 +221,7 @@ const handleDeleteUnit = async () => {
                     <button
                         key={tab.key}
                         onClick={() => setActiveTab(tab.key)}
-                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors text-left ${
+                        className={`w-full md:w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors text-left whitespace-nowrap ${
                             activeTab === tab.key
                                 ? 'bg-gray-800 text-white'
                                 : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
@@ -246,7 +241,7 @@ const handleDeleteUnit = async () => {
             {/* Users tab */}
             {activeTab === 'users' && (
                 <div>
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                         <h3 className="text-white font-semibold">Team Members</h3>
                         <button
                             onClick={() => setShowCreateUser(!showCreateUser)}
@@ -257,8 +252,8 @@ const handleDeleteUnit = async () => {
                     </div>
 
                     {showCreateUser && (
-                        <Modal open={showCreateUser} onClose={() => setShowCreateUser(false)} error={error} title="New Team Member">
-                            <form onSubmit={handleCreateUser} className="grid grid-cols-2 gap-4">
+                        <Modal open={showCreateUser} onClose={() => setShowCreateUser(false)} title="New Team Member">
+                            <form onSubmit={handleCreateUser} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm text-gray-400 mb-1">Name</label>
                                     <input value={userForm.name} onChange={(e) => setUserForm({ ...userForm, name: e.target.value })} required className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
@@ -295,7 +290,7 @@ const handleDeleteUnit = async () => {
                         </Modal>
                     )}
 
-                    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+                    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
                         <table className="w-full">
                             <thead className="bg-gray-800">
                                 <tr>
@@ -339,15 +334,15 @@ const handleDeleteUnit = async () => {
             {/* Stores tab */}
             {activeTab === 'stores' && (
                 <div>
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                         <h3 className="text-white font-semibold">Stores</h3>
                         <button onClick={() => setShowCreateStore(!showCreateStore)} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
                             {showCreateStore ? 'Cancel' : '+ Add Store'}
                         </button>
                     </div>
                     {showCreateStore && (
-                        <Modal open={showCreateStore} onClose={() => setShowCreateStore(false)} error={error} title="New Store">
-                            <form onSubmit={handleCreateStore} className="grid grid-cols-2 gap-4">
+                        <Modal open={showCreateStore} onClose={() => setShowCreateStore(false)} title="New Store">
+                            <form onSubmit={handleCreateStore} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm text-gray-400 mb-1">Store Name *</label>
                                     <input value={storeForm.name} onChange={(e) => setStoreForm({ ...storeForm, name: e.target.value })} required className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
@@ -368,7 +363,7 @@ const handleDeleteUnit = async () => {
                             </form>
                         </Modal>
                     )}
-                    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+                    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
                         <table className="w-full">
                             <thead className="bg-gray-800">
                                 <tr>{['Name', 'Address', 'Phone', 'Actions'].map(h => <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>)}</tr>
@@ -405,15 +400,15 @@ const handleDeleteUnit = async () => {
             {/* Warehouses tab */}
             {activeTab === 'warehouses' && (
                 <div>
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                         <h3 className="text-white font-semibold">Warehouses</h3>
                         <button onClick={() => setShowCreateWarehouse(!showCreateWarehouse)} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
                             {showCreateWarehouse ? 'Cancel' : '+ Add Warehouse'}
                         </button>
                     </div>
                     {showCreateWarehouse && (
-                        <Modal open={showCreateWarehouse} onClose={() => setShowCreateWarehouse(false)} error={error} title="New Warehouse">
-                            <form onSubmit={handleCreateWarehouse} className="grid grid-cols-2 gap-4">
+                        <Modal open={showCreateWarehouse} onClose={() => setShowCreateWarehouse(false)} title="New Warehouse">
+                            <form onSubmit={handleCreateWarehouse} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm text-gray-400 mb-1">Warehouse Name</label>
                                     <input value={warehouseForm.name} onChange={(e) => setWarehouseForm({ ...warehouseForm, name: e.target.value })} required className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
@@ -443,7 +438,7 @@ const handleDeleteUnit = async () => {
                             </form>
                         </Modal>
                     )}
-                    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+                    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
                         <table className="w-full">
                             <thead className="bg-gray-800">
                                 <tr>{['Name', 'Store', 'Address', 'Actions'].map(h => <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>)}</tr>
@@ -481,14 +476,14 @@ const handleDeleteUnit = async () => {
             {/* Units tab */}
             {activeTab === 'units' && (
                 <div>
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                         <h3 className="text-white font-semibold">Units</h3>
                         <button onClick={() => setShowCreateUnit(!showCreateUnit)} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
                             {showCreateUnit ? 'Cancel' : '+ Add Unit'}
                         </button>
                     </div>
                     {showCreateUnit && (
-                        <Modal open={showCreateUnit} onClose={() => setShowCreateUnit(false)} error={error} title="New Unit">
+                        <Modal open={showCreateUnit} onClose={() => setShowCreateUnit(false)} title="New Unit">
                             <form onSubmit={handleCreateUnit} className="space-y-4">
                                 <div>
                                     <label className="block text-sm text-gray-400 mb-1">Unit Name</label>
@@ -506,7 +501,7 @@ const handleDeleteUnit = async () => {
                             </form>
                         </Modal>
                     )}
-                    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+                    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
                         <table className="w-full">
                             <thead className="bg-gray-800">
                                 <tr>

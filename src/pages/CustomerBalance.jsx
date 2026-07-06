@@ -166,7 +166,7 @@ export default function CustomerBalance() {
                 </div>
 
                 {/* Stats row */}
-                <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-800">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-800">
                     <div>
                         <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Total Orders</p>
                         <p className="text-white text-xl font-bold">{data.stats.total_orders}</p>
@@ -186,7 +186,7 @@ export default function CustomerBalance() {
 
             {/* Orders */}
             <h3 className="text-white font-semibold mb-3">Orders</h3>
-            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden mb-6">
+            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto mb-6">
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>
@@ -227,7 +227,7 @@ export default function CustomerBalance() {
 
             {/* Payments */}
             <h3 className="text-white font-semibold mb-3">Payments</h3>
-            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden mb-6">
+            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto mb-6">
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>
@@ -281,7 +281,7 @@ export default function CustomerBalance() {
 
             {/* Transaction History */}
             <h3 className="text-white font-semibold mb-3">Transaction History</h3>
-            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden mb-6">
+            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto mb-6">
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>
@@ -348,7 +348,7 @@ export default function CustomerBalance() {
                                 </select>
                             </div>
                         )}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm text-gray-400 mb-1">Amount</label>
                                 <input type="number" value={autoForm.amount}
@@ -400,7 +400,7 @@ export default function CustomerBalance() {
 
             <Modal open={!!editPayment} onClose={()=> setEditPayment(false)} title="Edit Payment">
                 <form onSubmit={handleEditPayment} className='space-y-4'>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm text-gray-400 mb-1">Amount</label>
                                 <input type="number" value={editForm.amount}

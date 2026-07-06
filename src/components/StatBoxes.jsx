@@ -1,4 +1,3 @@
-
 export default function StatBoxes({ stats = [] }) {
     if (!stats.length) return null
 
@@ -12,14 +11,14 @@ export default function StatBoxes({ stats = [] }) {
     }
 
     return (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6">
             {stats.map((stat, i) => (
                 <div
                     key={i}
-                    className="bg-gray-900 border border-gray-800 rounded-xl px-5 py-4"
+                    className="bg-gray-900 border border-gray-800 rounded-xl px-3 py-3 sm:px-5 sm:py-4"
                 >
                     <p className="text-gray-400 text-xs mb-1">{stat.label}</p>
-                    <p className={`text-2xl font-bold ${colorMap[stat.color] ?? 'text-white'}`}>
+                    <p className={`text-lg sm:text-2xl font-bold ${colorMap[stat.color] ?? 'text-white'} whitespace-nowrap`}>
                         {stat.value}
                     </p>
                 </div>
