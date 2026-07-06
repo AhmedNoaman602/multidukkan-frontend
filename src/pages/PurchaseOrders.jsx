@@ -44,9 +44,8 @@ export default function PurchaseOrders() {
 
   const fetchPurchaseOrders = () => {
     const today = new Date().toISOString().split("T")[0];
-    setLoading(true);
-    api
-      .get("/purchase-orders", {
+
+    api.get("/purchase-orders", {
         params: {
           page,
           search,
@@ -64,7 +63,9 @@ export default function PurchaseOrders() {
         setStats(res.data.stats || null);
       })
       .catch(() => showToast("Failed to load purchase orders", "error"))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false)
+      });
   };
 
   useEffect(() => {
@@ -124,7 +125,7 @@ export default function PurchaseOrders() {
     <div>
       <div className="mb-6 space-y-4">
         {/* Top row */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <h2 className="text-2xl font-bold text-white">Purchase Orders</h2>
           <button
             onClick={() => navigate("/purchase-orders/create")}
@@ -136,7 +137,7 @@ export default function PurchaseOrders() {
 
         {/* Filter row */}
         <div className="flex items-center gap-4 flex-wrap">
-          <div className="w-80">
+          <div className="w-full sm:w-80">
             <SearchInput
               value={search}
               onChange={(e) => handleSearch(e.target.value)}
@@ -326,7 +327,7 @@ export default function PurchaseOrders() {
         />
       )}
 
-      <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-visible">
+      <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
         <table className="w-full">
           <thead className="bg-gray-800">
             <tr>

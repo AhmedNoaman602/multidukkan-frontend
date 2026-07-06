@@ -1,224 +1,173 @@
+// 1. Imports
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import QuickSaleModal from '../components/QuickSaleModal'
+import { useToast } from '../hooks/useToast'
 
-// Reusable stat card component
+// 2. Constants — small reusable sub-component used only by this file
 const StatCard = ({ label, value, sub, icon, gradient, onClick, accent }) => (
     <div
         onClick={onClick}
-        className={`group relative overflow-hidden rounded-2xl border border-gray-800 bg-gradient-to-br ${gradient} p-5 transition-all duration-300 ${onClick ? 'cursor-pointer hover:border-gray-700 hover:-translate-y-0.5' : ''}`}
+        className={`group relative overflow-hidden rounded-2xl border border-gray-800 bg-gradient-to-br ${gradient} p-3 sm:p-5 transition-all duration-300 ${onClick ? 'cursor-pointer hover:border-gray-700 hover:-translate-y-0.5' : ''}`}
     >
-        {/* Decorative glow */}
         <div className={`absolute -top-8 -right-8 w-32 h-32 rounded-full blur-3xl opacity-10 ${accent}`} />
-
         <div className="relative">
-            <div className="flex items-start justify-between mb-3">
+            <div className="flex items-start justify-between mb-1.5 sm:mb-3">
                 <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">{label}</p>
-                <span className="text-xl opacity-60 group-hover:opacity-100 transition-opacity">{icon}</span>
+                <span className="text-lg sm:text-xl opacity-60 group-hover:opacity-100 transition-opacity">{icon}</span>
             </div>
-            <p className="text-2xl font-bold text-white tracking-tight">{value}</p>
-            {sub && <p className="text-xs text-gray-500 mt-2">{sub}</p>}
+            <p className="text-lg sm:text-2xl font-bold text-white tracking-tight">{value}</p>
+            {sub && <p className="text-xs text-gray-500 mt-1 sm:mt-2">{sub}</p>}
         </div>
     </div>
 )
 
+// 3. Component
 export default function Dashboard() {
+
+    // 4. Hooks — state, router, toast
     const [stats, setStats] = useState(null)
     const [recentOrders, setRecentOrders] = useState([])
     const [topDebtors, setTopDebtors] = useState([])
     const [lowStockItems, setLowStockItems] = useState([])
     const [loading, setLoading] = useState(true)
     const [insights, setInsights] = useState('')
-const [loadingInsights, setLoadingInsights] = useState(false)
-const [insightsFetched, setInsightsFetched] = useState(false)
-const [activePeriod , setActivePeriod] = useState("Today")
-const [ordersFilter, setOrdersFilter] = useState('all')
-const [showQuickSale, setShowQuickSale] = useState(false)
-const [products, setProducts] = useState([])
-const [warehouses, setWarehouses] = useState([])
-const [inventory, setInventory] = useState([])
-
+    const [loadingInsights, setLoadingInsights] = useState(false)
+    const [insightsFetched, setInsightsFetched] = useState(false)
+    const [activePeriod, setActivePeriod] = useState("Today")
+    const [ordersFilter, setOrdersFilter] = useState('all')
+    const [showQuickSale, setShowQuickSale] = useState(false)
+    const [products, setProducts] = useState([])
+    const [warehouses, setWarehouses] = useState([])
+    const [inventory, setInventory] = useState([])
+    const { showToast } = useToast()
     const navigate = useNavigate()
+
+    // 5. Derived values — computed from state/props, no side effects
     const user = JSON.parse(localStorage.getItem('user') || '{}')
-
-    const getGreeting = () => {
-    const hour = new Date().getHours()
-    const day = new Date().getDay() // 0=Sunday, 5=Friday, 6=Saturday
-    
-    // Friday
-    if (day === 5) return 'جمعة مباركة،'
-    
-    // Based on stats
-    // if (stats?.todayRevenue > 0) {
-    //     const messages = [
-    //         `شغل تمام،`,
-    //         `أداء ممتاز النهارده`,
-    //     ]
-    //     return messages[Math.floor(Math.random() * messages.length)]
-    // }
-
-    // Time based
-    if (hour < 5)  return 'سهران لسه؟'
-    if (hour < 9)  return 'صباح الفل،'
-    if (hour < 12) return 'صباح الخير،'
-    if (hour < 14) return 'نهارك سعيد،'
-    if (hour < 21) return 'مساء الخير،'
-    return 'مساء النور،'
-}
-
-const getSubMessage = () => {
-    if (stats?.todayRevenue > 2000) {
-        return `🔥 أداء رائع اليوم! حققت مبيعات بقيمة ${stats.todayRevenue} جنيه حتى الآن`
-    }
-    if (stats?.unpaidOrders > 3) {
-        return `⚠️ لديك ${stats.unpaidOrders} طلبات غير مسددة تحتاج إلى المتابعة`
-    }
-    if (stats?.lowStock > 0) {
-        return `📦 يوجد ${stats.lowStock} منتجات أوشكت على النفاد وتحتاج إلى إعادة التوريد`
-    }
-    if (stats?.todayOrdersCount === 0) {
-        return ' 🚀 لم يتم تسجيل أي طلبات اليوم بعد، نتمنى لك يوماً ناجحاً'
-    }
-    return ` إليك ملخص نشاط ${user.business_name} اليوم`
-}
-
-    const fetchInsights = async () => {
-    if (insightsFetched) return
-    setLoadingInsights(true)
-    try {
-        const res = await api.get('/ai/insights')
-        setInsights(res.data)
-        setInsightsFetched(true)
-    } catch {
-        setInsights(null)
-    } finally {
-        setLoadingInsights(false)
-    }
-}
-
-const today = new Date().toLocaleDateString('en-CA')    
-const todayFormatted = new Date().toLocaleDateString('en-EG', {
+    const today = new Date().toLocaleDateString('en-CA')
+    const todayFormatted = new Date().toLocaleDateString('en-EG', {
         weekday: 'long', month: 'long', day: 'numeric'
     })
 
-    useEffect(() => {
-    window.scrollTo(0, 0)
-}, [])
+    const getGreeting = () => {
+        const hour = new Date().getHours()
+        const day = new Date().getDay()
+        if (day === 5) return 'جمعة مباركة،'
+        if (hour < 5) return 'سهران لسه؟'
+        if (hour < 9) return 'صباح الفل،'
+        if (hour < 12) return 'صباح الخير،'
+        if (hour < 14) return 'نهارك سعيد،'
+        if (hour < 21) return 'مساء الخير،'
+        return 'مساء النور،'
+    }
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-               const [ordersRes, customersRes, productsRes, inventoryRes, paymentsRes, warehousesRes] = await Promise.all([
-    api.get('/orders'),
-    api.get('/customers'),
-    api.get('/products?per_page=all'), 
-    api.get('/inventory?per_page=all'), 
-    api.get(`/payments?date=${today}`).catch(() => ({ data: { data: [], total: 0, count: 0 } })),
-    api.get('/warehouses'),
-])
-
-                const orders = ordersRes.data.data || []
-                const customers = customersRes.data.data || []
-                const products = productsRes.data.data || []
-                const inventory = inventoryRes.data.data || []
-                const payments = paymentsRes.data
-
-                // Today's revenue — handle both response shapes
-                const todayRevenue = payments?.total
-                    ?? (Array.isArray(payments?.data) ? payments.data.reduce((s, p) => s + parseFloat(p.amount || 0), 0) : 0)
-                    ?? 0
-
-                const todayPaymentsCount = payments?.count ?? payments?.data?.length ?? 0
-
-                // Orders
-                const unpaidOrders = orders.filter(o => o.status === 'unpaid')
-                const totalOwed = unpaidOrders.reduce((sum, o) => sum + parseFloat(o.amount_remaining ?? o.total ?? 0), 0)
-                // Today's orders
-                const todayOrders = orders.filter(o =>
-                    (o.order_date ?? new Date(o.created_at).toISOString().split('T')[0]) === today
-                )
-                const todaySales = todayOrders.reduce((sum, o) => sum + parseFloat(o.total || 0), 0)
-
-                // Low stock
-                const lowStock = inventory.filter(i => i.low_stock)
-
-                // Top 3 debtors — group unpaid orders by customer
-                const debtorMap = {}
-                unpaidOrders.forEach(o => {
-                    if (o.customer_name === 'Deleted Customer') return;
-                    
-                    if (!debtorMap[o.customer_id]) {
-                        debtorMap[o.customer_id] = {
-                            id: o.customer_id,
-                            name: o.customer_name,
-                            total: 0,
-                            orders: 0
-                        }
-                    }
-                    debtorMap[o.customer_id].total += parseFloat(o.amount_remaining ?? o.total ?? 0)
-                    debtorMap[o.customer_id].orders += 1
-                })
-                const topDebtorsList = Object.values(debtorMap)
-                    .sort((a, b) => b.total - a.total)
-                    .slice(0, 3)
-
-                setStats({
-                    todayRevenue: Math.round(todayRevenue),
-                    todayPaymentsCount,
-                    todaySales: Math.round(todaySales),
-                    todayOrdersCount: todayOrders.length,
-                    unpaidOrders: unpaidOrders.length,
-                    totalOwed: Math.round(totalOwed),
-                    totalCustomers: customers.length,
-                    totalProducts: products.length,
-                    lowStock: lowStock.length,
-                })
-
-                setRecentOrders(orders.slice(0, 5))
-                setTopDebtors(topDebtorsList)
-                setLowStockItems(lowStock.slice(0, 3))
-                setProducts(productsRes.data.data)
-                setWarehouses(warehousesRes.data.data)
-                setInventory(inventoryRes.data.data)
-
-            } catch (err) {
-                console.error('Dashboard error:', err)
-            } finally {
-                setLoading(false)
-            }
+    const getSubMessage = () => {
+        if (stats?.todayRevenue > 2000) {
+            return `🔥 أداء رائع اليوم! حققت مبيعات بقيمة ${stats.todayRevenue} جنيه حتى الآن`
         }
-        fetchData()
+        if (stats?.unpaidOrders > 3) {
+            return `⚠️ لديك ${stats.unpaidOrders} طلبات غير مسددة تحتاج إلى المتابعة`
+        }
+        if (stats?.lowStock > 0) {
+            return `📦 يوجد ${stats.lowStock} منتجات أوشكت على النفاد وتحتاج إلى إعادة التوريد`
+        }
+        if (stats?.todayOrdersCount === 0) {
+            return ' 🚀 لم يتم تسجيل أي طلبات اليوم بعد، نتمنى لك يوماً ناجحاً'
+        }
+        return ` إليك ملخص نشاط ${user.business_name} اليوم`
+    }
+
+    // 6. Event handlers — triggered by user interaction (buttons, clicks)
+    const fetchInsights = async () => {
+        if (insightsFetched) return
+        setLoadingInsights(true)
+        try {
+            const res = await api.get('/ai/insights')
+            setInsights(res.data)
+            setInsightsFetched(true)
+        } catch {
+            setInsights(null)
+        } finally {
+            setLoadingInsights(false)
+        }
+    }
+
+    const fetchQuickSaleData = async () => {
+        if (products.length > 0) return
+        const [productsRes, inventoryRes, warehousesRes] = await Promise.all([
+            api.get('/products?per_page=all'),
+            api.get('/inventory?per_page=all'),
+            api.get('/warehouses'),
+        ])
+        setProducts(productsRes.data.data)
+        setInventory(inventoryRes.data.data)
+        setWarehouses(warehousesRes.data.data)
+    }
+
+    // 7. Effects — run on mount / dependency change
+    useEffect(() => {
+        window.scrollTo(0, 0)
     }, [])
 
-    if (loading) return <LoadingSpinner />
+   useEffect(() => {
+    const fetchData = async () => {
+        try {
+            const res = await api.get('/dashboard')
+            const d = res.data
 
-    const hasAlerts = stats?.lowStock > 0 || stats?.unpaidOrders > 0
+            setStats({
+                todayRevenue: Math.round(d.stats.today_revenue),
+                todayPaymentsCount: d.stats.today_payments_count,
+                todaySales: Math.round(d.stats.today_sales),
+                todayOrdersCount: d.stats.today_orders_count,
+                unpaidOrders: d.stats.unpaid_orders,
+                totalOwed: Math.round(d.stats.total_owed),
+                totalCustomers: d.stats.total_customers,
+                totalProducts: d.stats.total_products,
+                lowStock: d.stats.low_stock,
+            })
+
+            setRecentOrders(d.recent_orders)
+            setTopDebtors(d.top_debtors)
+            setLowStockItems(d.low_stock)
+
+        } catch (err) {
+            showToast(err.response?.data?.message || 'Failed to load dashboard', 'error')
+        } finally {
+            setLoading(false)
+        }
+    }
+    fetchData()
+}, [])
+
+    if (loading) return <LoadingSpinner />
 
     return (
         <div className="space-y-8">
 
             {/* Header */}
-           <div className="flex items-start justify-between">
+           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
     <div>
         <div className="flex items-center gap-2 mb-1">
             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
             <p className="text-gray-500 text-sm">{todayFormatted}</p>
         </div>
-        <h1 className="text-3xl font-bold text-white tracking-tight" dir="rtl">
-     {getGreeting()} يا {user.name} 
+        <h1 className="text-xl sm:text-3xl font-bold text-white tracking-tight" dir="rtl">
+     {getGreeting()} يا {user.name}
         </h1>
         <p className="text-gray-500 text-sm mt-1" dir='rtl'>
             {getSubMessage()}
         </p>
     </div>
-    <div className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-xl p-1">
+    <div className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-xl p-1 self-start overflow-x-auto">
     {['Today', 'Week', 'Month', 'Year'].map(period => (
         <button
             key={period}
             onClick={() => setActivePeriod(period)}
-            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap ${
                 activePeriod === period
                     ? 'bg-blue-600 text-white'
                     : 'text-gray-400 hover:text-white'
@@ -230,17 +179,19 @@ const todayFormatted = new Date().toLocaleDateString('en-EG', {
 </div>
 </div>
 
-            {/* PRIMARY — Today's performance */}
+           {/* PRIMARY — Today's performance */}
             <div>
                 <div className="flex items-center gap-2 mb-3">
                     <div className="w-1 h-4 bg-green-500 rounded-full" />
                     <p className="text-xs text-gray-400 uppercase tracking-widest font-semibold">Today</p>
                 </div>
-                <div className="grid grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                     <StatCard
                         label="Revenue Collected"
-                        value={`${stats.todayRevenue} EGP`}
-                        sub={`${stats.todayPaymentsCount} payment${stats.todayPaymentsCount !== 1 ? 's' : ''}`}
+                        value={stats.todayRevenue > 0 ? `${stats.todayRevenue} EGP` : '—'}
+                        sub={stats.todayRevenue > 0
+                            ? `${stats.todayPaymentsCount} payment${stats.todayPaymentsCount !== 1 ? 's' : ''}`
+                            : 'No sales yet today'}
                         icon="💰"
                         gradient="from-green-500/10 to-gray-900"
                         accent="bg-green-400"
@@ -248,8 +199,10 @@ const todayFormatted = new Date().toLocaleDateString('en-EG', {
                     />
                     <StatCard
                         label="New Orders"
-                        value={stats.todayOrdersCount}
-                        sub={`${stats.todaySales} EGP in sales`}
+                        value={stats.todayOrdersCount > 0 ? stats.todayOrdersCount : '—'}
+                        sub={stats.todayOrdersCount > 0
+                            ? `${stats.todaySales} EGP in sales`
+                            : 'No orders yet today'}
                         icon="🛒"
                         gradient="from-blue-500/10 to-gray-900"
                         accent="bg-blue-400"
@@ -266,8 +219,8 @@ const todayFormatted = new Date().toLocaleDateString('en-EG', {
                     />
                     <StatCard
                         label="Total Owed"
-                        value={`${stats.totalOwed} EGP`}
-                        sub="across all customers"
+                        value={stats.totalOwed > 0 ? `${stats.totalOwed} EGP` : '—'}
+                        sub={stats.totalOwed > 0 ? 'across all customers' : 'Nothing owed 🎉'}
                         icon="📋"
                         gradient="from-amber-500/10 to-gray-900"
                         accent="bg-amber-400"
@@ -282,10 +235,11 @@ const todayFormatted = new Date().toLocaleDateString('en-EG', {
                     <div className="w-1 h-4 bg-blue-500 rounded-full" />
                     <p className="text-xs text-gray-400 uppercase tracking-widest font-semibold">Overview</p>
                 </div>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                     <StatCard
                         label="Total Customers"
-                        value={stats.totalCustomers}
+                        value={stats.totalCustomers > 0 ? stats.totalCustomers : '—'}
+                        sub={stats.totalCustomers > 0 ? null : 'Add your first customer'}
                         icon="👥"
                         gradient="from-purple-500/10 to-gray-900"
                         accent="bg-purple-400"
@@ -293,7 +247,8 @@ const todayFormatted = new Date().toLocaleDateString('en-EG', {
                     />
                     <StatCard
                         label="Total Products"
-                        value={stats.totalProducts}
+                        value={stats.totalProducts > 0 ? stats.totalProducts : '—'}
+                        sub={stats.totalProducts > 0 ? null : 'Add your first product'}
                         icon="📦"
                         gradient="from-indigo-500/10 to-gray-900"
                         accent="bg-indigo-400"
@@ -306,7 +261,7 @@ const todayFormatted = new Date().toLocaleDateString('en-EG', {
                         icon={stats.lowStock > 0 ? '⚠️' : '✅'}
                         gradient={stats.lowStock > 0 ? 'from-orange-500/10 to-gray-900' : 'from-gray-800 to-gray-900'}
                         accent="bg-orange-400"
-                        onClick={() => navigate('/inventory')}
+                        onClick={() => navigate('/inventory?low_stock=1')}
                     />
                 </div>
             </div>
@@ -320,13 +275,13 @@ const todayFormatted = new Date().toLocaleDateString('en-EG', {
                 <div className="flex flex-wrap gap-3">
                     <button
                         onClick={() => navigate('/orders/create')}
-                        className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-xl transition-all hover:shadow-lg hover:shadow-blue-500/20"
+                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-xl transition-all hover:shadow-lg hover:shadow-blue-500/20"
                     >
                         + New Order
                     </button>
                     <button
                         onClick={() => navigate('/customers/create')}
-                        className="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white text-sm font-medium rounded-xl transition-all"
+                        className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white text-sm font-medium rounded-xl transition-all"
                     >
                         + Add Customer
                     </button>
@@ -334,20 +289,23 @@ const todayFormatted = new Date().toLocaleDateString('en-EG', {
                         <>
                             <button
                                 onClick={() => navigate('/products/create')}
-                                className="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white text-sm font-medium rounded-xl transition-all"
+                                className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white text-sm font-medium rounded-xl transition-all"
                             >
                                 + Add Product
                             </button>
                             <button
                                 onClick={() => navigate('/reports')}
-                                className="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white text-sm font-medium rounded-xl transition-all"
+                                className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white text-sm font-medium rounded-xl transition-all"
                             >
                                 📊 View Reports
                             </button>
                         </>
                     )}
-                    <button onClick={() => setShowQuickSale(true)}
-    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg">
+                    <button  onClick={async () => {
+    await fetchQuickSaleData()
+    setShowQuickSale(true)
+}}
+    className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg">
     ⚡ بيع سريع
 </button>
                 </div>
@@ -408,7 +366,7 @@ const todayFormatted = new Date().toLocaleDateString('en-EG', {
 
             {insights && !loadingInsights && (
     <div className="p-5">
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
                 {
                     key: 'opportunity',
@@ -470,7 +428,7 @@ const todayFormatted = new Date().toLocaleDateString('en-EG', {
     </div>
 )}
             {/* Two-column info panels */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                 {/* Recent Orders */}
 <div>
@@ -532,15 +490,16 @@ const todayFormatted = new Date().toLocaleDateString('en-EG', {
                 </button>
             </div>
         ) : (
+            <div className="overflow-x-auto">
             <table className="w-full table-fixed">
                 <colgroup>
     <col className="w-16" />
-    <col className="w-32"/>    
-    <col className="w-12" />   
-    <col className="w-24" />    
-    <col className="w-24" />   
-    <col className="w-20" />   
-    <col className="w-28" />   
+    <col className="w-28"/>
+    <col className="w-12" />
+    <col className="w-20" />
+    <col className="w-20" />
+    <col className="w-20" />
+    <col className="w-24" />
 </colgroup>
                 <thead>
                     <tr className="border-b border-gray-800">
@@ -604,6 +563,7 @@ const todayFormatted = new Date().toLocaleDateString('en-EG', {
                         
                 </tbody>
             </table>
+            </div>
         )}
     </div>
 </div>
@@ -644,10 +604,10 @@ const todayFormatted = new Date().toLocaleDateString('en-EG', {
                                             </div>
                                             <div className="min-w-0">
                                                 <p className="text-white text-sm font-medium truncate">{debtor.name}</p>
-                                                <p className="text-gray-500 text-xs">{debtor.orders} unpaid order{debtor.orders !== 1 ? 's' : ''}</p>
+                                                <p className="text-gray-500 text-xs">{debtor.unpaid_orders_count} unpaid order{debtor.unpaid_orders_count !== 1 ? 's' : ''}</p>
                                             </div>
                                         </div>
-                                        <p className="text-red-400 text-sm font-bold shrink-0">{Math.round(debtor.total)} EGP</p>
+                                        <p className="text-red-400 text-sm font-bold shrink-0">{Math.round(debtor.balance)} EGP</p>
                                     </div>
                                 ))}
                             </div>

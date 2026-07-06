@@ -21,8 +21,8 @@ export default function Orders() {
     const [lastPage, setLastPage] = useState(1)
     const [years, setYears] = useState([])
     const [monthFilter, setMonthFilter] = useState('')
-const [dateFrom, setDateFrom] = useState('')
-const [dateTo, setDateTo] = useState('')
+    const [dateFrom, setDateFrom] = useState('')
+    const [dateTo, setDateTo] = useState('')
     const [stats, setStats] = useState(null)
     const [dateExact , setDateExact] = useState('');
     const [filterMode , setFilterMode] = useState('all')
@@ -35,6 +35,7 @@ const [dateTo, setDateTo] = useState('')
     const user = JSON.parse(localStorage.getItem('user') || '{}')
     const [inventory, setInventory] = useState([])
     const { showToast } = useToast()
+
 const clearFilters = () => {
     setFilterMode('all')
     setYearFilter('')
@@ -48,11 +49,18 @@ const clearFilters = () => {
     const navigate = useNavigate()
 
 
-useEffect(() => {
-    api.get('/products?per_page=all').then(res => setQuickSaleProducts(res.data.data))
-    api.get('/warehouses').then(res => setQuickSaleWarehouses(res.data.data))
-    api.get('/inventory?per_page=all').then(res => setInventory(res.data.data))
-}, [])
+
+const fetchQuickSaleData = async () => {
+    if (quickSaleProducts.length > 0) return
+    const [productsRes, inventoryRes, warehousesRes] = await Promise.all([
+        api.get('/products?per_page=all'),
+        api.get('/inventory?per_page=all'),
+        api.get('/warehouses'),
+    ])
+    setQuickSaleProducts(productsRes.data.data)
+    setInventory(inventoryRes.data.data)
+    setQuickSaleWarehouses(warehousesRes.data.data)
+}
 
     const fetchOrders = () => {
         const today = new Date().toISOString().split('T')[0]
@@ -73,7 +81,7 @@ useEffect(() => {
                 setYears(res.data.years)
                 setStats(res.data.stats || null)
             })
-            .catch(() => setError('Failed to load orders'))
+            .catch(() => showToast('Failed to load orders', 'error'))
             .finally(() => setLoading(false))
     }
 
@@ -122,18 +130,21 @@ useEffect(() => {
         <div>
             <div className="mb-6 space-y-3">
     {/* Top row */}
-    <div className="flex items-center justify-between">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h2 className="text-2xl font-bold text-white">Orders</h2>
-        <div className="flex items-center gap-2">
-                    <button
-    onClick={() => setShowQuickSale(true)}
-    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors"
+        <div className="flex items-center gap-2 flex-wrap">
+                   <button
+    onClick={async () => {
+        await fetchQuickSaleData()
+        setShowQuickSale(true)
+    }}
+    className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors"
 >
     ⚡ بيع سريع
 </button>
         <button
             onClick={() => navigate('/orders/create')}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
         >
             + New Order
         </button>
@@ -142,8 +153,8 @@ useEffect(() => {
 {/* Filter row */}
 <div className="flex items-center gap-4 flex-wrap">
     {/* Search + New Order */}
-    <div className="flex items-center gap-3 mr-6">
-        <div className="w-80">
+    <div className="flex items-center gap-3 mr-0 sm:mr-6 w-full sm:w-auto">
+        <div className="w-full sm:w-80">
             <SearchInput
                 value={search}
                 onChange={(e) => handleSearch(e.target.value)}
@@ -176,7 +187,7 @@ useEffect(() => {
                     setDateExact('')
                     setPage(1)
                 }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
                     filterMode === mode.value
                         ? 'bg-blue-600 text-white'
                         : 'bg-gray-800 text-gray-400 hover:text-white border border-gray-700'
@@ -287,7 +298,7 @@ useEffect(() => {
                 ]} />
             )}
 
-            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-visible">
+            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>
@@ -311,7 +322,7 @@ useEffect(() => {
                                     {order.invoice_number || `#${order.id}`}
                                 </td>
                                 <td className="px-4 py-3 text-white text-sm font-medium">{order.customer_name}</td>
-                                <td className="px-4 py-3 text-gray-400 text-sm">{order.items_count} items</td>
+                                <td className="px-4 py-3 text-gray-400 text-sm">{order.items_count} units</td>
                                 <td className="px-4 py-3 text-white text-sm">{order.total} EGP</td>
                                 <td className="px-4 py-3">
                                     <span className={`px-2 py-1 rounded text-xs font-medium ${
@@ -350,7 +361,7 @@ useEffect(() => {
                                                 Pay
                                             </button>
                                         )}
-                                        {order.status === 'paid' && order.customer_name !== 'زبون نقدي' &&  (
+                                        {order.refundable_amount > 0 && order.customer_name !== 'زبون نقدي' && (
                                          <button
                                                onClick={(e) => {
                                                     e.stopPropagation()
@@ -361,6 +372,14 @@ useEffect(() => {
                                              Refund
                                          </button>
                                         )}
+                                        {order.refundable_amount === 0 && order.payments_count > 0 && order.customer_name !== 'زبون نقدي' && (
+   <span
+    title="This balance is unpaid credit, not a payment. Cancel the order instead of issuing a refund."
+    className="px-3 py-1 bg-gray-500/10 border border-gray-500/20 text-gray-500 text-xs font-medium rounded-lg cursor-help"
+>
+    Refund ⓘ
+</span>
+)}
                                     </div>
                                 </td>
                                {/* Tooltip - NOW OUTSIDE the cells, anchored to the row */}
@@ -487,14 +506,15 @@ useEffect(() => {
             <RefundModal
                 open={!!refundTarget}
                 onClose={() => setRefundTarget(null)}
-                orders={refundTarget ? [{
-                    ...refundTarget,
-                    paid: refundTarget.total - (refundTarget.amount_remaining ?? 0),
-                    refundable: refundTarget.paid ?? (refundTarget.total - (refundTarget.amount_remaining ?? 0))
-
-                }] : []}
-                payments={[]}
                 customerId={refundTarget?.customer_id}
+                orders={refundTarget ? [{
+                        ...refundTarget,
+                        paid: refundTarget.payments?.reduce((sum, p) => 
+                            sum + (p.amount - p.refunded_amount), 0) ?? 0,
+                        refundable: refundTarget.payments?.reduce((sum, p) => 
+                            sum + (p.amount - p.refunded_amount), 0) ?? 0,
+                    }] : []}
+                payments={refundTarget?.payments ?? []}
                 onSuccess={() => {
                     setRefundTarget(null)
                     fetchOrders()
