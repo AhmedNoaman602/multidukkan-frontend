@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import LoadingSpinner from "../components/LoadingSpinner";
@@ -25,6 +26,7 @@ export default function PurchaseOrders() {
   const [filterMode, setFilterMode] = useState("all");
   const [stats, setStats] = useState(null);
   const [hoveredOrder, setHoveredOrder] = useState(null);
+  const [tooltipPos, setTooltipPos] = useState(null);
   const navigate = useNavigate();
   const { showToast } = useToast();
 
@@ -353,10 +355,19 @@ export default function PurchaseOrders() {
             {purchaseOrders.map((order) => (
               <tr
                 key={order.id}
-                onMouseEnter={() => setHoveredOrder(order.id)}
+                onMouseEnter={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const placement = rect.top > 180 ? "above" : "below";
+                  setTooltipPos({
+                    top: placement === "above" ? rect.top : rect.bottom,
+                    left: rect.left + rect.width / 2,
+                    placement,
+                  });
+                  setHoveredOrder(order.id);
+                }}
                 onMouseLeave={() => setHoveredOrder(null)}
                 onClick={() => navigate(`/purchase-orders/${order.id}`)}
-                className="hover:bg-gray-800/50 transition-colors cursor-pointer relative"
+                className="hover:bg-gray-800/50 transition-colors cursor-pointer"
               >
                 <td className="px-4 py-3 text-gray-400 text-sm font-mono">
                   {order.invoice_number || `#${order.id}`}
@@ -384,7 +395,7 @@ export default function PurchaseOrders() {
                 <td className="px-4 py-3 text-gray-400 text-sm">
                   {new Date(order.created_at).toLocaleDateString()}
                 </td>
-                <td className="px-4 py-3 whitespace-nowrap relative">
+                <td className="px-4 py-3 whitespace-nowrap">
                   <div className="flex items-center gap-2">
                     <button
                       onClick={(e) => {
@@ -415,48 +426,6 @@ export default function PurchaseOrders() {
                     )}
                   </div>
                 </td>
-
-                {/* Tooltip - centered above row */}
-                {hoveredOrder === order.id && (
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 pointer-events-none z-50 w-60">
-                    <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-2xl px-4 py-3">
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-400">Total:</span>
-                          <span className="text-white font-medium">
-                            {order.total} EGP
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-400">Paid:</span>
-                          <span className="text-green-400 font-medium">
-                            {getPaidAmount(order)} EGP
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center border-t border-gray-700 pt-2">
-                          <span className="text-gray-400">Remaining:</span>
-                          <span className="text-red-400 font-medium">
-                            {order.amount_remaining || 0} EGP
-                          </span>
-                        </div>
-                        {order.payments_count > 0 && (
-                          <div className="text-xs text-gray-500 text-center pt-1">
-                            {order.payments_count} payment
-                            {order.payments_count !== 1 ? "s" : ""}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Arrow pointing down */}
-                      <div
-                        className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 
-                                border-l-[6px] border-l-transparent 
-                                border-r-[6px] border-r-transparent 
-                                border-t-[6px] border-t-gray-800"
-                      ></div>
-                    </div>
-                  </div>
-                )}
               </tr>
             ))}
           </tbody>
@@ -550,6 +519,71 @@ export default function PurchaseOrders() {
           </form>
         )}
       </Modal>
+
+      {hoveredOrder &&
+        tooltipPos &&
+        createPortal(
+          (() => {
+            const order = purchaseOrders.find((o) => o.id === hoveredOrder);
+            if (!order) return null;
+            return (
+              <div
+                className="fixed pointer-events-none z-50"
+                style={{
+                  top: tooltipPos.top,
+                  left: tooltipPos.left,
+                  transform: `translate(-50%, ${tooltipPos.placement === "above" ? "calc(-100% - 8px)" : "8px"})`,
+                }}
+              >
+                <div className="relative bg-gray-800 border border-gray-700 rounded-lg shadow-2xl px-4 py-3 w-60">
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-400">Total:</span>
+                      <span className="text-white font-medium">
+                        {order.total} EGP
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-400">Paid:</span>
+                      <span className="text-green-400 font-medium">
+                        {getPaidAmount(order)} EGP
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center border-t border-gray-700 pt-2">
+                      <span className="text-gray-400">Remaining:</span>
+                      <span className="text-red-400 font-medium">
+                        {order.amount_remaining || 0} EGP
+                      </span>
+                    </div>
+                    {order.payments_count > 0 && (
+                      <div className="text-xs text-gray-500 text-center pt-1">
+                        {order.payments_count} payment
+                        {order.payments_count !== 1 ? "s" : ""}
+                      </div>
+                    )}
+                  </div>
+
+                  {tooltipPos.placement === "above" ? (
+                    <div
+                      className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0
+                                border-l-[6px] border-l-transparent
+                                border-r-[6px] border-r-transparent
+                                border-t-[6px] border-t-gray-800"
+                    ></div>
+                  ) : (
+                    <div
+                      className="absolute bottom-full left-1/2 -translate-x-1/2 w-0 h-0
+                                border-l-[6px] border-l-transparent
+                                border-r-[6px] border-r-transparent
+                                border-b-[6px] border-b-gray-800"
+                    ></div>
+                  )}
+                </div>
+              </div>
+            );
+          })(),
+          document.body,
+        )}
     </div>
   );
 }

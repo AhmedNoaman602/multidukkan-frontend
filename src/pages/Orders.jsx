@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -27,6 +28,7 @@ export default function Orders() {
     const [dateExact , setDateExact] = useState('');
     const [filterMode , setFilterMode] = useState('all')
     const [hoveredOrder, setHoveredOrder] = useState(null)
+    const [tooltipPos, setTooltipPos] = useState(null)
     const hasActiveFilters = yearFilter || monthFilter || dateFrom || dateTo || dateExact || search || filterMode !== 'all'
     const [refundTarget, setRefundTarget] = useState(null)
     const [showQuickSale, setShowQuickSale] = useState(false)
@@ -313,10 +315,19 @@ const fetchQuickSaleData = async () => {
                         {orders.map(order => (
                             <tr
                                 key={order.id}
-                                onMouseEnter={() => setHoveredOrder(order.id)}
+                                onMouseEnter={(e) => {
+                                    const rect = e.currentTarget.getBoundingClientRect()
+                                    const placement = rect.top > 180 ? 'above' : 'below'
+                                    setTooltipPos({
+                                        top: placement === 'above' ? rect.top : rect.bottom,
+                                        left: rect.left + rect.width / 2,
+                                        placement,
+                                    })
+                                    setHoveredOrder(order.id)
+                                }}
                                 onMouseLeave={() => setHoveredOrder(null)}
                                 onClick={() => navigate(`/orders/${order.id}`)}
-                                className="hover:bg-gray-800/50 transition-colors cursor-pointer relative"
+                                className="hover:bg-gray-800/50 transition-colors cursor-pointer"
                             >
                                 <td className="px-4 py-3 text-gray-400 text-sm font-mono">
                                     {order.invoice_number || `#${order.id}`}
@@ -382,43 +393,6 @@ const fetchQuickSaleData = async () => {
 )}
                                     </div>
                                 </td>
-                               {/* Tooltip - NOW OUTSIDE the cells, anchored to the row */}
-      {hoveredOrder === order.id && (
-        <td className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 pointer-events-none z-50">
-            <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-2xl px-4 py-3 w-[240px]">
-                <div className="space-y-2 text-sm">
-                     <div className="flex justify-between items-center">
-                           <span className="text-gray-400">Total:</span>
-                           <span className="text-white font-medium">{order.total} EGP</span>
-                     </div>
-                    <div className="flex justify-between items-center">
-                           <span className="text-gray-400">Paid:</span>
-                           <span className="text-green-400 font-medium">
-                            {getPaidAmount(order)} EGP
-                           </span>
-                    </div>
-                    <div className="flex justify-between items-center border-t border-gray-700 pt-2">
-                           <span className="text-gray-400">Remaining:</span>
-                           <span className="text-red-400 font-medium">
-                            {order.amount_remaining || 0} EGP
-                           </span>
-                    </div>
-                    {order.payments_count > 0 && (
-                        <div className="text-xs text-gray-500 text-center pt-1">
-                            {order.payments_count} payment{order.payments_count !== 1 ? 's' : ''}
-                        </div>
-                    )}
-                </div>
-                
-                {/* Arrow pointing down - centered */}
-                <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 
-                                border-l-[6px] border-l-transparent 
-                                border-r-[6px] border-r-transparent 
-                                border-t-[6px] border-t-gray-800">
-                </div>
-            </div>
-        </td>
-    )}
                             </tr>
                         ))}
                     </tbody>
@@ -533,6 +507,65 @@ const fetchQuickSaleData = async () => {
          inventory={inventory} 
         storeId={user.store_id}
     />
+)}
+
+{hoveredOrder && tooltipPos && createPortal(
+    (() => {
+        const order = orders.find(o => o.id === hoveredOrder)
+        if (!order) return null
+        return (
+            <div
+                className="fixed pointer-events-none z-50"
+                style={{
+                    top: tooltipPos.top,
+                    left: tooltipPos.left,
+                    transform: `translate(-50%, ${tooltipPos.placement === 'above' ? 'calc(-100% - 8px)' : '8px'})`,
+                }}
+            >
+                <div className="relative bg-gray-800 border border-gray-700 rounded-lg shadow-2xl px-4 py-3 w-[240px]">
+                    <div className="space-y-2 text-sm">
+                        <div className="flex justify-between items-center">
+                            <span className="text-gray-400">Total:</span>
+                            <span className="text-white font-medium">{order.total} EGP</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <span className="text-gray-400">Paid:</span>
+                            <span className="text-green-400 font-medium">
+                                {getPaidAmount(order)} EGP
+                            </span>
+                        </div>
+                        <div className="flex justify-between items-center border-t border-gray-700 pt-2">
+                            <span className="text-gray-400">Remaining:</span>
+                            <span className="text-red-400 font-medium">
+                                {order.amount_remaining || 0} EGP
+                            </span>
+                        </div>
+                        {order.payments_count > 0 && (
+                            <div className="text-xs text-gray-500 text-center pt-1">
+                                {order.payments_count} payment{order.payments_count !== 1 ? 's' : ''}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Arrow pointing toward the row - centered */}
+                    {tooltipPos.placement === 'above' ? (
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0
+                                        border-l-[6px] border-l-transparent
+                                        border-r-[6px] border-r-transparent
+                                        border-t-[6px] border-t-gray-800">
+                        </div>
+                    ) : (
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 w-0 h-0
+                                        border-l-[6px] border-l-transparent
+                                        border-r-[6px] border-r-transparent
+                                        border-b-[6px] border-b-gray-800">
+                        </div>
+                    )}
+                </div>
+            </div>
+        )
+    })(),
+    document.body
 )}
         </div>
     )
