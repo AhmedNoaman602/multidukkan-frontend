@@ -292,7 +292,7 @@ export default function App() {
 
                 </Routes>
                 <Toast/>
-                <ChatWidgetGuard /> 
+                <ChatWidgetGuard />
             </AuthGate>
             </ToastProvider>
         </BrowserRouter>
