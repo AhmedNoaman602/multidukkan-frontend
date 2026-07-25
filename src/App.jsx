@@ -11,7 +11,7 @@ import CreateCustomer from './pages/CreateCustomer'
 import CreateOrder from './pages/CreateOrder'
 import CustomerBalance from './pages/CustomerBalance'
 import Inventory from './pages/Inventory'
-import Navbar from './components/Navbar'
+import Sidebar from './components/Sidebar'
 import Orders from './pages/Orders'
 import Layout from './components/Layout'
 import Dashboard from './pages/Dashboard'
@@ -23,6 +23,7 @@ import EditSupplier from './pages/EditSupplier'
 import Reports from './pages/Reports'
 import AuditLog from './pages/AuditLog'
 import Suppliers from './pages/Suppliers'
+import Expenses from './pages/Expenses'
 import CreateSupplier from './pages/CreateSupplier'
 import SupplierBalance from './pages/SupplierBalance'
 import PurchaseOrders from './pages/PurchaseOrders'
@@ -132,67 +133,67 @@ export default function App() {
                     } />
                     <Route path="/" element={
                         <PrivateRoute>
-                            <Navbar />
+                            <Sidebar />
                             <Layout><Dashboard /></Layout>
                         </PrivateRoute>
                     } />
                     <Route path="/dashboard" element={
                         <PrivateRoute>
-                            <Navbar />
+                            <Sidebar />
                             <Layout><Dashboard /></Layout>
                         </PrivateRoute>
                     } />
                     <Route path="/products" element={
                         <PrivateRoute>
-                            <Navbar />
+                            <Sidebar />
                             <Layout><Products /></Layout>
                         </PrivateRoute>
                     } />
                     <Route path="/products/:id" element={
                         <PrivateRoute>
-                            <Navbar />
+                            <Sidebar />
                             <Layout><ProductDetail /></Layout>
                         </PrivateRoute>
                     } />
                     <Route path="/products/create" element={
                         <PrivateRoute>
-                            <Navbar />
+                            <Sidebar />
                             <Layout><CreateProduct /></Layout>
                         </PrivateRoute>
                     } />
                     <Route path="/products/:id/edit" element={
                         <PrivateRoute>
-                            <Navbar />
+                            <Sidebar />
                             <Layout><EditProduct /></Layout>
                         </PrivateRoute>
                     } />
                     <Route path="/customers" element={
                         <PrivateRoute>
-                            <Navbar />
+                            <Sidebar />
                             <Layout><Customers /></Layout>
                         </PrivateRoute>
                     } />
                     <Route path="/customers/create" element={
                         <PrivateRoute>
-                            <Navbar />
+                            <Sidebar />
                             <Layout><CreateCustomer /></Layout>
                         </PrivateRoute>
                     } />
                     <Route path="/customers/:id/edit" element={
                         <PrivateRoute>
-                            <Navbar />
+                            <Sidebar />
                             <Layout><EditCustomer /></Layout>
                         </PrivateRoute>
                     } />
                     <Route path="/orders" element={
                         <PrivateRoute>
-                            <Navbar />
+                            <Sidebar />
                             <Layout><Orders /></Layout>
                         </PrivateRoute>
                     } />
                     <Route path="/orders/create" element={
                         <PrivateRoute>
-                            <Navbar />
+                            <Sidebar />
                             <Layout><CreateOrder /></Layout>
                         </PrivateRoute>
                     } />
@@ -203,31 +204,31 @@ export default function App() {
                     } />
                     <Route path="/orders/:id" element={
                         <PrivateRoute>
-                            <Navbar />
+                            <Sidebar />
                             <Layout><OrderDetail /></Layout>
                         </PrivateRoute>
                     } />
                     <Route path="/customers/:id/balance" element={
                         <PrivateRoute>
-                            <Navbar />
+                            <Sidebar />
                             <Layout><CustomerBalance /></Layout>
                         </PrivateRoute>
                     } />
                     <Route path="/inventory" element={
                         <PrivateRoute>
-                            <Navbar />
+                            <Sidebar />
                             <Layout><Inventory /></Layout>
                         </PrivateRoute>
                     } />
                     <Route path="/reports" element={
                         <PrivateRoute>
-                            <Navbar />
+                            <Sidebar />
                             <Layout><Reports /></Layout>
                         </PrivateRoute>
                     } />
                     <Route path="/audit-log" element={
                         <PrivateRoute>
-                            <Navbar />
+                            <Sidebar />
                             <Layout><AuditLog /></Layout>
                         </PrivateRoute>
                     } />
@@ -238,37 +239,37 @@ export default function App() {
                     } />
                     <Route path="/suppliers" element={
                         <PrivateRoute>
-                            <Navbar />
+                            <Sidebar />
                             <Layout><Suppliers /></Layout>
                         </PrivateRoute>
                     } />
                     <Route path="/suppliers/create" element={
                         <PrivateRoute>
-                            <Navbar />
+                            <Sidebar />
                             <Layout><CreateSupplier /></Layout>
                         </PrivateRoute>
                     } />
                     <Route path="/suppliers/:id/balance" element={
                         <PrivateRoute>
-                            <Navbar />
+                            <Sidebar />
                             <Layout><SupplierBalance /></Layout>
                         </PrivateRoute>
                     } />
                     <Route path="/suppliers/:id/edit" element={
                         <PrivateRoute>
-                            <Navbar />
+                            <Sidebar />
                             <Layout><EditSupplier /></Layout>
                         </PrivateRoute>
                     } />
                     <Route path="/purchase-orders" element={
                         <PrivateRoute>
-                            <Navbar />
+                            <Sidebar />
                             <Layout><PurchaseOrders /></Layout>
                         </PrivateRoute>
                     } />
                     <Route path="/purchase-orders/create" element={
                         <PrivateRoute>
-                            <Navbar />
+                            <Sidebar />
                             <Layout><CreatePurchaseOrder /></Layout>
                         </PrivateRoute>
                     } />
@@ -279,13 +280,19 @@ export default function App() {
                     } />
                     <Route path="/purchase-orders/:id" element={
                         <PrivateRoute>
-                            <Navbar />
+                            <Sidebar />
                             <Layout><PurchaseOrderDetail /></Layout>
+                        </PrivateRoute>
+                    } />
+                    <Route path="/expenses" element={
+                        <PrivateRoute>
+                            <Sidebar />
+                            <Layout><Expenses /></Layout>
                         </PrivateRoute>
                     } />
                     <Route path="/settings" element={
                         <PrivateRoute>
-                            <Navbar />
+                            <Sidebar />
                             <Layout><Settings /></Layout>
                         </PrivateRoute>
                     } />
