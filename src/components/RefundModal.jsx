@@ -1,4 +1,5 @@
 import Modal from './Modal'
+import OrderSearchInput from './OrderSearchInput'
 import { useState, useEffect } from 'react'
 import api from '../api/axios'
 import { useToast } from '../hooks/useToast'
@@ -13,24 +14,17 @@ export default function RefundModal({
 }) {
     const [refundForm, setRefundForm] = useState({ amount: '', method: 'cash', order_id: '', payment_id_target: '' })
     const [saving, setSaving] = useState(false)
-    const [orderSearch, setOrderSearch] = useState('')
     const { showToast } = useToast()
 
     useEffect(() => {
         if (!open) {
             setRefundForm({ amount: '', method: 'cash', order_id: '', payment_id_target: '' })
-            setOrderSearch('')
         }
         // Auto-set order_id when only one order
         if (open && orders.length === 1) {
             setRefundForm(f => ({ ...f, order_id: String(orders[0].id) }))
         }
     }, [open, orders])
-
-    // Filter orders by search
-    const filteredOrders = orders.filter(o =>
-        o.invoice_number?.toLowerCase().includes(orderSearch.toLowerCase())
-    )
 
     // Filter payments by selected order
     const filteredPayments = (payments ?? []).filter(p => {
@@ -54,7 +48,6 @@ export default function RefundModal({
             })
             showToast('Refund issued successfully.', 'success')
             setRefundForm({ amount: '', method: 'cash', order_id: '', payment_id_target: '' })
-            setOrderSearch('')
             onClose()
             onSuccess()
         } catch (err) {
@@ -80,34 +73,20 @@ export default function RefundModal({
                                 <label className="block text-sm text-gray-400 mb-1">
                                     Select Order
                                 </label>
-                                {/* Search */}
-                                <input
-                                    type="text"
-                                    value={orderSearch}
-                                    onChange={e => setOrderSearch(e.target.value)}
-                                    placeholder="Search by invoice number..."
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-orange-500 text-sm mb-2"
-                                />
-                                <select
+                                <OrderSearchInput
+                                    orders={orders}
                                     value={refundForm.order_id}
-                                    onChange={e => {
-                                        const order = orders.find(o => o.id === parseInt(e.target.value))
+                                    onSelect={(orderId) => {
+                                        const order = orders.find(o => o.id === parseInt(orderId))
                                         setRefundForm({
                                             ...refundForm,
-                                            order_id: e.target.value,
+                                            order_id: orderId,
                                             payment_id_target: '',
-                                            amount: e.target.value ? String(order?.paid ?? '') : '',
+                                            amount: orderId ? String(order?.paid ?? '') : '',
                                         })
                                     }}
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-orange-500 text-sm"
-                                >
-                                    <option value="">Select an order</option>
-                                   {filteredOrders.map(o => (
-    <option key={o.id} value={o.id}>
-        {o.invoice_number} — {o.paid} EGP paid (refundable: {o.refundable} EGP)
-    </option>
-))}
-                                </select>
+                                    renderMeta={(o) => `${o.paid} EGP paid (refundable: ${o.refundable} EGP)`}
+                                />
                             </div>
                         )}
 
