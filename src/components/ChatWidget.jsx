@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import api from '../api/axios'
+import { MessageCircle, X, Send, Trash2, Bot, Sparkles } from 'lucide-react'
 
 export default function ChatWidget() {
     const [open, setOpen] = useState(false)
@@ -61,51 +62,68 @@ export default function ChatWidget() {
 
             {/* Chat panel */}
             {open && (
-                <div className="bg-gray-900 border border-gray-700 rounded-xl shadow-xl flex flex-col"
-                    style={{ width: '340px', height: '480px', marginBottom: '12px' }}>
-
+                <div
+                    className="bg-gray-900 border border-purple-500/20 rounded-2xl shadow-2xl shadow-purple-950/40 flex flex-col overflow-hidden"
+                    style={{ width: '340px', height: '480px', marginBottom: '12px', animation: 'chat-pop 0.18s ease-out' }}
+                >
                     {/* Header */}
-                    <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
-                        <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-green-400" />
-                            <span className="text-white text-sm font-medium">مساعد المتجر</span>
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800 bg-gradient-to-l from-purple-600/10 to-transparent">
+                        <div className="flex items-center gap-2.5">
+                            <span className="relative flex items-center justify-center w-8 h-8 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-400 shrink-0">
+                                <Bot size={16} strokeWidth={1.75} />
+                                <span className="absolute -bottom-0.5 -left-0.5 w-2.5 h-2.5 rounded-full bg-green-400 border-2 border-gray-900" />
+                            </span>
+                            <div className="leading-tight">
+                                <p className="text-white text-sm font-medium">مساعد المتجر</p>
+                                <p className="text-gray-500 text-[10px]">متصل الآن</p>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
                             {history.length > 0 && (
                                 <button
                                     onClick={clearChat}
-                                    className="text-gray-500 hover:text-gray-300 text-xs transition-colors"
+                                    title="مسح المحادثة"
+                                    className="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-gray-300 hover:bg-gray-800 rounded-lg transition-colors"
                                 >
-                                    مسح
+                                    <Trash2 size={14} strokeWidth={1.75} />
                                 </button>
                             )}
                             <button
                                 onClick={() => setOpen(false)}
-                                className="text-gray-500 hover:text-gray-300 transition-colors"
+                                className="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-gray-300 hover:bg-gray-800 rounded-lg transition-colors"
                             >
-                                ✕
+                                <X size={15} strokeWidth={1.75} />
                             </button>
                         </div>
                     </div>
 
                     {/* Messages */}
-                    <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3" dir="rtl">
+                    <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3" dir="rtl">
                         {history.length === 0 && !loading && (
-                            <div className="text-center text-gray-500 text-sm mt-8">
-                                <p>اسأل عن المنتجات والأسعار والمخزون</p>
+                            <div className="text-center mt-8">
+                                <div className="w-11 h-11 mx-auto mb-3 flex items-center justify-center rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400">
+                                    <Sparkles size={18} strokeWidth={1.75} />
+                                </div>
+                                <p className="text-gray-300 text-sm font-medium mb-1">اسأل مساعدك الذكي</p>
+                                <p className="text-gray-600 text-xs">عن المنتجات والأسعار والمخزون</p>
                             </div>
                         )}
 
                         {history.map((msg, i) => (
                             <div
                                 key={i}
-                                className={`flex ${msg.role === 'user' ? 'justify-start' : 'justify-end'}`}
+                                className={`flex items-end gap-2 ${msg.role === 'user' ? 'justify-start' : 'justify-end'}`}
                             >
+                                {msg.role !== 'user' && (
+                                    <span className="w-6 h-6 flex items-center justify-center rounded-full bg-purple-500/15 text-purple-400 shrink-0">
+                                        <Bot size={12} strokeWidth={1.75} />
+                                    </span>
+                                )}
                                 <div
-                                    className={`px-3 py-2 rounded-xl text-sm max-w-[80%] leading-relaxed ${
+                                    className={`px-3 py-2 rounded-2xl text-sm max-w-[78%] leading-relaxed shadow-sm ${
                                         msg.role === 'user'
-                                            ? 'bg-blue-600 text-white rounded-tr-sm'
-                                            : 'bg-gray-800 text-gray-100 rounded-tl-sm'
+                                            ? 'bg-blue-600 text-white rounded-br-md'
+                                            : 'bg-gray-800 text-gray-100 rounded-bl-md'
                                     }`}
                                     style={{ whiteSpace: 'pre-wrap' }}
                                 >
@@ -115,14 +133,17 @@ export default function ChatWidget() {
                         ))}
 
                         {loading && (
-                            <div className="flex justify-end">
-                                <div className="bg-gray-800 px-3 py-2 rounded-xl rounded-tl-sm">
-                                    <div className="flex gap-1 items-center h-4">
+                            <div className="flex items-end gap-2 justify-end">
+                                <span className="w-6 h-6 flex items-center justify-center rounded-full bg-purple-500/15 text-purple-400 shrink-0">
+                                    <Bot size={12} strokeWidth={1.75} />
+                                </span>
+                                <div className="bg-gray-800 px-3 py-2.5 rounded-2xl rounded-bl-md">
+                                    <div className="flex gap-1 items-center h-3">
                                         {[0, 1, 2].map(i => (
                                             <div
                                                 key={i}
-                                                className="w-1.5 h-1.5 rounded-full bg-gray-400"
-                                                style={{ animation: `bounce 1.2s ease-in-out ${i * 0.2}s infinite` }}
+                                                className="w-1.5 h-1.5 rounded-full bg-purple-400"
+                                                style={{ animation: `chat-bounce 1.2s ease-in-out ${i * 0.15}s infinite` }}
                                             />
                                         ))}
                                     </div>
@@ -131,14 +152,14 @@ export default function ChatWidget() {
                         )}
 
                         {error && (
-                            <p className="text-red-400 text-xs text-center">{error}</p>
+                            <p className="text-red-400 text-xs text-center bg-red-500/10 border border-red-500/20 rounded-lg py-2 px-3">{error}</p>
                         )}
 
                         <div ref={bottomRef} />
                     </div>
 
                     {/* Input */}
-                    <div className="px-3 py-3 border-t border-gray-800">
+                    <div className="px-3 py-3 border-t border-gray-800 bg-gray-900/60">
                         <div className="flex gap-2 items-end">
                             <textarea
                                 ref={inputRef}
@@ -149,15 +170,16 @@ export default function ChatWidget() {
                                 rows={1}
                                 dir="rtl"
                                 disabled={loading}
-                                className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg text-sm resize-none focus:outline-none focus:border-blue-500 placeholder-gray-500 disabled:opacity-50"
+                                className="flex-1 px-3.5 py-2.5 bg-gray-800 border border-gray-700 text-white rounded-xl text-sm resize-none focus:outline-none focus:border-purple-500/60 focus:ring-1 focus:ring-purple-500/30 placeholder-gray-500 disabled:opacity-50 transition-colors"
                                 style={{ maxHeight: '80px' }}
                             />
                             <button
                                 onClick={sendMessage}
                                 disabled={!message.trim() || loading}
-                                className="px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white rounded-lg text-sm transition-colors shrink-0"
+                                title="إرسال"
+                                className="w-10 h-10 flex items-center justify-center bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:hover:bg-purple-600 text-white rounded-xl transition-colors shrink-0"
                             >
-                                إرسال
+                                <Send size={16} strokeWidth={1.75} />
                             </button>
                         </div>
                         <p className="text-gray-600 text-[10px] mt-1.5 text-center">Enter للإرسال</p>
@@ -169,16 +191,25 @@ export default function ChatWidget() {
             <div className="flex justify-end">
                 <button
                     onClick={() => setOpen(prev => !prev)}
-                    className="w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transition-colors flex items-center justify-center text-xl"
+                    className="relative w-14 h-14 bg-purple-600 hover:bg-purple-500 text-white rounded-full shadow-lg shadow-purple-950/50 transition-colors flex items-center justify-center"
                 >
-                    {open ? '✕' : '💬'}
+                    {!open && (
+                        <span className="absolute inset-0 rounded-full bg-purple-500/60 animate-ping" style={{ animationDuration: '2.5s' }} />
+                    )}
+                    <span className="relative flex items-center justify-center">
+                        {open ? <X size={22} strokeWidth={1.75} /> : <MessageCircle size={22} strokeWidth={1.75} />}
+                    </span>
                 </button>
             </div>
 
             <style>{`
-                @keyframes bounce {
+                @keyframes chat-bounce {
                     0%, 80%, 100% { transform: translateY(0); }
                     40% { transform: translateY(-4px); }
+                }
+                @keyframes chat-pop {
+                    from { opacity: 0; transform: translateY(8px) scale(0.98); }
+                    to { opacity: 1; transform: translateY(0) scale(1); }
                 }
             `}</style>
         </div>
