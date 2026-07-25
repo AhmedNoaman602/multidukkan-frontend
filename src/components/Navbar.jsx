@@ -29,6 +29,7 @@ export default function Navbar() {
     const links = [
         ...baseLinks,
         ...(user.role === 'tenant_admin' ? [{ to: '/reports', label: 'Reports' }] : []),
+        ...(user.role === 'tenant_admin' ? [{ to: '/audit-log', label: 'Activity' }] : []),
         ...(user.role === 'tenant_admin' || user.role === 'store_manager' ? [{ to: '/settings', label: 'Settings' }] : []),
     ]
 

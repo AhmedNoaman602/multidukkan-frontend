@@ -21,6 +21,7 @@ import EditProduct from './pages/EditProduct'
 import EditCustomer from './pages/EditCustomer'
 import EditSupplier from './pages/EditSupplier'
 import Reports from './pages/Reports'
+import AuditLog from './pages/AuditLog'
 import Suppliers from './pages/Suppliers'
 import CreateSupplier from './pages/CreateSupplier'
 import SupplierBalance from './pages/SupplierBalance'
@@ -224,6 +225,12 @@ export default function App() {
                             <Layout><Reports /></Layout>
                         </PrivateRoute>
                     } />
+                    <Route path="/audit-log" element={
+                        <PrivateRoute>
+                            <Navbar />
+                            <Layout><AuditLog /></Layout>
+                        </PrivateRoute>
+                    } />
                     <Route path="/reports/print" element={
                         <PrivateRoute>
                             <ReportPrint />
@@ -285,7 +292,7 @@ export default function App() {
 
                 </Routes>
                 <Toast/>
-                <ChatWidgetGuard />
+                <ChatWidgetGuard /> 
             </AuthGate>
             </ToastProvider>
         </BrowserRouter>
