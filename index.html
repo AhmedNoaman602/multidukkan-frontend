@@ -7,7 +7,20 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <title>ملتي دكان</title>
+    <title>MultiDukkan</title>
+    <script>
+      // Apply the saved language before first paint so the page never flashes
+      // in the wrong direction. React takes over from here (see src/i18n).
+      // The static lang/dir on <html> above is the no-JS default (Arabic).
+      (function () {
+        try {
+          var lang = localStorage.getItem('lang')
+          if (lang !== 'en' && lang !== 'ar') return
+          document.documentElement.lang = lang
+          document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
+        } catch (e) {}
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

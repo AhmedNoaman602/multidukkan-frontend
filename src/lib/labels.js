@@ -1,26 +1,15 @@
-// Arabic display labels for backend enum values. Keys are the raw values the
-// API sends — never translate the keys themselves, only what the user sees.
+// DEPRECATED — compatibility shim, do not add anything here.
+//
+// Enum labels now live in src/i18n/{en,ar}/enums.js and are read through
+// t(`enums.role.${user.role}`) etc. Pages that haven't been migrated to
+// useTranslation() yet still import these maps, so they re-export the Arabic
+// bundle to keep a single source of truth (no duplicated Arabic strings).
+//
+// Delete this file once nothing imports it.
 
-export const roleLabels = {
-  tenant_admin: 'صاحب المتجر',
-  store_manager: 'مدير المتجر',
-  store_staff: 'موظف',
-}
+import ar from '../i18n/ar/enums'
 
-export const paymentMethodLabels = {
-  cash: 'نقدي',
-  bank_transfer: 'تحويل بنكي',
-  instapay: 'إنستاباي',
-  vodafone_cash: 'فودافون كاش',
-  orange_cash: 'أورنج كاش',
-  check: 'شيك',
-}
-
-// Which reference field to ask for, per payment method.
-export const paymentReferenceLabels = {
-  bank_transfer: 'رقم الحوالة',
-  instapay: 'رقم العملية',
-  vodafone_cash: 'رقم المُرسِل',
-  orange_cash: 'رقم المُرسِل',
-  check: 'رقم الشيك',
-}
+export const roleLabels = ar.role
+export const paymentMethodLabels = ar.paymentMethod
+export const paymentReferenceLabels = ar.paymentReference
+export const expenseCategoryLabels = ar.expenseCategory

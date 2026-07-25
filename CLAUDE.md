@@ -17,17 +17,42 @@ This is a React 19 + Vite SPA (no TypeScript) for "Multidukkan", a multi-tenant 
 
 **Backend**: a Laravel API at `http://multidukkan.test/api` (see [src/api/axios.js](src/api/axios.js)). A single shared axios instance (`api`) attaches the Bearer token from `localStorage` via a request interceptor and is imported into every page as `import api from '../api/axios'`. There is no other API layer — pages call `api.get/post/...` directly.
 
-**Routing & auth** ([src/App.jsx](src/App.jsx)): all routes are declared flat in one `<Routes>` block, each wrapped individually in `<PrivateRoute>` (checks only for a token in localStorage) and `<Navbar>`/`<Layout>`. Auth/onboarding pages (`/login`, `/register`, `/onboarding`) are the exception and render without Navbar/Layout.
+**Routing & auth** ([src/App.jsx](src/App.jsx)): all routes are declared flat in one `<Routes>` block, each wrapped individually in `<PrivateRoute>` (checks only for a token in localStorage) and `<Sidebar>`/`<Layout>`. Auth/onboarding pages (`/login`, `/register`, `/onboarding`) are the exception and render without Sidebar/Layout.
 
-`AuthGate` wraps the whole app and runs on every route change: it calls `/me` to fetch fresh user data (avoiding stale localStorage) and redirects `tenant_admin` users without a store (`!u.has_store`) to `/onboarding`. It also owns global keyboard-shortcut wiring (`useKeyboardShortcuts`) and the `GlobalSearch` overlay. Any new top-level route should follow the existing `<PrivateRoute><Navbar /><Layout><Page /></Layout></PrivateRoute>` pattern unless it needs to be full-bleed (like invoice/print pages, which render standalone under `PrivateRoute` only).
+`AuthGate` wraps the whole app and runs on every route change: it calls `/me` to fetch fresh user data (avoiding stale localStorage) and redirects `tenant_admin` users without a store (`!u.has_store`) to `/onboarding`. It also owns global keyboard-shortcut wiring (`useKeyboardShortcuts`) and the `GlobalSearch` overlay. Any new top-level route should follow the existing `<PrivateRoute><Sidebar /><Layout><Page /></Layout></PrivateRoute>` pattern unless it needs to be full-bleed (like invoice/print pages, which render standalone under `PrivateRoute` only).
 
 **Toasts**: global toast state lives in `ToastProvider`/`useToast` ([src/hooks/useToast.jsx](src/hooks/useToast.jsx)), rendered once via `<Toast />` at the app root. Use `showToast(message, type)` instead of `alert()` or inline error banners — this replaced ad hoc error handling across pages.
 
-**Page/component split**: `src/pages/` holds one component per route (list, detail, create, edit variants for each entity — Products, Customers, Suppliers, Orders, PurchaseOrders — plus print/invoice variants). `src/components/` holds shared building blocks (modals, search inputs per entity, `Layout`, `Navbar`). When adding a new entity, mirror the existing List/Detail/Create/Edit page naming and file layout already used for Products/Customers/Suppliers.
+**Page/component split**: `src/pages/` holds one component per route (list, detail, create, edit variants for each entity — Products, Customers, Suppliers, Orders, PurchaseOrders — plus print/invoice variants). `src/components/` holds shared building blocks (modals, search inputs per entity, `Layout`, `Sidebar`). When adding a new entity, mirror the existing List/Detail/Create/Edit page naming and file layout already used for Products/Customers/Suppliers.
 
 **Search inputs**: entity-specific typeahead components (`ProductSearchInput`, `CustomerSearchInput`, `SupplierSearchInput`) each wrap the generic `SearchInput` and hit their own API endpoint — follow this pattern rather than building a generic cross-entity search component (that's what `GlobalSearch` is for).
 
+## i18n (English / Arabic)
 
+Hand-rolled, no dependency. Three modules under `src/i18n/`, split so the provider file exports only a component (`react-refresh/only-export-components`):
+
+- [src/i18n/translate.js](src/i18n/translate.js) — pure resolver, `DEFAULT_LANG` (`'ar'`), `LANGUAGES`, the `lang` localStorage key. Missing keys return the key itself and `console.warn` in dev.
+- [src/i18n/useTranslation.js](src/i18n/useTranslation.js) — the context and the hook every component imports.
+- [src/i18n/index.jsx](src/i18n/index.jsx) — `LanguageProvider`, mounted in [src/main.jsx](src/main.jsx) above `QueryClientProvider` so switching language never remounts the tree.
+
+```js
+const { t, lang, dir, setLang } = useTranslation()
+t('common.save')                              // "Save" / "حفظ"
+t('common.pageOf', { page: 2, total: 7 })     // {name} interpolation
+t(`enums.expenseCategory.${expense.category}`) // backend enum -> display label
+```
+
+Strings live in `src/i18n/{en,ar}/<namespace>.js` — `common`, `navigation`, `enums`, `expenses` so far. Register each new namespace in both `en/index.js` and `ar/index.js`. A string used by more than one feature belongs in `common`; never duplicate it into a feature namespace.
+
+**Direction**: `LanguageProvider` sets `document.documentElement.lang`/`dir` and the title on change; an inline script in [index.html](index.html) applies the stored language before first paint to avoid an RTL flash. The app is already written with logical Tailwind utilities (`ms-*`, `me-*`, `ps-*`, `pe-*`, `text-start`, `text-end`, `border-s/e`, `start-0`) — keep it that way and never introduce `ml-*`/`mr-*`/`text-left`/`text-right`. Physical props that must follow direction (e.g. `<SheetContent side>`, pagination chevrons) read `dir` from the hook. Never bake `←`/`→` into a translated string.
+
+**Never translate**: user-entered data (product/customer/store names, SKUs, notes), or the enum *values* sent to the API. `src/lib/enums.js` holds the canonical ordered value lists; only their display goes through `t()`.
+
+**Formatting**: [src/lib/format.js](src/lib/format.js) — `formatCurrency(value, lang)`, `formatNumber`, `formatDate`. Both languages use Western numerals; only the currency symbol and its side change.
+
+**Arabic voice**: professional Arabic for labels/navigation, Egyptian-leaning for messages and confirmations (`حصلت مشكلة…`, `مفيش…`), masdar buttons (`حفظ`، `إلغاء`، `تعديل`، `حذف`، `إضافة`).
+
+**Migration status**: migrated so far — `Sidebar`, `Expenses`, `ExpenseModal`, and all enum labels. Every other page still has hardcoded Arabic. [src/lib/labels.js](src/lib/labels.js) is a deprecated shim re-exporting the Arabic enum bundle so unmigrated pages keep working; delete it once nothing imports it. [src/lib/auditLog.js](src/lib/auditLog.js) holds a second set of hardcoded Arabic label maps that still needs the same treatment. When migrating a page, also sweep its inline `ج.م` and `toLocaleDateString` calls onto `format.js`.
 
 ## Lint rules
 
