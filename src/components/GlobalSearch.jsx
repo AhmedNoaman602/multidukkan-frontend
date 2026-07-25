@@ -82,7 +82,7 @@ export default function GlobalSearch({ open, onClose }) {
         product:       'Products',
         order:         'Orders',
         supplier:      'Suppliers',
-        purchaseOrder: 'Purchase Orders',
+        purchaseOrder: 'أوامر الشراء',
     }
 
     const sectionIcon = {
@@ -120,7 +120,7 @@ export default function GlobalSearch({ open, onClose }) {
                         value={query}
                         onChange={e => { setQuery(e.target.value); setHighlighted(0) }}
                         onKeyDown={handleKeyDown}
-                        placeholder="Search customers, products, orders, suppliers..."
+                        placeholder="ابحث في العملاء والمنتجات والطلبات والموردين..."
                         className="flex-1 bg-transparent text-white text-sm focus:outline-none placeholder-gray-500"
                     />
                     {loading && <span className="text-gray-500 text-xs">Searching...</span>}
@@ -135,8 +135,8 @@ export default function GlobalSearch({ open, onClose }) {
                             Type to search customers, products, orders and suppliers...
                             <div className="mt-3 flex justify-center gap-4 text-xs text-gray-600">
                                 <span>↑↓ navigate</span>
-                                <span>Enter select</span>
-                                <span>Esc close</span>
+                                <span>Enter للاختيار</span>
+                                <span>Esc للإغلاق</span>
                             </div>
                         </div>
                     )}

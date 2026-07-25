@@ -37,6 +37,7 @@ export const typeLabels = {
   PURCHASE_CHARGE: 'قيد شراء',
   PURCHASE_REVERSAL: 'عكس قيد شراء',
   SUPPLIER_PAYMENT: 'دفعة لمورد',
+  SUPPLIER_PAYMENT_REVERSAL: 'عكس دفعة مورد',
   // inventory
   SALE: 'بيع',
   RETURN: 'مرتجع مخزون',

@@ -419,7 +419,7 @@ const fetchQuickSaleData = async () => {
                     >
                         → السابق
                     </button>
-                    <span className="text-gray-400 text-sm">Page {page} of {lastPage}</span>
+                    <span className="text-gray-400 text-sm">صفحة {page} من {lastPage}</span>
                     <button
                         onClick={() => setPage(p => p + 1)}
                         disabled={page === lastPage}

@@ -5,6 +5,7 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import { useToast } from '../hooks/useToast'
 import DeleteModal from '../components/DeleteModal'
 import Modal from '../components/Modal'
+import { roleLabels } from '../lib/labels'
 
 export default function Settings() {
     const [activeTab, setActiveTab] = useState('users')
@@ -59,7 +60,7 @@ export default function Settings() {
                 setWarehouses(warehousesRes.data.data)
                 setUnits(unitsRes.data.data)
             } catch (err) {
-                showToast('Failed to load data', 'error')
+                showToast('حصلت مشكلة في تحميل البيانات', 'error')
             } finally {
                 setLoading(false)
             }
@@ -74,10 +75,10 @@ export default function Settings() {
             const res = await api.post('/users', userForm)
             setUsers([...users, res.data.data])
             setUserForm({ name: '', email: '', password: '', role: 'store_staff', store_id: '' })
-            showToast('User created successfully', 'success')
+            showToast('تم إنشاء المستخدم بنجاح', 'success')
             setShowCreateUser(false)
         } catch (err) {
-            showToast(err.response?.data?.message || 'Failed to create user', 'error')
+            showToast(err.response?.data?.message || 'حصلت مشكلة في إنشاء المستخدم', 'error')
         } finally {
             setSaving(false)
         }
@@ -89,10 +90,10 @@ export default function Settings() {
     try {
         await api.delete(`/users/${deleteTargetUser.id}`)
         setUsers(users.filter(u => u.id !== deleteTargetUser.id))
-        showToast('User deleted successfully', 'success')
+        showToast('تم حذف المستخدم بنجاح', 'success')
         setDeleteTargetUser(null)
     } catch (err) {
-        showToast(err.response?.data?.message || 'Failed to delete user', 'error')
+        showToast(err.response?.data?.message || 'حصلت مشكلة في حذف المستخدم', 'error')
         setDeleteTargetUser(null)
     } finally {
         setDeletingUser(false)
@@ -106,10 +107,10 @@ export default function Settings() {
         const res = await api.post('/stores', storeForm)
         setStores([...stores, res.data.data])
         setStoreForm({ name: '', address: '', phone: '' })
-        showToast('Store created successfully.', 'success')
+        showToast('تم إنشاء المتجر بنجاح.', 'success')
         setShowCreateStore(false)
     } catch (err) {
-    showToast(err.response?.data?.message || 'Failed to create store', 'error')
+    showToast(err.response?.data?.message || 'حصلت مشكلة في إنشاء المتجر', 'error')
 }finally {
         setSaving(false)
     }
@@ -121,10 +122,10 @@ const handleDeleteStore = async () => {
     try {
         await api.delete(`/stores/${deleteTargetStore.id}`)
         setStores(stores.filter(s => s.id !== deleteTargetStore.id))
-        showToast('Store deleted successfully.', 'success')
+        showToast('تم حذف المتجر بنجاح.', 'success')
         setDeleteTargetStore(null)
     } catch (err) {
-        showToast(err.response?.data?.message || 'Failed to delete store', 'error')
+        showToast(err.response?.data?.message || 'حصلت مشكلة في حذف المتجر', 'error')
         setDeleteTargetStore(null)
     } finally {
         setDeletingStore(false)
@@ -139,10 +140,10 @@ const handleCreateWarehouse = async (e) => {
         const res = await api.post('/warehouses', warehouseForm)
         setWarehouses([...warehouses, res.data.data])
         setWarehouseForm({ name: '', address: '', store_id: '' })
-        showToast('Warehouse created successfully', 'success')
+        showToast('تم إنشاء المخزن بنجاح', 'success')
         setShowCreateWarehouse(false)
     } catch (err) {
-        showToast(err.response?.data?.message || 'Failed to create warehouse', 'error')
+        showToast(err.response?.data?.message || 'حصلت مشكلة في إنشاء المخزن', 'error')
     } finally {
         setSaving(false)
     }
@@ -154,10 +155,10 @@ const handleDeleteWarehouse = async () => {
     try {
         await api.delete(`/warehouses/${deleteTargetWarehouse.id}`)
         setWarehouses(warehouses.filter(w => w.id !== deleteTargetWarehouse.id))
-        showToast('Warehouse deleted successfully', 'success')
+        showToast('تم حذف المخزن بنجاح', 'success')
         setDeleteTargetWarehouse(null)
     } catch (err) {
-        showToast(err.response?.data?.message || 'Failed to delete warehouse', 'error')
+        showToast(err.response?.data?.message || 'حصلت مشكلة في حذف المخزن', 'error')
         setDeleteTargetWarehouse(null)
     } finally {
         setDeletingWarehouse(false)
@@ -171,10 +172,10 @@ const handleCreateUnit = async (e) => {
         const res = await api.post('/units', unitForm)
         setUnits([...units, res.data.data])
         setUnitForm({ name: '' })
-        showToast('Unit created successfully', 'success')
+        showToast('تم إنشاء الوحدة بنجاح', 'success')
         setShowCreateUnit(false)
     } catch (err) {
-        showToast(err.response?.data?.message || 'Failed to create unit', 'error')
+        showToast(err.response?.data?.message || 'حصلت مشكلة في إنشاء الوحدة', 'error')
     } finally {
         setSaving(false)
     }
@@ -186,10 +187,10 @@ const handleDeleteUnit = async () => {
     try {
         await api.delete(`/units/${deleteTargetUnit.id}`)
         setUnits(units.filter(u => u.id !== deleteTargetUnit.id))
-        showToast('Unit deleted successfully', 'success')
+        showToast('تم حذف الوحدة بنجاح', 'success')
         setDeleteTargetUnit(null)
     } catch (err) {
-        showToast(err.response?.data?.message || 'Failed to delete unit', 'error')
+        showToast(err.response?.data?.message || 'حصلت مشكلة في حذف الوحدة', 'error')
         setDeleteTargetUnit(null)
     } finally {
         setDeletingUnit(false)
@@ -209,14 +210,14 @@ const handleDeleteUnit = async () => {
         {/* Sidebar */}
         <div className="w-full md:w-48 shrink-0">
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-2 flex md:block gap-1 overflow-x-auto md:sticky md:top-6">
-                <p className="hidden md:block text-xs text-gray-500 uppercase tracking-wider px-3 py-2">Settings</p>
+                <p className="hidden md:block text-xs text-gray-500 uppercase tracking-wider px-3 py-2">الإعدادات</p>
                 {[
                     ...(user.role === 'tenant_admin' ? [
-                        { key: 'stores', label: 'Stores', icon: '🏪' },
+                        { key: 'stores', label: 'المتاجر', icon: '🏪' },
                     ] : []),
-                    { key: 'users', label: 'Users & Roles', icon: '👥' },
-                    { key: 'warehouses', label: 'Warehouses', icon: '🏭' },
-                    { key: 'units', label: 'Units', icon: '📦' },
+                    { key: 'users', label: 'المستخدمين والصلاحيات', icon: '👥' },
+                    { key: 'warehouses', label: 'المخازن', icon: '🏭' },
+                    { key: 'units', label: 'الوحدات', icon: '📦' },
                 ].map(tab => (
                     <button
                         key={tab.key}
@@ -236,54 +237,54 @@ const handleDeleteUnit = async () => {
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-            <h2 className="text-2xl font-bold text-white mb-6">Settings</h2>
+            <h2 className="text-2xl font-bold text-white mb-6">الإعدادات</h2>
 
             {/* Users tab */}
             {activeTab === 'users' && (
                 <div>
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
-                        <h3 className="text-white font-semibold">Team Members</h3>
+                        <h3 className="text-white font-semibold">أعضاء الفريق</h3>
                         <button
                             onClick={() => setShowCreateUser(!showCreateUser)}
                             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
                         >
-                            {showCreateUser ? 'Cancel' : '+ Add User'}
+                            {showCreateUser ? 'إلغاء' : '+ إضافة مستخدم'}
                         </button>
                     </div>
 
                     {showCreateUser && (
-                        <Modal open={showCreateUser} onClose={() => setShowCreateUser(false)} title="New Team Member">
+                        <Modal open={showCreateUser} onClose={() => setShowCreateUser(false)} title="عضو فريق جديد">
                             <form onSubmit={handleCreateUser} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm text-gray-400 mb-1">Name</label>
+                                    <label className="block text-sm text-gray-400 mb-1">الاسم</label>
                                     <input value={userForm.name} onChange={(e) => setUserForm({ ...userForm, name: e.target.value })} required className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm text-gray-400 mb-1">Email</label>
+                                    <label className="block text-sm text-gray-400 mb-1">البريد الإلكتروني</label>
                                     <input type="email" value={userForm.email} onChange={(e) => setUserForm({ ...userForm, email: e.target.value })} required className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm text-gray-400 mb-1">Password</label>
+                                    <label className="block text-sm text-gray-400 mb-1">كلمة المرور</label>
                                     <input type="password" value={userForm.password} onChange={(e) => setUserForm({ ...userForm, password: e.target.value })} required className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm text-gray-400 mb-1">Role</label>
+                                    <label className="block text-sm text-gray-400 mb-1">الصلاحية</label>
                                     <select value={userForm.role} onChange={(e) => setUserForm({ ...userForm, role: e.target.value })} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm">
                                         {allowedRoles.map(role => (
-                                            <option key={role} value={role}>{role.replace('_', ' ')}</option>
+                                            <option key={role} value={role}>{roleLabels[role] || role}</option>
                                         ))}
                                     </select>
                                 </div>
                                 <div className="col-span-2">
-                                    <label className="block text-sm text-gray-400 mb-1">Store <span className="text-red-400">*</span></label>
+                                    <label className="block text-sm text-gray-400 mb-1">المتجر <span className="text-red-400">*</span></label>
                                     <select value={userForm.store_id} onChange={(e) => setUserForm({ ...userForm, store_id: e.target.value })} required className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm">
-                                        <option value="">Select a store</option>
+                                        <option value="">اختر المتجر</option>
                                         {stores.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                     </select>
                                 </div>
                                 <div className="col-span-2">
                                     <button type="submit" disabled={saving} className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
-                                        {saving ? 'Creating...' : 'Create User'}
+                                        {saving ? 'جاري الإنشاء...' : 'إنشاء المستخدم'}
                                     </button>
                                 </div>
                             </form>
@@ -294,7 +295,7 @@ const handleDeleteUnit = async () => {
                         <table className="w-full">
                             <thead className="bg-gray-800">
                                 <tr>
-                                    {['Name', 'Email', 'Role', 'Store', 'Actions'].map(h => (
+                                    {['الاسم', 'البريد الإلكتروني', 'الصلاحية', 'المتجر', 'إجراءات'].map(h => (
                                         <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>
                                     ))}
                                 </tr>
@@ -305,28 +306,28 @@ const handleDeleteUnit = async () => {
                                         <td className="px-4 py-3 text-white text-sm font-medium">{u.name}</td>
                                         <td className="px-4 py-3 text-gray-400 text-sm">{u.email}</td>
                                         <td className="px-4 py-3">
-                                            <span className={`px-2 py-1 rounded text-xs font-medium ${roleColors[u.role]}`}>{u.role.replace('_', ' ')}</span>
+                                            <span className={`px-2 py-1 rounded text-xs font-medium ${roleColors[u.role]}`}>{roleLabels[u.role] || u.role}</span>
                                         </td>
                                         <td className="px-4 py-3 text-gray-400 text-sm">{stores.find(s => s.id === parseInt(u.store_id))?.name || '—'}</td>
                                         <td className="px-4 py-3">
                                             {allowedRoles.includes(u.role) && (
-                                                <button onClick={() => setDeleteTargetUser(u)} className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-medium rounded-lg transition-colors">Remove</button>
+                                                <button onClick={() => setDeleteTargetUser(u)} className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-medium rounded-lg transition-colors">إزالة</button>
                                             )}
                                         </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
-                        {users.length === 0 && <div className="text-center py-16 text-gray-500">No team members yet.</div>}
+                        {users.length === 0 && <div className="text-center py-16 text-gray-500">مفيش أعضاء فريق لسه.</div>}
                     </div>
                     <DeleteModal
                        open={!!deleteTargetUser}
                        onClose={() => setDeleteTargetUser(null)}
                        onConfirm={handleDeleteUser}
                        deleting={deletingUser}
-                       title="Delete User"
+                       title="حذف المستخدم"
                        name={deleteTargetUser?.name}
-                       warning="This user will lose access to the system immediately."
+                       warning="المستخدم ده هيفقد الدخول للنظام على طول."
                     />
                 </div>
             )}
@@ -335,29 +336,29 @@ const handleDeleteUnit = async () => {
             {activeTab === 'stores' && (
                 <div>
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
-                        <h3 className="text-white font-semibold">Stores</h3>
+                        <h3 className="text-white font-semibold">المتاجر</h3>
                         <button onClick={() => setShowCreateStore(!showCreateStore)} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
-                            {showCreateStore ? 'Cancel' : '+ Add Store'}
+                            {showCreateStore ? 'إلغاء' : '+ إضافة متجر'}
                         </button>
                     </div>
                     {showCreateStore && (
-                        <Modal open={showCreateStore} onClose={() => setShowCreateStore(false)} title="New Store">
+                        <Modal open={showCreateStore} onClose={() => setShowCreateStore(false)} title="متجر جديد">
                             <form onSubmit={handleCreateStore} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm text-gray-400 mb-1">Store Name *</label>
                                     <input value={storeForm.name} onChange={(e) => setStoreForm({ ...storeForm, name: e.target.value })} required className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm text-gray-400 mb-1">Phone</label>
+                                    <label className="block text-sm text-gray-400 mb-1">التليفون</label>
                                     <input value={storeForm.phone} onChange={(e) => setStoreForm({ ...storeForm, phone: e.target.value })} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
                                 </div>
                                 <div className="col-span-2">
-                                    <label className="block text-sm text-gray-400 mb-1">Address</label>
+                                    <label className="block text-sm text-gray-400 mb-1">العنوان</label>
                                     <input value={storeForm.address} onChange={(e) => setStoreForm({ ...storeForm, address: e.target.value })} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
                                 </div>
                                 <div className="col-span-2">
                                     <button type="submit" disabled={saving} className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
-                                        {saving ? 'Creating...' : 'Create Store'}
+                                        {saving ? 'جاري الإنشاء...' : 'إنشاء المتجر'}
                                     </button>
                                 </div>
                             </form>
@@ -366,7 +367,7 @@ const handleDeleteUnit = async () => {
                     <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
                         <table className="w-full">
                             <thead className="bg-gray-800">
-                                <tr>{['Name', 'Address', 'Phone', 'Actions'].map(h => <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>)}</tr>
+                                <tr>{['الاسم', 'العنوان', 'التليفون', 'إجراءات'].map(h => <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>)}</tr>
                             </thead>
                             <tbody className="divide-y divide-gray-800">
                                 {stores.map(s => (
@@ -376,23 +377,23 @@ const handleDeleteUnit = async () => {
                                         <td className="px-4 py-3 text-gray-400 text-sm">{s.phone || '—'}</td>
                                         <td className="px-4 py-3">
                                             {stores.length > 1 && (
-                                                <button onClick={() => setDeleteTargetStore(s)} className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-medium rounded-lg transition-colors">Delete</button>
+                                                <button onClick={() => setDeleteTargetStore(s)} className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-medium rounded-lg transition-colors">حذف</button>
                                             )}
                                         </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
-                        {stores.length === 0 && <div className="text-center py-16 text-gray-500">No stores yet.</div>}
+                        {stores.length === 0 && <div className="text-center py-16 text-gray-500">مفيش متاجر لسه.</div>}
                     </div>
                     <DeleteModal
                         open={!!deleteTargetStore}
                         onClose={() => setDeleteTargetStore(null)}
                         onConfirm={handleDeleteStore}
                         deleting={deletingStore}
-                        title="Delete Store"
+                        title="حذف المتجر"
                         name={deleteTargetStore?.name}
-                        warning="All warehouses and transactions linked to this store will be affected."
+                        warning="كل المخازن والمعاملات المرتبطة بالمتجر ده هتتأثر."
 />
                 </div>
             )}
@@ -401,38 +402,38 @@ const handleDeleteUnit = async () => {
             {activeTab === 'warehouses' && (
                 <div>
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
-                        <h3 className="text-white font-semibold">Warehouses</h3>
+                        <h3 className="text-white font-semibold">المخازن</h3>
                         <button onClick={() => setShowCreateWarehouse(!showCreateWarehouse)} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
-                            {showCreateWarehouse ? 'Cancel' : '+ Add Warehouse'}
+                            {showCreateWarehouse ? 'إلغاء' : '+ إضافة مخزن'}
                         </button>
                     </div>
                     {showCreateWarehouse && (
-                        <Modal open={showCreateWarehouse} onClose={() => setShowCreateWarehouse(false)} title="New Warehouse">
+                        <Modal open={showCreateWarehouse} onClose={() => setShowCreateWarehouse(false)} title="مخزن جديد">
                             <form onSubmit={handleCreateWarehouse} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm text-gray-400 mb-1">Warehouse Name</label>
+                                    <label className="block text-sm text-gray-400 mb-1">اسم المخزن</label>
                                     <input value={warehouseForm.name} onChange={(e) => setWarehouseForm({ ...warehouseForm, name: e.target.value })} required className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm text-gray-400 mb-1">Store</label>
+                                    <label className="block text-sm text-gray-400 mb-1">المتجر</label>
                                     {user.role === 'tenant_admin' ? (
                                         <select value={warehouseForm.store_id} onChange={(e) => setWarehouseForm({ ...warehouseForm, store_id: e.target.value })} required className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm">
-                                            <option value="">Select a store</option>
+                                            <option value="">اختر المتجر</option>
                                             {stores.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                         </select>
                                     ) : (
                                         <div className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 text-gray-400 rounded-lg text-sm">
-                                            {stores.find(s => s.id === parseInt(user.store_id))?.name || 'Your store'}
+                                            {stores.find(s => s.id === parseInt(user.store_id))?.name || 'متجرك'}
                                         </div>
                                     )}
                                 </div>
                                 <div className="col-span-2">
-                                    <label className="block text-sm text-gray-400 mb-1">Address</label>
+                                    <label className="block text-sm text-gray-400 mb-1">العنوان</label>
                                     <input value={warehouseForm.address} onChange={(e) => setWarehouseForm({ ...warehouseForm, address: e.target.value })} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
                                 </div>
                                 <div className="col-span-2">
                                     <button type="submit" disabled={saving} className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
-                                        {saving ? 'Creating...' : 'Create Warehouse'}
+                                        {saving ? 'جاري الإنشاء...' : 'إنشاء المخزن'}
                                     </button>
                                 </div>
                             </form>
@@ -441,7 +442,7 @@ const handleDeleteUnit = async () => {
                     <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
                         <table className="w-full">
                             <thead className="bg-gray-800">
-                                <tr>{['Name', 'Store', 'Address', 'Actions'].map(h => <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>)}</tr>
+                                <tr>{['الاسم', 'المتجر', 'العنوان', 'إجراءات'].map(h => <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>)}</tr>
                             </thead>
                             <tbody className="divide-y divide-gray-800">
                                 {warehouses.map(w => (
@@ -450,22 +451,22 @@ const handleDeleteUnit = async () => {
                                         <td className="px-4 py-3 text-gray-400 text-sm">{stores.find(s => s.id === parseInt(w.store_id))?.name || '—'}</td>
                                         <td className="px-4 py-3 text-gray-400 text-sm">{w.address || '—'}</td>
                                         <td className="px-4 py-3">
-                                            <button onClick={() => setDeleteTargetWarehouse(w)} className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-medium rounded-lg transition-colors">Delete</button>
+                                            <button onClick={() => setDeleteTargetWarehouse(w)} className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-medium rounded-lg transition-colors">حذف</button>
                                         </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
-                        {warehouses.length === 0 && <div className="text-center py-16 text-gray-500">No warehouses yet.</div>}
+                        {warehouses.length === 0 && <div className="text-center py-16 text-gray-500">مفيش مخازن لسه.</div>}
                     </div>
                     <DeleteModal
     open={!!deleteTargetWarehouse}
     onClose={() => setDeleteTargetWarehouse(null)}
     onConfirm={handleDeleteWarehouse}
     deleting={deletingWarehouse}
-    title="Delete Warehouse"
+    title="حذف المخزن"
     name={deleteTargetWarehouse?.name}
-    warning="All inventory in this warehouse will be affected."
+    warning="كل المخزون في المخزن ده هيتأثر."
 />
 
                 </div>
@@ -477,16 +478,16 @@ const handleDeleteUnit = async () => {
             {activeTab === 'units' && (
                 <div>
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
-                        <h3 className="text-white font-semibold">Units</h3>
+                        <h3 className="text-white font-semibold">الوحدات</h3>
                         <button onClick={() => setShowCreateUnit(!showCreateUnit)} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
-                            {showCreateUnit ? 'Cancel' : '+ Add Unit'}
+                            {showCreateUnit ? 'إلغاء' : '+ إضافة وحدة'}
                         </button>
                     </div>
                     {showCreateUnit && (
-                        <Modal open={showCreateUnit} onClose={() => setShowCreateUnit(false)} title="New Unit">
+                        <Modal open={showCreateUnit} onClose={() => setShowCreateUnit(false)} title="وحدة جديدة">
                             <form onSubmit={handleCreateUnit} className="space-y-4">
                                 <div>
-                                    <label className="block text-sm text-gray-400 mb-1">Unit Name</label>
+                                    <label className="block text-sm text-gray-400 mb-1">اسم الوحدة</label>
                                     <input
                                         value={unitForm.name}
                                         onChange={(e) => setUnitForm({ name: e.target.value })}
@@ -496,7 +497,7 @@ const handleDeleteUnit = async () => {
                                     />
                                 </div>
                                 <button type="submit" disabled={saving} className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
-                                    {saving ? 'Creating...' : 'Add Unit'}
+                                    {saving ? 'جاري الإنشاء...' : 'إضافة الوحدة'}
                                 </button>
                             </form>
                         </Modal>
@@ -505,8 +506,8 @@ const handleDeleteUnit = async () => {
                         <table className="w-full">
                             <thead className="bg-gray-800">
                                 <tr>
-                                    <th className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">Unit Name</th>
-                                    <th className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th>
+                                    <th className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">اسم الوحدة</th>
+                                    <th className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">إجراءات</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-800">
@@ -514,13 +515,13 @@ const handleDeleteUnit = async () => {
                                     <tr key={u.id} className="hover:bg-gray-800/50 transition-colors">
                                         <td className="px-4 py-3 text-white text-sm font-medium">{u.name}</td>
                                         <td className="px-4 py-3">
-                                            <button onClick={() => setDeleteTargetUnit(u)} className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-medium rounded-lg transition-colors">Delete</button>
+                                            <button onClick={() => setDeleteTargetUnit(u)} className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-medium rounded-lg transition-colors">حذف</button>
                                         </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
-                        {units.length === 0 && <div className="text-center py-16 text-gray-500">No units yet.</div>}
+                        {units.length === 0 && <div className="text-center py-16 text-gray-500">مفيش وحدات لسه.</div>}
                     </div>
                 </div>
             )}
@@ -529,7 +530,7 @@ const handleDeleteUnit = async () => {
                 onClose={() => setDeleteTargetUnit(null)}
                 onConfirm={handleDeleteUnit}
                 deleting={deletingUnit}
-                title="Delete Unit"
+                title="حذف الوحدة"
                 name={deleteTargetUnit?.name}
             />
         </div>

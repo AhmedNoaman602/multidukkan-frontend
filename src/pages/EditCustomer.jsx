@@ -28,7 +28,7 @@ export default function EditCustomer() {
                     price_tier: c.price_tier === 'default' ? '' : (c.price_tier || ''),
                 })
             })
-            .catch(() => showToast('Failed to load customer','error'))
+            .catch(() => showToast('حصلت مشكلة في تحميل العميل','error'))
             .finally(() => setLoading(false))
     }, [id])
 
@@ -42,7 +42,7 @@ export default function EditCustomer() {
             })
             navigate('/customers')
         } catch (err) {
-            showToast(err.response?.data?.message || 'Failed to update customer','error')
+            showToast(err.response?.data?.message || 'حصلت مشكلة في تعديل العميل','error')
         } finally {
             setSaving(false)
         }
@@ -53,14 +53,14 @@ export default function EditCustomer() {
     return (
         <div className="">
             <div className="flex items-center gap-4 mb-6">
-                <BackButton label="Back to Customers" to="/customers"/>
-                <h2 className="text-2xl font-bold text-white">Edit Customer</h2>
+                <BackButton label="رجوع للعملاء" to="/customers"/>
+                <h2 className="text-2xl font-bold text-white">تعديل العميل</h2>
             </div>
 
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm text-gray-400 mb-1">Code</label>
+                        <label className="block text-sm text-gray-400 mb-1">الكود</label>
                         <input
                             value={form.code}
                             onChange={(e) => setForm({ ...form, code: e.target.value })}
@@ -68,7 +68,7 @@ export default function EditCustomer() {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm text-gray-400 mb-1">Name</label>
+                        <label className="block text-sm text-gray-400 mb-1">الاسم</label>
                         <input
                             value={form.name}
                             onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -78,7 +78,7 @@ export default function EditCustomer() {
                     </div>
 
                     <div>
-                        <label className="block text-sm text-gray-400 mb-1">Phone</label>
+                        <label className="block text-sm text-gray-400 mb-1">التليفون</label>
                         <input
                             value={form.phone}
                             onChange={(e) => setForm({ ...form, phone: e.target.value })}
@@ -88,7 +88,7 @@ export default function EditCustomer() {
                     </div>
 
                     <div className="col-span-2">
-                        <label className="block text-sm text-gray-400 mb-1">Address</label>
+                        <label className="block text-sm text-gray-400 mb-1">العنوان</label>
                         <input
                             value={form.address}
                             onChange={(e) => setForm({ ...form, address: e.target.value })}
@@ -97,7 +97,7 @@ export default function EditCustomer() {
                     </div>
 
                     <div className='col-span-2'>
-                        <label className="block text-sm text-gray-400 mb-1">Area</label>
+                        <label className="block text-sm text-gray-400 mb-1">المنطقة</label>
                         <input
                             value={form.area}
                             onChange={e => setForm({ ...form, area: e.target.value })}
@@ -106,10 +106,10 @@ export default function EditCustomer() {
                     </div>
 
                     <div className="col-span-2">
-                        <label className="block text-sm text-gray-400 mb-2">Price Tier</label>
+                        <label className="block text-sm text-gray-400 mb-2">فئة السعر</label>
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
                             {[
-                                { value: '', label: 'Default' },
+                                { value: '', label: 'افتراضي' },
                                 { value: 'a', label: 'سعر أ' },
                                 { value: 'b', label: 'سعر ب' },
                                 { value: 'c', label: 'سعر ج' },
@@ -142,7 +142,7 @@ export default function EditCustomer() {
                             disabled={saving}
                             className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
                         >
-                            {saving ? 'Saving...' : 'Save Changes'}
+                            {saving ? 'جاري الحفظ...' : 'حفظ التعديلات'}
                         </button>
                     </div>
                 </form>

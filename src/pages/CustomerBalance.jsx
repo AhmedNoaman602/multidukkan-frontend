@@ -7,6 +7,8 @@ import Modal from '../components/Modal'
 import { useToast } from '../hooks/useToast'
 import RefundModal from '../components/RefundModal'
 import AddCreditModal from '../components/AddCreditModal'
+import { paymentMethodLabels, paymentReferenceLabels } from '../lib/labels'
+import { typeLabels } from '../lib/auditLog'
 
 const typeStyles = {
         ORDER_CHARGE:    'bg-red-500/20 text-red-400',
@@ -17,22 +19,8 @@ const typeStyles = {
         REFUND:          'bg-orange-500/20 text-orange-400',
     }
 
-const referenceLabel = {
-    bank_transfer:  'Reference Number',
-    instapay:       'Transaction ID',
-    vodafone_cash:  'Sender Phone',
-    orange_cash:    'Sender Phone',
-    check:          'Check Number',
-}
-
-const methodLabel = {
-    cash:          'Cash',
-    bank_transfer: 'Bank Transfer',
-    instapay:      'Instapay',
-    vodafone_cash: 'Vodafone Cash',
-    orange_cash:   'Orange Cash',
-    check:         'Check',
-}
+const referenceLabel = paymentReferenceLabels
+const methodLabel = paymentMethodLabels
 export default function CustomerBalance() {
     const { id } = useParams()
     const navigate = useNavigate()
@@ -55,7 +43,7 @@ export default function CustomerBalance() {
             const res = await api.get(`/customers/${id}/summary`)
             setData(res.data)
         } catch {
-            showToast('Failed to load customer data', 'error')
+            showToast('حصلت مشكلة في تحميل بيانات العميل', 'error')
         } finally {
             setLoading(false)
         }
@@ -84,12 +72,12 @@ export default function CustomerBalance() {
 
                 })
             }
-            showToast('Payment received successfully.', 'success')
+            showToast('تم استلام الدفعة بنجاح.', 'success')
             setPaymentModal(false)
             setAutoForm({ amount: '', method: 'cash', order_id: '' })
             fetchData()
         } catch (err) {
-            showToast(err.response?.data?.message || 'Failed to process payment', 'error')
+            showToast(err.response?.data?.message || 'حصلت مشكلة في تنفيذ الدفع', 'error')
         } finally {
             setSaving(false)
         }
@@ -129,7 +117,7 @@ export default function CustomerBalance() {
     return (
         <div className="max-w-4xl">
             <div className="flex justify-between items-center mb-6">
-                <BackButton label="Back to Customers" to="/customers" />
+                <BackButton label="رجوع للعملاء" to="/customers" />
                 <h2 className="text-2xl font-bold text-white">{data.customer_name}</h2>
             </div>
 
@@ -137,30 +125,30 @@ export default function CustomerBalance() {
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
                 <div className="flex items-start justify-between">
                     <div>
-                        <p className="text-gray-400 text-sm mb-1">Current Balance</p>
+                        <p className="text-gray-400 text-sm mb-1">الرصيد الحالي</p>
                         <p className={`text-4xl font-bold ${isOwed ? 'text-red-400' : isCredit ? 'text-green-400' : 'text-gray-400'}`}>
-                            {parseFloat(data.balance).toFixed(2)} EGP
+                            {parseFloat(data.balance).toFixed(2)} ج.م
                         </p>
                         <p className={`text-sm mt-1 ${isOwed ? 'text-red-400' : isCredit ? 'text-green-400' : 'text-gray-500'}`}>
-                            {data.status === 'owes' ? 'Customer owes money' :
-                             data.status === 'credit' ? 'Customer has credit' :
-                             'Fully settled'}
+                            {data.status === 'owes' ? 'العميل عليه فلوس' :
+                             data.status === 'credit' ? 'العميل ليه رصيد' :
+                             'متسدد بالكامل'}
                         </p>
                     </div>
                     <div className="flex gap-2">
                         <button onClick={() => setRefundModal(true)}
                             className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-lg transition-colors">
-                            ↩ Issue Refund
+                            ↩ عمل مرتجع
                         </button>
                         <button
                             onClick={() => setShowCreditModal(true)}
                             className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
                         >
-                            + Add Credit
+                            + إضافة رصيد
                         </button>
                         <button onClick={() => setPaymentModal(true)}
                             className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors">
-                            💰 Receive Payment
+                            💰 استلام دفعة
                         </button>
                     </div>
                 </div>
@@ -168,29 +156,29 @@ export default function CustomerBalance() {
                 {/* Stats row */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-800">
                     <div>
-                        <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Total Orders</p>
+                        <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">إجمالي الطلبات</p>
                         <p className="text-white text-xl font-bold">{data.stats.total_orders}</p>
                     </div>
                     <div>
-                        <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Unpaid Orders</p>
+                        <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">الطلبات غير المدفوعة</p>
                         <p className={`text-xl font-bold ${data.stats.unpaid_orders > 0 ? 'text-red-400' : 'text-gray-400'}`}>
                             {data.stats.unpaid_orders}
                         </p>
                     </div>
                     <div>
-                        <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Total Ordered</p>
-                        <p className="text-white text-xl font-bold">{data.stats.total_ordered} EGP</p>
+                        <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">إجمالي المطلوب</p>
+                        <p className="text-white text-xl font-bold">{data.stats.total_ordered} ج.م</p>
                     </div>
                 </div>
             </div>
 
             {/* Orders */}
-            <h3 className="text-white font-semibold mb-3">Orders</h3>
+            <h3 className="text-white font-semibold mb-3">الطلبات</h3>
             <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto mb-6">
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>
-                            {['Invoice', 'Total', 'Paid', 'Remaining', 'Status', 'Date'].map(h => (
+                            {['الفاتورة', 'الإجمالي', 'المدفوع', 'المتبقي', 'الحالة', 'التاريخ'].map(h => (
                                 <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>
                             ))}
                         </tr>
@@ -201,9 +189,9 @@ export default function CustomerBalance() {
                                 onClick={() => navigate(`/orders/${order.id}`)}
                                 className="hover:bg-gray-800/50 transition-colors cursor-pointer">
                                 <td className="px-4 py-3 text-gray-400 text-sm font-mono">{order.invoice_number}</td>
-                                <td className="px-4 py-3 text-white text-sm">{order.total} EGP</td>
-                                <td className="px-4 py-3 text-green-400 text-sm">{order.paid} EGP</td>
-                                <td className="px-4 py-3 text-red-400 text-sm">{order.amount_remaining} EGP</td>
+                                <td className="px-4 py-3 text-white text-sm">{order.total} ج.م</td>
+                                <td className="px-4 py-3 text-green-400 text-sm">{order.paid} ج.م</td>
+                                <td className="px-4 py-3 text-red-400 text-sm">{order.amount_remaining} ج.م</td>
                                 <td className="px-4 py-3">
                                     <span className={`px-2 py-1 rounded text-xs font-medium ${
                                         order.status === 'paid'
@@ -221,17 +209,17 @@ export default function CustomerBalance() {
                     </tbody>
                 </table>
                 {data.orders.length === 0 && (
-                    <div className="text-center py-16 text-gray-500">No orders yet.</div>
+                    <div className="text-center py-16 text-gray-500">مفيش طلبات لسه.</div>
                 )}
             </div>
 
             {/* Payments */}
-            <h3 className="text-white font-semibold mb-3">Payments</h3>
+            <h3 className="text-white font-semibold mb-3">الدفعات</h3>
             <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto mb-6">
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>
-                            {['Invoice', 'Amount', 'Refunded', 'Net', 'Method', 'Reference', 'Date','Actions'].map(h => (
+                            {['الفاتورة', 'المبلغ', 'المسترد', 'الصافي', 'طريقة الدفع', 'المرجع', 'التاريخ', 'إجراءات'].map(h => (
                                 <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>
                             ))}
                         </tr>
@@ -241,11 +229,11 @@ export default function CustomerBalance() {
                             <tr key={p.id}
                                 className="hover:bg-gray-800/50 transition-colors">
                                 <td className="px-4 py-3 text-gray-400 text-sm font-mono">{p.invoice_number}</td>
-                                <td className="px-4 py-3 text-white text-sm">{p.amount} EGP</td>
+                                <td className="px-4 py-3 text-white text-sm">{p.amount} ج.م</td>
                                 <td className="px-4 py-3 text-orange-400 text-sm">
-                                    {p.refunded_amount > 0 ? `${p.refunded_amount} EGP` : '—'}
+                                    {p.refunded_amount > 0 ? `${p.refunded_amount} ج.م` : '—'}
                                 </td>
-                                <td className="px-4 py-3 text-green-400 text-sm">{p.net_amount} EGP</td>
+                                <td className="px-4 py-3 text-green-400 text-sm">{p.net_amount} ج.م</td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">{methodLabel[p.method] ?? p.method}</td>
                                     <td className="px-4 py-3 text-gray-400 text-sm">
     {p.payment_reference ? p.payment_reference : '—'}
@@ -275,17 +263,17 @@ export default function CustomerBalance() {
                     </tbody>
                 </table>
                 {visiblePayments.length === 0 && (
-                    <div className="text-center py-16 text-gray-500">No payments yet.</div>
+                    <div className="text-center py-16 text-gray-500">مفيش دفعات لسه.</div>
                 )}
             </div>
 
             {/* Transaction History */}
-            <h3 className="text-white font-semibold mb-3">Transaction History</h3>
+            <h3 className="text-white font-semibold mb-3">سجل المعاملات</h3>
             <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto mb-6">
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>
-                            {['Type', 'Amount', 'Description', 'Date'].map(h => (
+                            {['النوع', 'المبلغ', 'الوصف', 'التاريخ'].map(h => (
                                 <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>
                             ))}
                         </tr>
@@ -295,10 +283,10 @@ export default function CustomerBalance() {
                             <tr key={i} className="hover:bg-gray-800/50 transition-colors">
                                 <td className="px-4 py-3">
                                     <span className={`px-2 py-1 rounded text-xs font-medium ${typeStyles[entry.type] || 'bg-gray-700 text-gray-300'}`}>
-                                        {entry.type}
+                                        {typeLabels[entry.type] || entry.type}
                                     </span>
                                 </td>
-                                <td className="px-4 py-3 text-white text-sm">{entry.amount} EGP</td>
+                                <td className="px-4 py-3 text-white text-sm">{entry.amount} ج.م</td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">{entry.description || '—'}</td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">
                                     {new Date(entry.created_at).toLocaleDateString('en-GB')}
@@ -308,23 +296,23 @@ export default function CustomerBalance() {
                     </tbody>
                 </table>
                 {(!data.history || data.history.length === 0) && (
-                    <div className="text-center py-16 text-gray-500">No transactions yet.</div>
+                    <div className="text-center py-16 text-gray-500">مفيش معاملات لسه.</div>
                 )}
             </div>
 
             {/* Payment Modal */}
-            <Modal open={paymentModal} onClose={() => setPaymentModal(false)} title="💰 Receive Payment">
+            <Modal open={paymentModal} onClose={() => setPaymentModal(false)} title="💰 استلام دفعة">
                 <div className="space-y-4">
                     {unpaidOrders.length === 0 ? (
                         <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                            <p className="text-blue-400 text-sm">No unpaid orders. Amount will be stored as credit.</p>
+                            <p className="text-blue-400 text-sm">مفيش طلبات غير مدفوعة. المبلغ هيتسجل كرصيد.</p>
                         </div>
                     ) : (
                         <div className="space-y-1">
                             {unpaidOrders.map((o, i) => (
                                 <div key={o.id} className="flex justify-between text-xs text-gray-400 bg-gray-800 px-3 py-2 rounded-lg">
                                     <span>#{i + 1} — {o.invoice_number}</span>
-                                    <span>{o.amount_remaining} EGP</span>
+                                    <span>{o.amount_remaining} ج.م</span>
                                 </div>
                             ))}
                         </div>
@@ -333,16 +321,16 @@ export default function CustomerBalance() {
                         {unpaidOrders.length > 0 && (
                             <div>
                                 <label className="block text-sm text-gray-400 mb-1">
-                                    Pay Specific Order
+                                    دفع لطلب محدد
                                     <span className="text-gray-600 ms-1">(optional — leave blank for auto)</span>
                                 </label>
                                 <select value={autoForm.order_id}
                                     onChange={e => setAutoForm({ ...autoForm, order_id: e.target.value })}
                                     className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-purple-500 text-sm">
-                                    <option value="">Pay oldest first (auto)</option>
+                                    <option value="">سدد الأقدم الأول (تلقائي)</option>
                                     {unpaidOrders.map(o => (
                                         <option key={o.id} value={o.id}>
-                                            {o.invoice_number} — {o.amount_remaining} EGP
+                                            {o.invoice_number} — {o.amount_remaining} ج.م
                                         </option>
                                     ))}
                                 </select>
@@ -350,7 +338,7 @@ export default function CustomerBalance() {
                         )}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm text-gray-400 mb-1">Amount</label>
+                                <label className="block text-sm text-gray-400 mb-1">المبلغ</label>
                                 <input type="number" value={autoForm.amount}
                                     onChange={e => setAutoForm({ ...autoForm, amount: e.target.value })}
                                     required min="0.01" step="0.01"
@@ -358,7 +346,7 @@ export default function CustomerBalance() {
                                     placeholder="e.g. 500" />
                             </div>
                             <div>
-                                <label className="block text-sm text-gray-400 mb-1">Method</label>
+                                <label className="block text-sm text-gray-400 mb-1">طريقة الدفع</label>
                                 <select
                                     value={autoForm.method}
                                     onChange={e => setAutoForm({ ...autoForm, method: e.target.value })}
@@ -387,22 +375,22 @@ export default function CustomerBalance() {
                         <div className="flex justify-end gap-2 pt-2">
                             <button type="button" onClick={() => setPaymentModal(false)}
                                 className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">
-                                Cancel
+                                إلغاء
                             </button>
                             <button type="submit" disabled={saving || !autoForm.amount}
                                 className="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
-                                {saving ? 'Processing...' : 'Receive Payment'}
+                                {saving ? 'جاري التنفيذ...' : 'استلام الدفعة'}
                             </button>
                         </div>
                     </form>
                 </div>
             </Modal>
 
-            <Modal open={!!editPayment} onClose={()=> setEditPayment(false)} title="Edit Payment">
+            <Modal open={!!editPayment} onClose={()=> setEditPayment(false)} title="تعديل الدفعة">
                 <form onSubmit={handleEditPayment} className='space-y-4'>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm text-gray-400 mb-1">Amount</label>
+                                <label className="block text-sm text-gray-400 mb-1">المبلغ</label>
                                 <input type="number" value={editForm.amount}
                                     onChange={e => setEditForm({ ...editForm, amount: e.target.value })}
                                     required min="0.01" step="0.01"
@@ -410,24 +398,24 @@ export default function CustomerBalance() {
                                     placeholder="e.g. 500" />
                             </div>
                             <div>
-                                <label className="block text-sm text-gray-400 mb-1">Method</label>
+                                <label className="block text-sm text-gray-400 mb-1">طريقة الدفع</label>
                                 <select value={editForm.method}
                                     onChange={e => setEditForm({ ...editForm, method: e.target.value })}
                                     className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-purple-500 text-sm">
-                                    <option value="cash">Cash</option>
-                                    <option value="bank_transfer">Bank Transfer</option>
-                                    <option value="check">Check</option>
+                                    <option value="cash">نقدي</option>
+                                    <option value="bank_transfer">تحويل بنكي</option>
+                                    <option value="check">شيك</option>
                                 </select>
                             </div>
                         </div>
                           <div className="flex justify-end gap-2 pt-2">
                             <button type="button" onClick={() => setEditPayment(false)}
                                 className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">
-                                Cancel
+                                إلغاء
                             </button>
                             <button type="submit" disabled={saving || !editForm.amount}
                                 className="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
-                                {saving ? 'Processing...' : 'Edit Payment'}
+                                {saving ? 'جاري التنفيذ...' : 'تعديل الدفعة'}
                             </button>
                         </div>
                         </form>

@@ -38,7 +38,7 @@ export default function ChatWidget() {
             })
             setHistory(res.data.history)
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to get response.')
+            setError(err.response?.data?.message || 'حصلت مشكلة في الرد.')
             setHistory(history)
         } finally {
             setLoading(false)

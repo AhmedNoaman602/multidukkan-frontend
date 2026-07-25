@@ -3,12 +3,9 @@ import OrderSearchInput from './OrderSearchInput'
 import { useState, useEffect } from 'react'
 import api from '../api/axios'
 import { useToast } from '../hooks/useToast'
+import { paymentMethodLabels } from '../lib/labels'
 
-const methodLabel = {
-    cash:          'Cash',
-    bank_transfer: 'Bank Transfer',
-    check:         'Check',
-}
+const methodLabel = paymentMethodLabels
 
 export default function ReverseSupplierPaymentModal({
     open,
@@ -43,23 +40,23 @@ export default function ReverseSupplierPaymentModal({
         setSaving(true)
         try {
             await api.delete(`/supplier-payments/${reverseForm.payment_id}`)
-            showToast('Payment reversed successfully.', 'success')
+            showToast('تم عكس الدفعة بنجاح.', 'success')
             setReverseForm({ order_id: '', payment_id: '' })
             onClose()
             onSuccess()
         } catch (err) {
-            showToast(err.response?.data?.message || 'Failed to reverse payment', 'error')
+            showToast(err.response?.data?.message || 'حصلت مشكلة في عكس الدفعة', 'error')
         } finally {
             setSaving(false)
         }
     }
 
     return (
-        <Modal open={open} onClose={onClose} title="↩ Reverse Payment">
+        <Modal open={open} onClose={onClose} title="↩ عكس دفعة">
             <div className="space-y-4">
                 {payments.length === 0 ? (
                     <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-                        <p className="text-yellow-400 text-sm">No payments found.</p>
+                        <p className="text-yellow-400 text-sm">مفيش دفعات.</p>
                     </div>
                 ) : (
                     <form onSubmit={handleReverse} className="space-y-4">
@@ -68,7 +65,7 @@ export default function ReverseSupplierPaymentModal({
                         {orders.length > 1 && (
                             <div>
                                 <label className="block text-sm text-gray-400 mb-1">
-                                    Select Order
+                                    اختر الأمر
                                 </label>
                                 <OrderSearchInput
                                     orders={orders}
@@ -78,7 +75,7 @@ export default function ReverseSupplierPaymentModal({
                                         order_id: orderId,
                                         payment_id: '',
                                     })}
-                                    renderMeta={(o) => `${o.total} EGP`}
+                                    renderMeta={(o) => `${o.total} ج.م`}
                                 />
                             </div>
                         )}
@@ -88,24 +85,24 @@ export default function ReverseSupplierPaymentModal({
                             filteredPayments.length > 0 ? (
                                 <div>
                                     <label className="block text-sm text-gray-400 mb-1">
-                                        Select Payment
+                                        اختر الدفعة
                                     </label>
                                     <select
                                         value={reverseForm.payment_id}
                                         onChange={e => setReverseForm({ ...reverseForm, payment_id: e.target.value })}
                                         className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-orange-500 text-sm"
                                     >
-                                        <option value="">Select a payment</option>
+                                        <option value="">اختر الدفعة</option>
                                         {filteredPayments.map(p => (
                                             <option key={p.id} value={p.id}>
-                                                {p.amount} EGP — {methodLabel[p.method] ?? p.method}
+                                                {p.amount} ج.م — {methodLabel[p.method] ?? p.method}
                                             </option>
                                         ))}
                                     </select>
                                 </div>
                             ) : (
                                 <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-                                    <p className="text-yellow-400 text-sm">No payments on this order.</p>
+                                    <p className="text-yellow-400 text-sm">مفيش دفعات على الأمر ده.</p>
                                 </div>
                             )
                         )}
@@ -113,9 +110,9 @@ export default function ReverseSupplierPaymentModal({
                         {selected && (
                             <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                                 <p className="text-blue-400 text-sm">
-                                    This will fully reverse <span className="font-bold">{selected.amount} EGP</span> paid
-                                    on {selected.invoice_number}.
-                                    <span className="text-blue-600 text-xs ms-1">Supplier payments can only be reversed in full — this cannot be undone.</span>
+                                    ده هيعكس بالكامل <span className="font-bold">{selected.amount} ج.م</span> المدفوعة
+                                    على {selected.invoice_number}.
+                                    <span className="text-blue-600 text-xs ms-1">دفعات الموردين بتتعكس بالكامل بس — ومش هتقدر ترجع في الخطوة دي.</span>
                                 </p>
                             </div>
                         )}
@@ -123,11 +120,11 @@ export default function ReverseSupplierPaymentModal({
                         <div className="flex justify-end gap-2 pt-2">
                             <button type="button" onClick={onClose}
                                 className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">
-                                Cancel
+                                إلغاء
                             </button>
                             <button type="submit" disabled={saving || !reverseForm.payment_id}
                                 className="px-6 py-2 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
-                                {saving ? 'Processing...' : 'Reverse Payment'}
+                                {saving ? 'جاري التنفيذ...' : 'عكس الدفعة'}
                             </button>
                         </div>
                     </form>

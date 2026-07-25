@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import api from '../api/axios'
+import { roleLabels } from '../lib/labels'
 
 export default function Navbar() {
     const navigate = useNavigate()
@@ -32,12 +33,6 @@ export default function Navbar() {
         ...(user.role === 'tenant_admin' ? [{ to: '/audit-log', label: 'النشاط' }] : []),
         ...(user.role === 'tenant_admin' || user.role === 'store_manager' ? [{ to: '/settings', label: 'الإعدادات' }] : []),
     ]
-
-    const roleLabels = {
-        tenant_admin: 'صاحب المتجر',
-        store_manager: 'مدير المتجر',
-        store_staff: 'موظف',
-    }
 
     const linkClass = ({ isActive }) =>
         `px-3 py-2 rounded-md text-sm font-medium transition-colors ${

@@ -176,7 +176,7 @@ export default function CustomerSearchInput({ customers, value, onSelect, placeh
                                 type="text"
                                 value={browseQuery}
                                 onChange={e => setBrowseQuery(e.target.value)}
-                                placeholder="Search by name, phone, or code..."
+                                placeholder="ابحث بالاسم أو التليفون أو الكود..."
                                 autoFocus
                                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                             />

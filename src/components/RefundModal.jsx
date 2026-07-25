@@ -58,7 +58,7 @@ export default function RefundModal({
     }
 
     return (
-        <Modal open={open} onClose={onClose} title="↩ Issue Refund">
+        <Modal open={open} onClose={onClose} title="↩ عمل مرتجع">
             <div className="space-y-4">
                 {orders.length === 0 ? (
                     <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
@@ -111,7 +111,7 @@ export default function RefundModal({
                                     }}
                                     className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-orange-500 text-sm"
                                 >
-                                    <option value="">Refund across all payments (auto)</option>
+                                    <option value="">مرتجع على كل الدفعات (تلقائي)</option>
                                     {filteredPayments.map(p => (
                                         <option key={p.id} value={p.id}>
                                             {p.invoice_number} — {p.amount - (p.refunded_amount ?? 0)} ج.م net

@@ -4,7 +4,7 @@ export default function OrderSearchInput({
     orders,
     value,
     onSelect,
-    placeholder = 'Search by invoice number...',
+    placeholder = 'ابحث برقم الفاتورة...',
     renderMeta = (order) => `${order.total} EGP`,
 }) {
     const [query, setQuery] = useState('')
@@ -171,7 +171,7 @@ export default function OrderSearchInput({
                                 type="text"
                                 value={browseQuery}
                                 onChange={e => setBrowseQuery(e.target.value)}
-                                placeholder="Search by invoice number..."
+                                placeholder="ابحث برقم الفاتورة..."
                                 autoFocus
                                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-orange-500 text-sm"
                             />

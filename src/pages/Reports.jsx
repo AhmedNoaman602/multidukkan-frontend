@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import api from "../api/axios";
 import LoadingSpinner from "../components/LoadingSpinner";
+import { paymentMethodLabels } from "../lib/labels";
 import {
   LineChart,
   Line,
@@ -13,14 +14,7 @@ import {
   Bar,
 } from "recharts";
 
-const methodLabel = {
-  cash: "Cash",
-  bank_transfer: "Bank Transfer",
-  instapay: "Instapay",
-  vodafone_cash: "Vodafone Cash",
-  orange_cash: "Orange Cash",
-  check: "Check",
-};
+const methodLabel = paymentMethodLabels;
 
 const methodColors = {
   cash: "bg-green-500/20 text-green-400",
@@ -102,7 +96,7 @@ export default function Reports() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-white">Reports</h2>
+        <h2 className="text-2xl font-bold text-white">التقارير</h2>
         <button
           onClick={() => {
             const url = `/reports/print?from=${from}&to=${to}`;
@@ -111,7 +105,7 @@ export default function Reports() {
           disabled={!data || data.summary.order_count === 0}
           className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed text-gray-300 text-sm font-medium rounded-lg transition-colors"
         >
-          🖨️ Print
+          🖨️ طباعة
         </button>
       </div>
 
@@ -119,7 +113,7 @@ export default function Reports() {
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-6">
         <div className="flex items-end gap-4 flex-wrap">
           <div>
-            <label className="block text-xs text-gray-400 mb-1">From</label>
+            <label className="block text-xs text-gray-400 mb-1">من</label>
             <input
               type="date"
               value={from}
@@ -131,7 +125,7 @@ export default function Reports() {
             />
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1">To</label>
+            <label className="block text-xs text-gray-400 mb-1">إلى</label>
             <input
               type="date"
               value={to}
@@ -146,7 +140,7 @@ export default function Reports() {
             onClick={handleFilter}
             className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
           >
-            View Report
+            عرض التقرير
           </button>
           <div className="flex gap-2 ms-auto">
             {["today", "week", "month"].map((type) => (
@@ -160,10 +154,10 @@ export default function Reports() {
                 }`}
               >
                 {type === "today"
-                  ? "Today"
+                  ? "اليوم"
                   : type === "week"
-                    ? "Last 7 Days"
-                    : "This Month"}
+                    ? "آخر 7 أيام"
+                    : "الشهر ده"}
               </button>
             ))}
           </div>
@@ -178,27 +172,27 @@ export default function Reports() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
             {[
               {
-                label: "Total Revenue",
+                label: "إجمالي الإيرادات",
                 value: data.summary.total_revenue,
                 color: "text-white",
               },
               {
-                label: "Total Collected",
+                label: "إجمالي المحصل",
                 value: data.summary.total_collected,
                 color: "text-green-400",
               },
               {
-                label: "Outstanding",
+                label: "المستحقات",
                 value: data.summary.outstanding,
                 color: "text-red-400",
               },
               {
-                label: "Gross Profit",
+                label: "إجمالي الربح",
                 value: data.summary.gross_profit,
                 color: "text-blue-400",
               },
               {
-                label: "Orders",
+                label: "الطلبات",
                 value: data.summary.order_count,
                 color: "text-white",
                 noEgp: true,
@@ -210,7 +204,7 @@ export default function Reports() {
               >
                 <p className="text-gray-400 text-xs mb-1">{stat.label}</p>
                 <p className={`text-2xl font-bold ${stat.color}`}>
-                  {stat.noEgp ? stat.value : `${stat.value} EGP`}
+                  {stat.noEgp ? stat.value : `${stat.value} ج.م`}
                 </p>
               </div>
             ))}
@@ -221,7 +215,7 @@ export default function Reports() {
               {/* Revenue by Day */}
               <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
                 <h3 className="text-white font-semibold text-sm mb-4">
-                  Revenue by Day
+                  الإيرادات باليوم
                 </h3>
                 <ResponsiveContainer width="100%" height={200}>
                   <LineChart data={data.daily_breakdown.data}>
@@ -245,7 +239,7 @@ export default function Reports() {
                       }}
                       labelStyle={{ color: "#fff" }}
                       itemStyle={{ color: "#60a5fa" }}
-                      formatter={(value) => [`${value} EGP`, "Revenue"]}
+                      formatter={(value) => [`${value} ج.م`, "الإيرادات"]}
                       labelFormatter={(d) =>
                         new Date(d).toLocaleDateString("en-GB")
                       }
@@ -264,7 +258,7 @@ export default function Reports() {
               {/* Top Products by Units Sold */}
               <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
                 <h3 className="text-white font-semibold text-sm mb-4">
-                  Top Products by Units Sold
+                  أكتر المنتجات مبيعاً
                 </h3>
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={data.products_sold.slice(0, 5)}>
@@ -288,7 +282,7 @@ export default function Reports() {
                       }}
                       labelStyle={{ color: "#fff" }}
                       itemStyle={{ color: "#10b981" }}
-                      formatter={(value) => [`${value} units`, "Sold"]}
+                      formatter={(value) => [`${value}`, "الكمية المُباعة"]}
                     />
                     <Bar
                       dataKey="units_sold"
@@ -306,19 +300,19 @@ export default function Reports() {
             <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
               <div className="px-4 py-3 border-b border-gray-800">
                 <h3 className="text-white font-semibold text-sm">
-                  Profit by Order
+                  الربح لكل طلب
                 </h3>
               </div>
               <table className="w-full">
                 <thead className="bg-gray-800">
                   <tr>
                     {[
-                      "Invoice",
-                      "Customer",
-                      "Revenue",
-                      "Cost",
-                      "Profit",
-                      "Margin",
+                      "الفاتورة",
+                      "العميل",
+                      "الإيرادات",
+                      "التكلفة",
+                      "الربح",
+                      "الهامش",
                     ].map((h) => (
                       <th
                         key={h}
@@ -342,13 +336,13 @@ export default function Reports() {
                         {o.customer_name}
                       </td>
                       <td className="px-4 py-2 text-white text-sm">
-                        {o.revenue} EGP
+                        {o.revenue} ج.م
                       </td>
                       <td className="px-4 py-2 text-gray-400 text-sm">
-                        {o.cost} EGP
+                        {o.cost} ج.م
                       </td>
                       <td className="px-4 py-2 text-green-400 text-sm font-semibold">
-                        {o.profit} EGP
+                        {o.profit} ج.م
                       </td>
                       <td className="px-4 py-2">
                         <span
@@ -386,7 +380,7 @@ export default function Reports() {
                     → السابق
                   </button>
                   <span className="text-gray-500 text-xs">
-                    Page {data.profit_by_order.current_page} of{" "}
+                    صفحة {data.profit_by_order.current_page} من{" "}
                     {data.profit_by_order.last_page}
                   </span>
                   <button
@@ -411,13 +405,13 @@ export default function Reports() {
             <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
               <div className="px-4 py-3 border-b border-gray-800">
                 <h3 className="text-white font-semibold text-sm">
-                  Orders by Customer
+                  الطلبات لكل عميل
                 </h3>
               </div>
               <table className="w-full">
                 <thead className="bg-gray-800">
                   <tr>
-                    {["Customer", "Orders", "Total", "Collected"].map((h) => (
+                    {["العميل", "الطلبات", "الإجمالي", "المحصل"].map((h) => (
                       <th
                         key={h}
                         className="px-4 py-2 text-start text-xs font-medium text-gray-400 uppercase tracking-wider"
@@ -440,10 +434,10 @@ export default function Reports() {
                         {c.orders_count}
                       </td>
                       <td className="px-4 py-2 text-white text-sm">
-                        {c.total} EGP
+                        {c.total} ج.م
                       </td>
                       <td className="px-4 py-2 text-green-400 text-sm">
-                        {c.collected} EGP
+                        {c.collected} ج.م
                       </td>
                     </tr>
                   ))}
@@ -468,7 +462,7 @@ export default function Reports() {
                     → السابق
                   </button>
                   <span className="text-gray-500 text-xs">
-                    Page {data.orders_by_customer.current_page} of{" "}
+                    صفحة {data.orders_by_customer.current_page} من{" "}
                     {data.orders_by_customer.last_page}
                   </span>
                   <button
@@ -493,13 +487,13 @@ export default function Reports() {
           <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto mb-6">
             <div className="px-4 py-3 border-b border-gray-800">
               <h3 className="text-white font-semibold text-sm">
-                Payments History
+                سجل الدفعات
               </h3>
             </div>
             <table className="w-full">
               <thead className="bg-gray-800">
                 <tr>
-                  {["Invoice", "Customer", "Amount", "Method", "Time"].map(
+                  {["الفاتورة", "العميل", "المبلغ", "طريقة الدفع", "الوقت"].map(
                     (h) => (
                       <th
                         key={h}
@@ -524,7 +518,7 @@ export default function Reports() {
                       {p.customer_name}
                     </td>
                     <td className="px-4 py-2 text-green-400 text-sm font-semibold">
-                      {p.amount} EGP
+                      {p.amount} ج.م
                     </td>
                     <td className="px-4 py-2">
                       <span
@@ -563,7 +557,7 @@ export default function Reports() {
                   → السابق
                 </button>
                 <span className="text-gray-500 text-xs">
-                  Page {data.payments_history.current_page} of{" "}
+                  صفحة {data.payments_history.current_page} من{" "}
                   {data.payments_history.last_page}
                 </span>
                 <button
@@ -589,13 +583,13 @@ export default function Reports() {
             <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
               <div className="px-4 py-3 border-b border-gray-800">
                 <h3 className="text-white font-semibold text-sm">
-                  Daily Breakdown
+                  التفصيل اليومي
                 </h3>
               </div>
               <table className="w-full">
                 <thead className="bg-gray-800">
                   <tr>
-                    {["Date", "Orders", "Revenue"].map((h) => (
+                    {["التاريخ", "الطلبات", "الإيرادات"].map((h) => (
                       <th
                         key={h}
                         className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider"
@@ -618,7 +612,7 @@ export default function Reports() {
                         {day.orders}
                       </td>
                       <td className="px-4 py-3 text-white text-sm font-semibold">
-                        {day.revenue} EGP
+                        {day.revenue} ج.م
                       </td>
                     </tr>
                   ))}
@@ -636,7 +630,7 @@ export default function Reports() {
                         → السابق
                       </button>
                       <span className="text-gray-500 text-xs">
-                        Page {data.daily_breakdown.current_page} of{" "}
+                        صفحة {data.daily_breakdown.current_page} من{" "}
                         {data.daily_breakdown.last_page}
                       </span>
                       <button

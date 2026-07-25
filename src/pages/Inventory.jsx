@@ -71,7 +71,7 @@ export default function Inventory() {
     const submitAdjust = async () => {
         const qty = parseInt(adjustQty, 10)
         if (!qty || qty < 1) {
-            showToast('Please enter a quantity of 1 or more.', 'error')
+            showToast('اكتب كمية 1 أو أكتر.', 'error')
             return
         }
         if (!adjustNotes.trim()) {
@@ -273,7 +273,7 @@ export default function Inventory() {
         >
             → السابق
         </button>
-        <span className="text-gray-400 text-sm">Page {page} of {lastPage}</span>
+        <span className="text-gray-400 text-sm">صفحة {page} من {lastPage}</span>
         <button
             onClick={() => setPage(p => p + 1)}
             disabled={page === lastPage}

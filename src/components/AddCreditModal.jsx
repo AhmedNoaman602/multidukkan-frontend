@@ -10,19 +10,19 @@ export default function AddCreditModal({ customer, onClose, onSuccess }) {
     const {showToast} = useToast();
     const handleSubmit = async () => {
         if (!amount || parseFloat(amount) <= 0) {
-            showToast('Enter a valid amount', 'error')
+            showToast('اكتب مبلغ صحيح', 'error')
             return
         }
         setLoading(true)
         try {
             await api.post(`/customers/${customer.customer_id}/credit`, {
                 amount: parseFloat(amount),
-                description: description || 'Manual credit',
+                description: description || 'رصيد يدوي',
             })
             onSuccess()
             onClose()
         } catch (err){
-            showToast(err.response?.data?.message || 'Failed to add credit', 'error');
+            showToast(err.response?.data?.message || 'حصلت مشكلة في إضافة الرصيد', 'error');
         } finally {
             setLoading(false)
         }
@@ -32,7 +32,7 @@ export default function AddCreditModal({ customer, onClose, onSuccess }) {
         <Modal open={true} onClose={onClose} title={`Add Credit — ${customer.customer_name}`}>
             <div className="space-y-3">
                 <div>
-                    <label className="text-gray-400 text-sm">Amount (EGP)</label>
+                    <label className="text-gray-400 text-sm">Amount (ج.م)</label>
                     <input
                         type="number"
                         min="0"
@@ -61,14 +61,14 @@ export default function AddCreditModal({ customer, onClose, onSuccess }) {
                     onClick={onClose}
                     className="flex-1 bg-gray-700 text-gray-300 rounded-lg py-2 hover:bg-gray-600 text-sm"
                 >
-                    Cancel
+                    إلغاء
                 </button>
                 <button
                     onClick={handleSubmit}
                     disabled={loading}
                     className="flex-1 bg-green-600 text-white rounded-lg py-2 hover:bg-green-700 disabled:opacity-50 text-sm"
                 >
-                    {loading ? 'Saving...' : 'Add Credit'}
+                    {loading ? 'جاري الحفظ...' : 'إضافة الرصيد'}
                 </button>
             </div>
         </Modal>

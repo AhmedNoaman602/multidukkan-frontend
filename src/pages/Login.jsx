@@ -19,7 +19,7 @@ export default function Login() {
             localStorage.setItem('user', JSON.stringify(response.data.user))
             navigate('/')
         } catch (err) {
-            setError('Invalid email or password')
+            setError('البريد الإلكتروني أو كلمة المرور غلط')
         } finally {
             setLoading(false)
         }
@@ -126,7 +126,7 @@ export default function Login() {
                                     </svg>
                                     Signing in...
                                 </span>
-                            ) : 'Sign in'}
+                            ) : 'تسجيل الدخول'}
                         </button>
                         <p className="text-center text-slate-500 text-sm mt-6">
                             Don't have an account? {' '}

@@ -24,7 +24,7 @@ export default function Register() {
             localStorage.setItem('user', JSON.stringify(response.data.user))
             navigate('/')
         } catch (err) {
-            setError(err.response?.data?.message || 'Registration failed')
+            setError(err.response?.data?.message || 'حصلت مشكلة في إنشاء الحساب')
         } finally {
             setLoading(false)
         }
@@ -66,7 +66,7 @@ export default function Register() {
                                 value={form.business_name}
                                 onChange={(e) => setForm({ ...form, business_name: e.target.value })}
                                 required
-                                placeholder="Ahmed Store"
+                                placeholder="محل أحمد"
                                 className="w-full px-4 py-2.5 bg-white/[0.04] border border-slate-700/60 text-white rounded-lg focus:outline-none focus:border-blue-500/60 focus:ring-1 focus:ring-blue-500/40 placeholder-slate-500 transition-all duration-200"
                             />
                         </div>
@@ -131,7 +131,7 @@ export default function Register() {
                             disabled={loading}
                             className="w-full py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 disabled:opacity-50 text-white font-medium rounded-lg transition-all duration-200 shadow-lg shadow-blue-500/20 mt-2"
                         >
-                            {loading ? 'Creating account...' : 'Create Account'}
+                            {loading ? 'جاري إنشاء الحساب...' : 'إنشاء حساب'}
                         </button>
                     </form>
 

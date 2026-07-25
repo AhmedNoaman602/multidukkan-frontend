@@ -64,7 +64,7 @@ export default function PurchaseOrders() {
         setYears(res.data.years);
         setStats(res.data.stats || null);
       })
-      .catch(() => showToast("Failed to load purchase orders", "error"))
+      .catch(() => showToast("حصلت مشكلة في تحميل أوامر الشراء", "error"))
       .finally(() => {
         setLoading(false)
       });
@@ -93,7 +93,7 @@ export default function PurchaseOrders() {
         amount: parseFloat(payForm.amount),
         method: payForm.method,
       });
-      showToast("Payment processed successfully!", "success");
+      showToast("تم تسجيل الدفع بنجاح!", "success");
       setTimeout(() => {
         setPayTarget(null);
         setPayForm({ amount: "", method: "cash" });
@@ -101,7 +101,7 @@ export default function PurchaseOrders() {
       }, 1500);
     } catch (err) {
       showToast(
-        err.response?.data?.message || "Failed to process payment",
+        err.response?.data?.message || "حصلت مشكلة في تنفيذ الدفع",
         "error",
       );
     } finally {
@@ -128,12 +128,12 @@ export default function PurchaseOrders() {
       <div className="mb-6 space-y-4">
         {/* Top row */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <h2 className="text-2xl font-bold text-white">Purchase Orders</h2>
+          <h2 className="text-2xl font-bold text-white">أوامر الشراء</h2>
           <button
             onClick={() => navigate("/purchase-orders/create")}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
           >
-            + New Purchase Order
+            + أمر شراء جديد
           </button>
         </div>
 
@@ -143,21 +143,21 @@ export default function PurchaseOrders() {
             <SearchInput
               value={search}
               onChange={(e) => handleSearch(e.target.value)}
-              placeholder="Search by supplier or invoice..."
+              placeholder="ابحث بالمورد أو رقم الفاتورة..."
             />
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-gray-500 text-xs uppercase tracking-wider">
-              Filter:
+              تصفية:
             </span>
             {[
-              { label: "All Time", value: "all" },
-              { label: "Today", value: "today" },
-              { label: "Month", value: "month" },
-              { label: "Year", value: "year" },
-              { label: "Range", value: "range" },
-              { label: "Date", value: "exact" },
+              { label: "كل الفترات", value: "all" },
+              { label: "اليوم", value: "today" },
+              { label: "الشهر", value: "month" },
+              { label: "السنة", value: "year" },
+              { label: "فترة", value: "range" },
+              { label: "تاريخ محدد", value: "exact" },
             ].map((mode) => (
               <button
                 key={mode.value}
@@ -191,7 +191,7 @@ export default function PurchaseOrders() {
               }}
               className="px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg text-sm focus:outline-none focus:border-blue-500"
             >
-              <option value="">Select Year</option>
+              <option value="">اختر السنة</option>
               {years.map((y) => (
                 <option key={y} value={y}>
                   {y}
@@ -210,7 +210,7 @@ export default function PurchaseOrders() {
                 }}
                 className="px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg text-sm focus:outline-none focus:border-blue-500"
               >
-                <option value="">Select Year</option>
+                <option value="">اختر السنة</option>
                 {years.map((y) => (
                   <option key={y} value={y}>
                     {y}
@@ -225,20 +225,20 @@ export default function PurchaseOrders() {
                 }}
                 className="px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg text-sm focus:outline-none focus:border-blue-500"
               >
-                <option value="">Select Month</option>
+                <option value="">اختر الشهر</option>
                 {[
-                  "January",
-                  "February",
-                  "March",
-                  "April",
-                  "May",
-                  "June",
-                  "July",
-                  "August",
-                  "September",
-                  "October",
-                  "November",
-                  "December",
+                  "يناير",
+                  "فبراير",
+                  "مارس",
+                  "أبريل",
+                  "مايو",
+                  "يونيو",
+                  "يوليو",
+                  "أغسطس",
+                  "سبتمبر",
+                  "أكتوبر",
+                  "نوفمبر",
+                  "ديسمبر",
                 ].map((name, i) => (
                   <option key={i + 1} value={i + 1}>
                     {name}
@@ -251,7 +251,7 @@ export default function PurchaseOrders() {
           {filterMode === "range" && (
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
-                <span className="text-gray-500 text-sm">From</span>
+                <span className="text-gray-500 text-sm">من</span>
                 <input
                   type="date"
                   value={dateFrom}
@@ -264,7 +264,7 @@ export default function PurchaseOrders() {
                 />
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-gray-500 text-sm">To</span>
+                <span className="text-gray-500 text-sm">إلى</span>
                 <input
                   type="date"
                   value={dateTo}
@@ -306,23 +306,23 @@ export default function PurchaseOrders() {
         <StatBoxes
           stats={[
             {
-              label: "Total Orders",
+              label: "إجمالي الأوامر",
               value: stats.total_orders,
               color: "white",
             },
             {
-              label: "Total Spent",
-              value: `${stats.total_spent} EGP`,
+              label: "إجمالي المصروف",
+              value: `${stats.total_spent} ج.م`,
               color: "white",
             },
             {
-              label: "Paid",
-              value: `${stats.paid_amount} EGP`,
+              label: "المدفوع",
+              value: `${stats.paid_amount} ج.م`,
               color: "green",
             },
             {
-              label: "Unpaid",
-              value: `${stats.unpaid_amount} EGP`,
+              label: "غير المدفوع",
+              value: `${stats.unpaid_amount} ج.م`,
               color: "red",
             },
           ]}
@@ -334,13 +334,13 @@ export default function PurchaseOrders() {
           <thead className="bg-gray-800">
             <tr>
               {[
-                "Invoice",
-                "Supplier",
-                "Items",
-                "Total",
-                "Status",
-                "Date",
-                "Actions",
+                "الفاتورة",
+                "المورد",
+                "الأصناف",
+                "الإجمالي",
+                "الحالة",
+                "التاريخ",
+                "إجراءات",
               ].map((h) => (
                 <th
                   key={h}
@@ -379,7 +379,7 @@ export default function PurchaseOrders() {
                   {order.items_count} items
                 </td>
                 <td className="px-4 py-3 text-white text-sm">
-                  {order.total} EGP
+                  {order.total} ج.م
                 </td>
                 <td className="px-4 py-3">
                   <span
@@ -407,7 +407,7 @@ export default function PurchaseOrders() {
                       }}
                       className="px-3 py-1 bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-medium rounded-lg hover:bg-green-500/20 transition-colors"
                     >
-                      Invoice
+                      فاتورة
                     </button>
                     {order.status === "unpaid" && (
                       <button
@@ -421,7 +421,7 @@ export default function PurchaseOrders() {
                         }}
                         className="px-3 py-1 bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-medium rounded-lg hover:bg-purple-500/20 transition-colors"
                       >
-                        Pay
+                        دفع
                       </button>
                     )}
                   </div>
@@ -434,8 +434,8 @@ export default function PurchaseOrders() {
         {purchaseOrders.length === 0 && (
           <div className="text-center py-16 text-gray-500">
             {hasActiveFilters
-              ? "No orders match your filters."
-              : "No orders yet."}
+              ? "مفيش أوامر مطابقة للتصفية."
+              : "مفيش أوامر شراء لسه."}
           </div>
         )}
       </div>
@@ -450,7 +450,7 @@ export default function PurchaseOrders() {
             → السابق
           </button>
           <span className="text-gray-400 text-sm">
-            Page {page} of {lastPage}
+            صفحة {page} من {lastPage}
           </span>
           <button
             onClick={() => setPage((p) => p + 1)}
@@ -473,7 +473,7 @@ export default function PurchaseOrders() {
         {payTarget && (
           <form onSubmit={handlePay} className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Amount</label>
+              <label className="block text-sm text-gray-400 mb-1">المبلغ</label>
               <input
                 type="number"
                 min="0.01"
@@ -487,7 +487,7 @@ export default function PurchaseOrders() {
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Method</label>
+              <label className="block text-sm text-gray-400 mb-1">طريقة الدفع</label>
               <select
                 value={payForm.method}
                 onChange={(e) =>
@@ -495,9 +495,9 @@ export default function PurchaseOrders() {
                 }
                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-purple-500 text-sm"
               >
-                <option value="cash">Cash</option>
-                <option value="bank_transfer">Bank Transfer</option>
-                <option value="check">Check</option>
+                <option value="cash">نقدي</option>
+                <option value="bank_transfer">تحويل بنكي</option>
+                <option value="check">شيك</option>
               </select>
             </div>
             <div className="flex justify-end gap-2 pt-2">
@@ -506,14 +506,14 @@ export default function PurchaseOrders() {
                 onClick={() => setPayTarget(null)}
                 className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
               >
-                Cancel
+                إلغاء
               </button>
               <button
                 type="submit"
                 disabled={paying || !payForm.amount}
                 className="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
               >
-                {paying ? "Processing..." : "Confirm Payment"}
+                {paying ? "جاري التنفيذ..." : "تأكيد الدفع"}
               </button>
             </div>
           </form>
@@ -540,19 +540,19 @@ export default function PurchaseOrders() {
                     <div className="flex justify-between items-center">
                       <span className="text-gray-400">Total:</span>
                       <span className="text-white font-medium">
-                        {order.total} EGP
+                        {order.total} ج.م
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-400">Paid:</span>
                       <span className="text-green-400 font-medium">
-                        {getPaidAmount(order)} EGP
+                        {getPaidAmount(order)} ج.م
                       </span>
                     </div>
                     <div className="flex justify-between items-center border-t border-gray-700 pt-2">
                       <span className="text-gray-400">Remaining:</span>
                       <span className="text-red-400 font-medium">
-                        {order.amount_remaining || 0} EGP
+                        {order.amount_remaining || 0} ج.م
                       </span>
                     </div>
                     {order.payments_count > 0 && (

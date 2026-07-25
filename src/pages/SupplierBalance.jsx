@@ -7,12 +7,10 @@ import ProductSearchInput from '../components/ProductSearchInput'
 import Modal from '../components/Modal'
 import ReverseSupplierPaymentModal from '../components/ReverseSupplierPaymentModal'
 import { useToast } from '../hooks/useToast'
+import { paymentMethodLabels } from '../lib/labels'
+import { typeLabels } from '../lib/auditLog'
 
-const methodLabel = {
-    cash:          'Cash',
-    bank_transfer: 'Bank Transfer',
-    check:         'Check',
-}
+const methodLabel = paymentMethodLabels
 
 export default function SupplierBalance() {
     const { id } = useParams()
@@ -54,7 +52,7 @@ export default function SupplierBalance() {
             setAttachedProducts(d.products)
             setPayments(d.payments || [])
         } catch (err) {
-            showToast(err.response?.data?.message || 'Failed to load supplier data', 'error')
+            showToast(err.response?.data?.message || 'حصلت مشكلة في تحميل بيانات المورد', 'error')
         } finally {
             setLoading(false)
         }
@@ -79,7 +77,7 @@ export default function SupplierBalance() {
             setPayForm({ amount: '', method: 'cash', purchase_order_id: '' })
             fetchData()
         } catch (err) {
-            showToast(err.response?.data?.message || 'Failed to add payment', 'error')
+            showToast(err.response?.data?.message || 'حصلت مشكلة في إضافة الدفعة', 'error')
         } finally {
             setSaving(false)
         }
@@ -90,12 +88,12 @@ export default function SupplierBalance() {
     setSaving(true)
     try {
         await api.post(`/suppliers/${id}/products/${selectedProduct.id}`, pivotForm)
-        showToast('Product linked to supplier', 'success')
+        showToast('تم ربط المنتج بالمورد', 'success')
         setAttachModal(false)
         setSelectedProduct(null)
         fetchData()
     } catch (err) {
-        showToast(err.response?.data?.message || 'Failed to attach product', 'error')
+        showToast(err.response?.data?.message || 'حصلت مشكلة في ربط المنتج', 'error')
     } finally {
         setSaving(false)
     }
@@ -106,36 +104,36 @@ const handleEdit = async () => {
     setSaving(true)
     try {
         await api.put(`/suppliers/${id}/products/${selectedProduct.id}`, pivotForm)
-        showToast('Product updated', 'success')
+        showToast('تم تعديل المنتج', 'success')
         setEditModal(false)
         fetchData()
     } catch (err) {
-        showToast(err.response?.data?.message || 'Failed to update product', 'error')
+        showToast(err.response?.data?.message || 'حصلت مشكلة في تعديل المنتج', 'error')
     } finally {
         setSaving(false)
     }
 }
 
 const handleDetach = async (productId) => {
-    if (!confirm('Remove this product from supplier?')) return
+    if (!confirm('تشيل المنتج ده من المورد؟')) return
     setDetaching(productId)
     try {
         await api.delete(`/suppliers/${id}/products/${productId}`)
-        showToast('Product removed', 'success')
+        showToast('تم شيل المنتج', 'success')
         fetchData()
     } catch (err) {
-        showToast(err.response?.data?.message || 'Failed to remove product', 'error')
+        showToast(err.response?.data?.message || 'حصلت مشكلة في شيل المنتج', 'error')
     } finally {
         setDetaching(null)
     }
 }
 const addToCart = (product) => {
     if (cart.find(p => p.id === product.id)) {
-        showToast('Product already in selection', 'error')
+        showToast('المنتج متحدد بالفعل', 'error')
         return
     }
      if (attachedProducts.find(p => p.id === product.id)) {
-        showToast('Product already linked to this supplier', 'error')
+        showToast('المنتج مربوط بالفعل بالمورد ده', 'error')
         return
     }
     setCart(c => [...c, {
@@ -167,12 +165,12 @@ const handleBulkAttach = async () => {
                 notes: p.notes
             }))
         })
-        showToast(`${cart.length} product(s) linked to supplier`, 'success')
+        showToast(`تم ربط المنتجات بالمورد — العدد: ${cart.length}`, 'success')
         setAttachModal(false)
         setCart([])
         fetchData()
     } catch (err) {
-        showToast(err.response?.data?.message || 'Failed to attach products', 'error')
+        showToast(err.response?.data?.message || 'حصلت مشكلة في ربط المنتجات', 'error')
     } finally {
         setSaving(false)
     }
@@ -201,7 +199,7 @@ const handleBulkAttach = async () => {
     return (
         <div className="max-w-4xl">
             <div className="flex justify-between items-center mb-4">
-                <BackButton label="Back to Suppliers" to="/suppliers" />
+                <BackButton label="رجوع للموردين" to="/suppliers" />
                 <h2 className="text-2xl font-bold text-white">{balance.supplier_name}</h2>
             </div>
 
@@ -209,12 +207,12 @@ const handleBulkAttach = async () => {
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <p className="text-gray-400 text-sm mb-1">Current Balance</p>
+                        <p className="text-gray-400 text-sm mb-1">الرصيد الحالي</p>
                         <p className={`text-4xl font-bold ${isOwed ? 'text-red-400' : isOverpaid ? 'text-yellow-400' : 'text-gray-400'}`}>
-                            {parseFloat(balance.balance).toFixed(2)} EGP
+                            {parseFloat(balance.balance).toFixed(2)} ج.م
                         </p>
                         <p className={`text-sm mt-1 ${isOwed ? 'text-red-400' : isOverpaid ? 'text-yellow-400' : 'text-green-400'}`}>
-                            {isOwed ? 'You owe this supplier' : isOverpaid ? 'Overpaid' : 'Fully settled'}
+                            {isOwed ? 'إنت مدين للمورد ده' : isOverpaid ? 'مدفوع زيادة' : 'متسدد بالكامل'}
                         </p>
                     </div>
                   <div className="flex flex-col items-end gap-1">
@@ -224,18 +222,18 @@ const handleBulkAttach = async () => {
             disabled={payments.length === 0}
             className="px-4 py-2 bg-orange-600 hover:bg-orange-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
         >
-            ↩ Reverse Payment
+            ↩ عكس دفعة
         </button>
         <button
             onClick={() => setPaymentModal(true)}
             disabled={!isOwed}
             className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
         >
-            💰 Pay Supplier
+            💰 دفع للمورد
         </button>
     </div>
     {!isOwed && (
-        <p className="text-xs text-gray-500">No balance owed</p>
+        <p className="text-xs text-gray-500">مفيش رصيد مستحق</p>
     )}
 </div>
                 </div>
@@ -245,7 +243,7 @@ const handleBulkAttach = async () => {
 <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto mb-6">
     <div className="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
         <h3 className="text-white font-semibold">
-            Products
+            المنتجات
             <span className="ms-2 text-sm font-normal text-gray-400">
                 ({attachedProducts.length})
             </span>
@@ -259,14 +257,14 @@ const handleBulkAttach = async () => {
             }}
             className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
         >
-            + Add Product
+            + إضافة منتج
         </button>
     </div>
     {attachedProducts.length > 0 ? (
         <table className="w-full">
             <thead className="bg-gray-800">
                 <tr>
-                    {['Product', 'Supplier Cost', 'Last Purchase Price', 'Last Purchased' ,'Preferred', 'Actions'].map(h => (
+                    {['المنتج', 'تكلفة المورد', 'آخر سعر شراء', 'آخر شراء', 'المفضل', 'إجراءات'].map(h => (
                         <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">
                             {h}
                         </th>
@@ -279,11 +277,11 @@ const handleBulkAttach = async () => {
                         <td className="px-4 py-3 text-white text-sm font-medium">{product.name}</td>
                         <td className="px-4 py-3 text-white text-sm">
                           {(product.cost_price ?? product.last_purchase_price) 
-                            ? `${product.cost_price ?? product.last_purchase_price} EGP` 
+                            ? `${product.cost_price ?? product.last_purchase_price} ج.م` 
                             : '—'}
                         </td>
                         <td className="px-4 py-3 text-gray-400 text-sm">
-                             {product.last_purchase_price ? `${product.last_purchase_price} EGP` : '—'}
+                             {product.last_purchase_price ? `${product.last_purchase_price} ج.م` : '—'}
                         </td>
                         <td className="px-4 py-3 text-gray-400 text-sm">
                             {product.last_purchased_at 
@@ -309,14 +307,14 @@ const handleBulkAttach = async () => {
                                 }}
                                 className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium rounded-lg hover:bg-blue-500/20 transition-colors"
                             >
-                                Edit
+                                تعديل
                             </button>
                             <button
                                 onClick={() => handleDetach(product.id)}
                                 disabled={detaching === product.id}
                                 className="px-3 py-1 bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium rounded-lg hover:bg-red-500/20 transition-colors"
                             >
-                                {detaching === product.id ? '...' : 'Remove'}
+                                {detaching === product.id ? '...' : 'إزالة'}
                             </button>
                         </td>
                     </tr>
@@ -331,12 +329,12 @@ const handleBulkAttach = async () => {
 </div>
 
             {/* Purchase Orders */}
-            <h3 className="text-white font-semibold mb-4">Purchase Orders</h3>
+            <h3 className="text-white font-semibold mb-4">أوامر الشراء</h3>
             <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto mb-6">
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>
-                            {['Invoice', 'Total', 'Paid', 'Remaining', 'Status', 'Date'].map(h => (
+                            {['الفاتورة', 'الإجمالي', 'المدفوع', 'المتبقي', 'الحالة', 'التاريخ'].map(h => (
                                 <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">
                                     {h}
                                 </th>
@@ -355,9 +353,9 @@ const handleBulkAttach = async () => {
                                     <td className="px-4 py-3 text-gray-400 text-sm font-mono">
                                         {order.invoice_number}
                                     </td>
-                                    <td className="px-4 py-3 text-white text-sm">{order.total} EGP</td>
-                                    <td className="px-4 py-3 text-green-400 text-sm">{paid} EGP</td>
-                                    <td className="px-4 py-3 text-red-400 text-sm">{order.amount_remaining} EGP</td>
+                                    <td className="px-4 py-3 text-white text-sm">{order.total} ج.م</td>
+                                    <td className="px-4 py-3 text-green-400 text-sm">{paid} ج.م</td>
+                                    <td className="px-4 py-3 text-red-400 text-sm">{order.amount_remaining} ج.م</td>
                                     <td className="px-4 py-3">
                                         <span className={`px-2 py-1 rounded text-xs font-medium ${
                                             order.status === 'paid'
@@ -376,17 +374,17 @@ const handleBulkAttach = async () => {
                     </tbody>
                 </table>
                 {purchaseOrders.length === 0 && (
-                    <div className="text-center py-16 text-gray-500">No orders yet.</div>
+                    <div className="text-center py-16 text-gray-500">مفيش أوامر شراء لسه.</div>
                 )}
             </div>
 
             {/* Payments */}
-            <h3 className="text-white font-semibold mb-3">Payments</h3>
+            <h3 className="text-white font-semibold mb-3">الدفعات</h3>
             <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto mb-6">
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>
-                            {['Invoice', 'Amount', 'Method', 'Date'].map(h => (
+                            {['الفاتورة', 'المبلغ', 'طريقة الدفع', 'التاريخ'].map(h => (
                                 <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>
                             ))}
                         </tr>
@@ -396,7 +394,7 @@ const handleBulkAttach = async () => {
                             <tr key={p.id}
                                 className="hover:bg-gray-800/50 transition-colors">
                                 <td className="px-4 py-3 text-gray-400 text-sm font-mono">{p.invoice_number}</td>
-                                <td className="px-4 py-3 text-white text-sm">{p.amount} EGP</td>
+                                <td className="px-4 py-3 text-white text-sm">{p.amount} ج.م</td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">{methodLabel[p.method] ?? p.method}</td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">
                                     {new Date(p.paid_at).toLocaleDateString('en-GB')}
@@ -406,17 +404,17 @@ const handleBulkAttach = async () => {
                     </tbody>
                 </table>
                 {payments.length === 0 && (
-                    <div className="text-center py-16 text-gray-500">No payments yet.</div>
+                    <div className="text-center py-16 text-gray-500">مفيش دفعات لسه.</div>
                 )}
             </div>
 
             {/* Transaction History */}
-            <h3 className="text-white font-semibold mb-4">Transaction History</h3>
+            <h3 className="text-white font-semibold mb-4">سجل المعاملات</h3>
             <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>
-                            {['Type', 'Amount', 'Description', 'Date'].map(h => (
+                            {['النوع', 'المبلغ', 'الوصف', 'التاريخ'].map(h => (
                                 <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">
                                     {h}
                                 </th>
@@ -428,10 +426,10 @@ const handleBulkAttach = async () => {
                             <tr key={index} className="hover:bg-gray-800/50 transition-colors">
                                 <td className="px-4 py-3">
                                     <span className={`px-2 py-1 rounded text-xs font-medium ${typeStyles[entry.type] || 'bg-gray-700 text-gray-300'}`}>
-                                        {entry.type}
+                                        {typeLabels[entry.type] || entry.type}
                                     </span>
                                 </td>
-                                <td className="px-4 py-3 text-white text-sm">{entry.amount} EGP</td>
+                                <td className="px-4 py-3 text-white text-sm">{entry.amount} ج.م</td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">{entry.description || '—'}</td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">
                                     {new Date(entry.created_at).toLocaleDateString()}
@@ -441,7 +439,7 @@ const handleBulkAttach = async () => {
                     </tbody>
                 </table>
                 {(!history || history.length === 0) && (
-                    <div className="text-center py-16 text-gray-500">No transactions yet.</div>
+                    <div className="text-center py-16 text-gray-500">مفيش معاملات لسه.</div>
                 )}
             </div>
 
@@ -454,14 +452,14 @@ const handleBulkAttach = async () => {
             />
 
             {/* Payment Modal */}
-            <Modal open={paymentModal} onClose={() => setPaymentModal(false)} title="💰 Pay Supplier">
+            <Modal open={paymentModal} onClose={() => setPaymentModal(false)} title="💰 دفع للمورد">
                 <div className="space-y-4">
                     {unpaidOrders.length > 0 && (
                         <div className="space-y-1">
                             {unpaidOrders.map((o, i) => (
                                 <div key={o.id} className="flex justify-between text-xs text-gray-400 bg-gray-800 px-3 py-2 rounded-lg">
                                     <span>#{i + 1} — {o.invoice_number}</span>
-                                    <span>{o.amount_remaining ?? o.total} EGP</span>
+                                    <span>{o.amount_remaining ?? o.total} ج.م</span>
                                 </div>
                             ))}
                         </div>
@@ -471,7 +469,7 @@ const handleBulkAttach = async () => {
                         {unpaidOrders.length > 0 && (
                             <div>
                                 <label className="block text-sm text-gray-400 mb-1">
-                                    Pay Specific Order
+                                    دفع لأمر شراء محدد
                                     <span className="text-gray-600 ms-1">(optional — leave blank for FIFO)</span>
                                 </label>
                                 <select
@@ -479,10 +477,10 @@ const handleBulkAttach = async () => {
                                     onChange={(e) => setPayForm({ ...payForm, purchase_order_id: e.target.value })}
                                     className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-purple-500 text-sm"
                                 >
-                                    <option value="">Pay oldest first (auto)</option>
+                                    <option value="">سدد الأقدم الأول (تلقائي)</option>
                                     {unpaidOrders.map(o => (
                                         <option key={o.id} value={o.id}>
-                                            {o.invoice_number} — {o.amount_remaining ?? o.total} EGP
+                                            {o.invoice_number} — {o.amount_remaining ?? o.total} ج.م
                                         </option>
                                     ))}
                                 </select>
@@ -491,7 +489,7 @@ const handleBulkAttach = async () => {
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm text-gray-400 mb-1">Amount</label>
+                                <label className="block text-sm text-gray-400 mb-1">المبلغ</label>
                                 <input
                                     type="number"
                                     value={payForm.amount}
@@ -504,15 +502,15 @@ const handleBulkAttach = async () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm text-gray-400 mb-1">Method</label>
+                                <label className="block text-sm text-gray-400 mb-1">طريقة الدفع</label>
                                 <select
                                     value={payForm.method}
                                     onChange={(e) => setPayForm({ ...payForm, method: e.target.value })}
                                     className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-purple-500 text-sm"
                                 >
-                                    <option value="cash">Cash</option>
-                                    <option value="bank_transfer">Bank Transfer</option>
-                                    <option value="check">Check</option>
+                                    <option value="cash">نقدي</option>
+                                    <option value="bank_transfer">تحويل بنكي</option>
+                                    <option value="check">شيك</option>
                                 </select>
                             </div>
                         </div>
@@ -523,21 +521,21 @@ const handleBulkAttach = async () => {
                                 onClick={() => setPaymentModal(false)}
                                 className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
                             >
-                                Cancel
+                                إلغاء
                             </button>
                             <button
                                 type="submit"
                                 disabled={saving || !payForm.amount}
                                 className="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
                             >
-                                {saving ? 'Processing...' : 'Pay Supplier'}
+                                {saving ? 'جاري التنفيذ...' : 'دفع للمورد'}
                             </button>
                         </div>
                     </form>
                 </div>
             </Modal>
 
-      <Modal open={attachModal} onClose={() => { setAttachModal(false); setCart([]) }} title="Link Products to Supplier">
+      <Modal open={attachModal} onClose={() => { setAttachModal(false); setCart([]) }} title="ربط منتجات بالمورد">
     <div className="space-y-4">
         {/* Search */}
         <div>
@@ -549,7 +547,7 @@ const handleBulkAttach = async () => {
                 }
                 showCostPrice={true}
                 onSelect={addToCart}
-                placeholder="Search by name or SKU..."
+                placeholder="ابحث بالاسم أو رمز المنتج..."
             />
             {allProducts.filter(p => !attachedProducts.find(a => a.id === p.id)).length === 0 && (
                 <p className="text-yellow-400 text-xs mt-1">
@@ -566,7 +564,7 @@ const handleBulkAttach = async () => {
     <div key={item.id} className="bg-gray-800 rounded-lg px-3 py-2 flex items-center gap-3">
         <span className="text-white text-sm font-medium flex-1">{item.name}</span>
         <div className="flex flex-col gap-1">
-    <span className="text-gray-500 text-[10px]">Supplier Cost</span>
+    <span className="text-gray-500 text-[10px]">تكلفة المورد</span>
     <input
         type="number"
         value={item.cost_price}
@@ -600,7 +598,7 @@ const handleBulkAttach = async () => {
 
         {cart.length === 0 && (
             <div className="text-center py-4 text-gray-600 text-sm">
-                No products selected yet
+                مفيش منتجات متحددة لسه
             </div>
         )}
 
@@ -609,14 +607,14 @@ const handleBulkAttach = async () => {
                 onClick={() => { setAttachModal(false); setCart([]) }}
                 className="px-4 py-2 text-sm text-gray-400 hover:text-white"
             >
-                Cancel
+                إلغاء
             </button>
             <button
                 onClick={handleBulkAttach}
                 disabled={saving || cart.length === 0}
                 className="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
             >
-                {saving ? 'Saving...' : `Link ${cart.length > 0 ? cart.length : ''} Product(s)`}
+                {saving ? 'جاري الحفظ...' : `Link ${cart.length > 0 ? cart.length : ''} Product(s)`}
             </button>
         </div>
     </div>
@@ -627,8 +625,8 @@ const handleBulkAttach = async () => {
     <div className="space-y-4">
         <div>
             <label className="block text-sm text-gray-400 mb-1">
-                Supplier Cost (EGP)
-                <span className="text-gray-600 text-xs ms-1 block mt-0.5">What this supplier currently charges</span>
+                Supplier Cost (ج.م)
+                <span className="text-gray-600 text-xs ms-1 block mt-0.5">السعر اللي المورد بيحاسب بيه دلوقتي</span>
             </label>
             <input
                 type="number"
@@ -662,14 +660,14 @@ const handleBulkAttach = async () => {
         </div>
         <div className="flex justify-end gap-2 pt-2">
             <button onClick={() => setEditModal(false)} className="px-4 py-2 text-sm text-gray-400 hover:text-white">
-                Cancel
+                إلغاء
             </button>
             <button
                 onClick={handleEdit}
                 disabled={saving}
                 className="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
             >
-                {saving ? 'Saving...' : 'Save Changes'}
+                {saving ? 'جاري الحفظ...' : 'حفظ التعديلات'}
             </button>
         </div>
     </div>

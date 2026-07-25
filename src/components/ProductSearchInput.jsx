@@ -157,7 +157,7 @@ export default function ProductSearchInput({ products, onSelect, showCostPrice =
                                 type="text"
                                 value={browseQuery}
                                 onChange={e => setBrowseQuery(e.target.value)}
-                                placeholder="Search by name or SKU..."
+                                placeholder="ابحث بالاسم أو رمز المنتج..."
                                 autoFocus
                                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                             />

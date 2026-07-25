@@ -238,14 +238,14 @@ export default function EditProduct() {
             disabled={generatingDesc || !form.name || !form.price}
             className="px-3 py-1 bg-purple-600/20 border border-purple-500/30 text-purple-400 hover:bg-purple-600/30 disabled:opacity-40 text-xs font-medium rounded-lg transition-colors"
         >
-            {generatingDesc ? 'جاري التوليد...' : '✨ Generate with AI'}
+            {generatingDesc ? 'جاري التوليد...' : '✨ ولّد بالذكاء الاصطناعي'}
         </button>
     </div>
     <textarea
         value={form.description || ''}
         onChange={(e) => setForm({ ...form, description: e.target.value })}
         rows={3}
-        placeholder="Product description (or generate with AI above)"
+        placeholder="وصف المنتج (أو ولّده بالذكاء الاصطناعي فوق)"
         className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm resize-none placeholder-gray-600"
     />
 </div>

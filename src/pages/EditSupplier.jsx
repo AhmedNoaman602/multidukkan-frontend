@@ -38,7 +38,7 @@ export default function EditSupplier() {
                 setAttachedIds(new Set(attachedRes.data.data.map(p => p.id)))
                 setAllProducts(allProductsRes.data.data)
             })
-            .catch(() => setError('Failed to load supplier'))
+            .catch(() => setError('حصلت مشكلة في تحميل المورد'))
             .finally(() => setLoading(false))
     }, [id])
 
@@ -50,7 +50,7 @@ export default function EditSupplier() {
             await api.put(`/suppliers/${id}`, { ...form })
             navigate('/suppliers')
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to update supplier')
+            setError(err.response?.data?.message || 'حصلت مشكلة في تعديل المورد')
         } finally {
             setSaving(false)
         }
@@ -72,7 +72,7 @@ export default function EditSupplier() {
                 setAttachedIds(prev => new Set(prev).add(productId))
             }
         } catch {
-            setError('Failed to update product link. Please try again.')
+            setError('حصلت مشكلة في تعديل ربط المنتج. حاول تاني.')
         } finally {
             setTogglingId(null)
         }
@@ -83,8 +83,8 @@ export default function EditSupplier() {
     return (
         <div className="">
             <div className="flex items-center gap-4 mb-6">
-                <BackButton label="Back to Suppliers" to="/suppliers" />
-                <h2 className="text-2xl font-bold text-white">Edit Supplier</h2>
+                <BackButton label="رجوع للموردين" to="/suppliers" />
+                <h2 className="text-2xl font-bold text-white">تعديل المورد</h2>
             </div>
 
             {error && (
@@ -97,7 +97,7 @@ export default function EditSupplier() {
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="col-span-2">
-                        <label className="block text-sm text-gray-400 mb-1">Code</label>
+                        <label className="block text-sm text-gray-400 mb-1">الكود</label>
                         <input
                             value={form.code}
                             onChange={(e) => setForm({ ...form, code: e.target.value })}
@@ -105,7 +105,7 @@ export default function EditSupplier() {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm text-gray-400 mb-1">Name</label>
+                        <label className="block text-sm text-gray-400 mb-1">الاسم</label>
                         <input
                             value={form.name}
                             onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -114,7 +114,7 @@ export default function EditSupplier() {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm text-gray-400 mb-1">Phone</label>
+                        <label className="block text-sm text-gray-400 mb-1">التليفون</label>
                         <input
                             value={form.phone}
                             onChange={(e) => setForm({ ...form, phone: e.target.value })}
@@ -123,7 +123,7 @@ export default function EditSupplier() {
                         />
                     </div>
                     <div className="col-span-2">
-                        <label className="block text-sm text-gray-400 mb-1">Address</label>
+                        <label className="block text-sm text-gray-400 mb-1">العنوان</label>
                         <input
                             value={form.address}
                             onChange={(e) => setForm({ ...form, address: e.target.value })}
@@ -131,7 +131,7 @@ export default function EditSupplier() {
                         />
                     </div>
                     <div className="col-span-2">
-                        <label className="block text-sm text-gray-400 mb-1">Notes</label>
+                        <label className="block text-sm text-gray-400 mb-1">ملاحظات</label>
                         <input
                             value={form.notes}
                             onChange={(e) => setForm({ ...form, notes: e.target.value })}
@@ -139,7 +139,7 @@ export default function EditSupplier() {
                         />
                     </div>
                     <div className="col-span-2">
-                        <label className="block text-sm text-gray-400 mb-1">Area</label>
+                        <label className="block text-sm text-gray-400 mb-1">المنطقة</label>
                         <input
                             value={form.area}
                             onChange={(e) => setForm({ ...form, area: e.target.value })}
@@ -152,7 +152,7 @@ export default function EditSupplier() {
                             disabled={saving}
                             className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
                         >
-                            {saving ? 'Saving...' : 'Save Changes'}
+                            {saving ? 'جاري الحفظ...' : 'حفظ التعديلات'}
                         </button>
                     </div>
                 </form>
@@ -161,14 +161,14 @@ export default function EditSupplier() {
             {/* ─── Linked Products ───────────────────────────────────────── */}
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
                 <h3 className="text-lg font-semibold text-white mb-4">
-                    Linked Products
+                    المنتجات المرتبطة
                     <span className="ms-2 text-sm font-normal text-gray-400">
                         ({attachedIds.size} attached)
                     </span>
                 </h3>
 
                 {allProducts.length === 0 ? (
-                    <p className="text-gray-500 text-sm">No products found in your catalog.</p>
+                    <p className="text-gray-500 text-sm">مفيش منتجات في الكتالوج.</p>
                 ) : (
                     <div className="divide-y divide-gray-800">
                         {allProducts.map(product => {
@@ -193,7 +193,7 @@ export default function EditSupplier() {
                                                 : 'bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20'
                                         }`}
                                     >
-                                        {isToggling ? '...' : isAttached ? 'Detach' : 'Attach'}
+                                        {isToggling ? '...' : isAttached ? 'إلغاء الربط' : 'ربط'}
                                     </button>
                                 </div>
                             )

@@ -22,7 +22,7 @@ export default function CreateSupplier() {
             })
             navigate('/suppliers')
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to create supplier')
+            setError(err.response?.data?.message || 'حصلت مشكلة في إنشاء المورد')
         } finally {
             setSaving(false)
         }
@@ -31,8 +31,8 @@ export default function CreateSupplier() {
     return (
         <div className="">
             <div className="flex items-center gap-4 mb-6">
-                <BackButton label="Back to Suppliers" to="/suppliers"/>
-                <h2 className="text-2xl font-bold text-white">Add New Supplier</h2>
+                <BackButton label="رجوع للموردين" to="/suppliers"/>
+                <h2 className="text-2xl font-bold text-white">إضافة مورد جديد</h2>
             </div>
 
             {error && (
@@ -44,7 +44,7 @@ export default function CreateSupplier() {
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                      <div>
-                        <label className="block text-sm text-gray-400 mb-1">Code</label>
+                        <label className="block text-sm text-gray-400 mb-1">الكود</label>
                         <input
                             value={form.code}
                             onChange={(e) => setForm({ ...form, code: e.target.value })}
@@ -53,7 +53,7 @@ export default function CreateSupplier() {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm text-gray-400 mb-1">Name</label>
+                        <label className="block text-sm text-gray-400 mb-1">الاسم</label>
                         <input
                             value={form.name}
                             onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -63,7 +63,7 @@ export default function CreateSupplier() {
                     </div>
 
                     <div>
-                        <label className="block text-sm text-gray-400 mb-1">Phone</label>
+                        <label className="block text-sm text-gray-400 mb-1">التليفون</label>
                         <input
                             value={form.phone}
                             onChange={(e) => setForm({ ...form, phone: e.target.value })}
@@ -73,7 +73,7 @@ export default function CreateSupplier() {
                     </div>
 
                     <div className="col-span-2">
-                        <label className="block text-sm text-gray-400 mb-1">Address</label>
+                        <label className="block text-sm text-gray-400 mb-1">العنوان</label>
                         <input
                             value={form.address}
                             onChange={(e) => setForm({ ...form, address: e.target.value })}
@@ -81,7 +81,7 @@ export default function CreateSupplier() {
                         />
                     </div>
                     <div className="col-span-2">
-                        <label className="block text-sm text-gray-400 mb-1">Notes</label>
+                        <label className="block text-sm text-gray-400 mb-1">ملاحظات</label>
                         <input
                             value={form.notes}
                             onChange={(e) => setForm({ ...form, notes: e.target.value })}
@@ -90,7 +90,7 @@ export default function CreateSupplier() {
                     </div>
 
                     <div>
-                        <label className="block text-sm text-gray-400 mb-1">Area</label>
+                        <label className="block text-sm text-gray-400 mb-1">المنطقة</label>
                         <input
                             value={form.area}
                             onChange={(e) => setForm({ ...form, area: e.target.value })}
@@ -104,7 +104,7 @@ export default function CreateSupplier() {
                             disabled={saving}
                             className="px-6 py-2.5 bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium rounded-lg transition-colors"
                         >
-                            {saving ? 'Saving...' : 'Save Supplier'}
+                            {saving ? 'جاري الحفظ...' : 'حفظ المورد'}
                         </button>
                     </div>
                 </form>

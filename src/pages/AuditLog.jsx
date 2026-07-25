@@ -10,10 +10,10 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { typeStyles, typeLabels, getInitials, formatDateTime, groupByDay } from '@/lib/auditLog'
 
 const sourcePills = [
-    { value: 'all', label: 'All' },
-    { value: 'ledger', label: 'Money' },
-    { value: 'inventory', label: 'Stock' },
-    { value: 'audit', label: 'Edits' },
+    { value: 'all', label: 'الكل' },
+    { value: 'ledger', label: 'فلوس' },
+    { value: 'inventory', label: 'مخزون' },
+    { value: 'audit', label: 'تعديلات' },
 ]
 
 export default function AuditLog() {
@@ -32,7 +32,7 @@ export default function AuditLog() {
 
     useEffect(() => {
         if (isError) {
-            showToast(error?.response?.data?.message || 'Failed to load activity', 'error')
+            showToast(error?.response?.data?.message || 'حصلت مشكلة في تحميل النشاط', 'error')
         }
     }, [isError, error, showToast])
 
@@ -49,7 +49,7 @@ export default function AuditLog() {
     return (
         <div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-                <h2 className="text-2xl font-bold text-white">Activity</h2>
+                <h2 className="text-2xl font-bold text-white">النشاط</h2>
 
                 <ToggleGroup
                     type="single"
@@ -70,7 +70,7 @@ export default function AuditLog() {
 
             {!isLoading && groups.length === 0 && (
                 <div className="text-center py-16 text-gray-500 bg-gray-900 border border-gray-800 rounded-xl">
-                    No activity found.
+                    مفيش نشاط.
                 </div>
             )}
 
@@ -105,10 +105,10 @@ export default function AuditLog() {
                                     </span>
 
                                     {row.amount !== null && (
-                                        <span className="text-sm font-medium text-white shrink-0">{row.amount} EGP</span>
+                                        <span className="text-sm font-medium text-white shrink-0">{row.amount} ج.م</span>
                                     )}
                                     {row.quantity !== null && (
-                                        <span className="text-sm font-medium text-white shrink-0">{row.quantity} units</span>
+                                        <span className="text-sm font-medium text-white shrink-0">الكمية: {row.quantity}</span>
                                     )}
 
                                     <span className="text-xs text-gray-500 shrink-0">{formatDateTime(row.created_at)}</span>
@@ -129,7 +129,7 @@ export default function AuditLog() {
                     >
                         → السابق
                     </button>
-                    <span className="text-gray-400 text-sm">Page {page} of {lastPage}</span>
+                    <span className="text-gray-400 text-sm">صفحة {page} من {lastPage}</span>
                     <button
                         onClick={() => setPage((p) => p + 1)}
                         disabled={page === lastPage}
