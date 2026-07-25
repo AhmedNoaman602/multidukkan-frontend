@@ -368,7 +368,7 @@ export default function CreateProduct() {
     <div className="px-4 py-2.5 border-b border-gray-800 flex items-center justify-between">
         <h3 className="text-white text-sm font-semibold">
             Warehouse Stock
-            {stocks.length > 0 && <span className="ml-1.5 text-gray-500 font-normal">({stocks.length})</span>}
+            {stocks.length > 0 && <span className="ms-1.5 text-gray-500 font-normal">({stocks.length})</span>}
         </h3>
         <button
             type="button"
@@ -383,7 +383,7 @@ export default function CreateProduct() {
         <thead className="bg-gray-800">
             <tr>
                 {['Warehouse', 'Quantity', 'Threshold', ''].map(h => (
-                    <th key={h} className="px-3 py-2 text-left text-[11px] font-medium text-gray-400 uppercase tracking-wider">{h}</th>
+                    <th key={h} className="px-3 py-2 text-start text-[11px] font-medium text-gray-400 uppercase tracking-wider">{h}</th>
                 ))}
             </tr>
         </thead>
@@ -429,7 +429,7 @@ export default function CreateProduct() {
                                     </button>
                                 ))}
                                 {stock.unit_type === 'secondary' && stock.quantity > 0 && (
-                                    <span className="text-xs text-blue-400 self-center ml-1">
+                                    <span className="text-xs text-blue-400 self-center ms-1">
                                         = {parseInt(stock.quantity) * parseInt(form.conversion_factor)} {form.unit}
                                     </span>
                                 )}

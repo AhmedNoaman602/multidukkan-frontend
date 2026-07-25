@@ -115,7 +115,7 @@ export default function ReverseSupplierPaymentModal({
                                 <p className="text-blue-400 text-sm">
                                     This will fully reverse <span className="font-bold">{selected.amount} EGP</span> paid
                                     on {selected.invoice_number}.
-                                    <span className="text-blue-600 text-xs ml-1">Supplier payments can only be reversed in full — this cannot be undone.</span>
+                                    <span className="text-blue-600 text-xs ms-1">Supplier payments can only be reversed in full — this cannot be undone.</span>
                                 </p>
                             </div>
                         )}

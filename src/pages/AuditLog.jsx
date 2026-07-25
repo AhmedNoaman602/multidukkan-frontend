@@ -86,7 +86,7 @@ export default function AuditLog() {
                                 <button
                                     key={`${row.source}-${row.id}`}
                                     onClick={() => setSelectedRow(row)}
-                                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-800/50 transition-colors"
+                                    className="w-full flex items-center gap-3 px-4 py-3 text-start hover:bg-gray-800/50 transition-colors"
                                 >
                                     <Avatar className="h-8 w-8 shrink-0">
                                         <AvatarFallback>{getInitials(row.user_name)}</AvatarFallback>

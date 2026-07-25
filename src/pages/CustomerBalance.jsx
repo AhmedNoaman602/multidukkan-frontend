@@ -191,7 +191,7 @@ export default function CustomerBalance() {
                     <thead className="bg-gray-800">
                         <tr>
                             {['Invoice', 'Total', 'Paid', 'Remaining', 'Status', 'Date'].map(h => (
-                                <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>
+                                <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>
                             ))}
                         </tr>
                     </thead>
@@ -232,7 +232,7 @@ export default function CustomerBalance() {
                     <thead className="bg-gray-800">
                         <tr>
                             {['Invoice', 'Amount', 'Refunded', 'Net', 'Method', 'Reference', 'Date','Actions'].map(h => (
-                                <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>
+                                <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>
                             ))}
                         </tr>
                     </thead>
@@ -286,7 +286,7 @@ export default function CustomerBalance() {
                     <thead className="bg-gray-800">
                         <tr>
                             {['Type', 'Amount', 'Description', 'Date'].map(h => (
-                                <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>
+                                <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>
                             ))}
                         </tr>
                     </thead>
@@ -334,7 +334,7 @@ export default function CustomerBalance() {
                             <div>
                                 <label className="block text-sm text-gray-400 mb-1">
                                     Pay Specific Order
-                                    <span className="text-gray-600 ml-1">(optional — leave blank for auto)</span>
+                                    <span className="text-gray-600 ms-1">(optional — leave blank for auto)</span>
                                 </label>
                                 <select value={autoForm.order_id}
                                     onChange={e => setAutoForm({ ...autoForm, order_id: e.target.value })}

@@ -185,7 +185,7 @@ try {
                             <thead className="bg-gray-800 sticky top-0">
                                 <tr>
                                     {['المنتج', 'الكمية', 'السعر', 'المخزن', 'الإجمالي', ''].map(h => (
-                                        <th key={h} className="px-2 py-1.5 text-left text-[10px] font-medium text-gray-500 uppercase">{h}</th>
+                                        <th key={h} className="px-2 py-1.5 text-start text-[10px] font-medium text-gray-500 uppercase">{h}</th>
                                     ))}
                                 </tr>
                             </thead>
@@ -295,7 +295,7 @@ try {
                                             })}
                                         </select>
                                     </div>
-                                    <p className="text-right text-white text-xs font-medium">
+                                    <p className="text-end text-white text-xs font-medium">
                                         {((parseFloat(item.unit_price) || 0) * (parseInt(item.quantity) || 0)).toFixed(2)}
                                     </p>
                                 </div>
@@ -331,14 +331,14 @@ try {
                                 min="0"
                                 value={discount}
                                 onChange={e => setDiscount(e.target.value)}
-                                className="w-20 px-2 py-1 bg-gray-800 border border-gray-700 text-white rounded-lg text-xs text-right focus:outline-none focus:border-blue-500"
+                                className="w-20 px-2 py-1 bg-gray-800 border border-gray-700 text-white rounded-lg text-xs text-end focus:outline-none focus:border-blue-500"
                             />
                         </div>
                     </div>
 
                <div className="flex justify-between items-center">
     <span className="text-gray-400 text-sm">الإجمالي</span>
-    <div className="text-right">
+    <div className="text-end">
         <input
             type="number"
             min="0"
@@ -346,7 +346,7 @@ try {
             value={manualTotal ?? ''}
             onChange={e => setManualTotal(e.target.value)}
             placeholder={grandTotal.toFixed(2)}
-            className="w-24 px-2 py-1 bg-gray-800 border border-gray-700 text-white rounded-lg text-sm text-right focus:outline-none focus:border-blue-500"
+            className="w-24 px-2 py-1 bg-gray-800 border border-gray-700 text-white rounded-lg text-sm text-end focus:outline-none focus:border-blue-500"
         />
         <p className="text-gray-500 text-[10px] mt-0.5">
             المحسوب تلقائيًا: {grandTotal.toFixed(2)} EGP

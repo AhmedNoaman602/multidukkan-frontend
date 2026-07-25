@@ -19,7 +19,7 @@ export default function Toast() {
     }
 
     return (
-        <div className={`fixed bottom-6 left-6 z-50 px-4 py-3 rounded-lg border text-sm shadow-lg max-w-sm ${styles[toast.type]}`}>
+        <div className={`fixed bottom-6 start-6 z-50 px-4 py-3 rounded-lg border text-sm shadow-lg max-w-sm ${styles[toast.type]}`}>
             <div className="flex items-center justify-between gap-3">
                 <span>{toast.message}</span>
                 <button

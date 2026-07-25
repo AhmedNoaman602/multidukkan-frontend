@@ -221,7 +221,7 @@ const handleDeleteUnit = async () => {
                     <button
                         key={tab.key}
                         onClick={() => setActiveTab(tab.key)}
-                        className={`w-full md:w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors text-left whitespace-nowrap ${
+                        className={`w-full md:w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors text-start whitespace-nowrap ${
                             activeTab === tab.key
                                 ? 'bg-gray-800 text-white'
                                 : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
@@ -295,7 +295,7 @@ const handleDeleteUnit = async () => {
                             <thead className="bg-gray-800">
                                 <tr>
                                     {['Name', 'Email', 'Role', 'Store', 'Actions'].map(h => (
-                                        <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>
+                                        <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>
                                     ))}
                                 </tr>
                             </thead>
@@ -366,7 +366,7 @@ const handleDeleteUnit = async () => {
                     <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
                         <table className="w-full">
                             <thead className="bg-gray-800">
-                                <tr>{['Name', 'Address', 'Phone', 'Actions'].map(h => <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>)}</tr>
+                                <tr>{['Name', 'Address', 'Phone', 'Actions'].map(h => <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>)}</tr>
                             </thead>
                             <tbody className="divide-y divide-gray-800">
                                 {stores.map(s => (
@@ -441,7 +441,7 @@ const handleDeleteUnit = async () => {
                     <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
                         <table className="w-full">
                             <thead className="bg-gray-800">
-                                <tr>{['Name', 'Store', 'Address', 'Actions'].map(h => <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>)}</tr>
+                                <tr>{['Name', 'Store', 'Address', 'Actions'].map(h => <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>)}</tr>
                             </thead>
                             <tbody className="divide-y divide-gray-800">
                                 {warehouses.map(w => (
@@ -505,8 +505,8 @@ const handleDeleteUnit = async () => {
                         <table className="w-full">
                             <thead className="bg-gray-800">
                                 <tr>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Unit Name</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th>
+                                    <th className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">Unit Name</th>
+                                    <th className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-800">

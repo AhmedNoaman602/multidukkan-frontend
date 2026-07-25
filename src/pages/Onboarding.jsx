@@ -157,7 +157,7 @@ export default function Onboarding() {
                         </div>
 <h2 className="text-2xl font-bold text-white mb-2">
     
-  <span dir="rtl">
+  <span>
     👋 أهلاً بك يا
   </span>{' '}
   <bdi>{user.name}</bdi>
@@ -360,7 +360,7 @@ export default function Onboarding() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4" dir='rtl'>
+        <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
             <div className="max-w-xl w-full">
 
                 {/* Step progress dots */}

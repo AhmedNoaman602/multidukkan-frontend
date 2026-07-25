@@ -156,7 +156,7 @@ export default function Inventory() {
            <span className="text-orange-400 text-sm">⚠️ Showing low stock items only</span>
             <button 
                 onClick={() => setLowStockOnly(false)} 
-                className="text-xs text-gray-500 hover:text-white ml-auto"
+                className="text-xs text-gray-500 hover:text-white ms-auto"
             >
                 Clear filter ✕
             </button>
@@ -191,7 +191,7 @@ export default function Inventory() {
                                 'Status',
                                 'Actions'
                             ].map(h => (
-                                <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">
                                     {h}
                                 </th>
                             ))}

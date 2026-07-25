@@ -112,7 +112,7 @@ export default function ProductDetail() {
                     <thead className="bg-gray-800">
                         <tr>
                             {['Warehouse', 'Quantity', 'Threshold'].map(h => (
-                                <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>
+                                <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>
                             ))}
                         </tr>
                     </thead>
@@ -150,7 +150,7 @@ export default function ProductDetail() {
                     <thead className="bg-gray-800">
                         <tr>
                             {['Supplier', 'Cost Price', 'Last Purchase', 'Preferred'].map(h => (
-                                <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>
+                                <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>
                             ))}
                         </tr>
                     </thead>

@@ -224,7 +224,7 @@ const displayTotal = editMode
                     <thead>
                         <tr className="border-b border-gray-800">
                             {['Product', 'Qty', 'Unit Price', 'Warehouses' , 'Total' , 'Actions'].map(h => (
-                                <th key={h} className="text-left text-xs text-gray-400 uppercase tracking-wider pb-3">
+                                <th key={h} className="text-start text-xs text-gray-400 uppercase tracking-wider pb-3">
                                     {h}
                                 </th>
                             ))}
@@ -244,7 +244,7 @@ const displayTotal = editMode
         : <>
             {item.quantity}
             {item.unit_label && (
-                <span className={`ml-1 text-xs ${item.unit_type !== 'base' ? 'text-blue-400' : 'text-gray-500'}`}>{item.unit_label}</span>
+                <span className={`ms-1 text-xs ${item.unit_type !== 'base' ? 'text-blue-400' : 'text-gray-500'}`}>{item.unit_label}</span>
             )}
           </>
     }
@@ -333,7 +333,7 @@ const displayTotal = editMode
             max={discountType === 'percent' ? 100 : undefined}
             value={editForm.discount}
             onChange={e => setEditForm({ ...editForm, discount: e.target.value })}
-            className="w-24 px-2 py-1 bg-gray-800 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm text-right"
+            className="w-24 px-2 py-1 bg-gray-800 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm text-end"
         />
     </div>
 ) : (

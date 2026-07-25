@@ -80,7 +80,7 @@ export default function Products() {
                     <thead className="bg-gray-800">
                         <tr>
                             {['Name', 'SKU', 'Default', 'سعر أ', 'سعر ب', 'سعر ج', 'سعر د', 'سعر هـ', 'Cost Price', 'Profit Margin', 'Unit', 'Actions'].map(h => (
-                                <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">
                                     {h}
                                 </th>
                             ))}

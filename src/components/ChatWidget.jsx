@@ -58,7 +58,7 @@ export default function ChatWidget() {
     }
 
     return (
-        <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 50 }}>
+        <div style={{ position: 'fixed', bottom: '24px', insetInlineEnd: '24px', zIndex: 50 }}>
 
             {/* Chat panel */}
             {open && (
@@ -71,7 +71,7 @@ export default function ChatWidget() {
                         <div className="flex items-center gap-2.5">
                             <span className="relative flex items-center justify-center w-8 h-8 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-400 shrink-0">
                                 <Bot size={16} strokeWidth={1.75} />
-                                <span className="absolute -bottom-0.5 -left-0.5 w-2.5 h-2.5 rounded-full bg-green-400 border-2 border-gray-900" />
+                                <span className="absolute -bottom-0.5 -start-0.5 w-2.5 h-2.5 rounded-full bg-green-400 border-2 border-gray-900" />
                             </span>
                             <div className="leading-tight">
                                 <p className="text-white text-sm font-medium">مساعد المتجر</p>
@@ -98,7 +98,7 @@ export default function ChatWidget() {
                     </div>
 
                     {/* Messages */}
-                    <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3" dir="rtl">
+                    <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
                         {history.length === 0 && !loading && (
                             <div className="text-center mt-8">
                                 <div className="w-11 h-11 mx-auto mb-3 flex items-center justify-center rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400">
@@ -122,8 +122,8 @@ export default function ChatWidget() {
                                 <div
                                     className={`px-3 py-2 rounded-2xl text-sm max-w-[78%] leading-relaxed shadow-sm ${
                                         msg.role === 'user'
-                                            ? 'bg-blue-600 text-white rounded-br-md'
-                                            : 'bg-gray-800 text-gray-100 rounded-bl-md'
+                                            ? 'bg-blue-600 text-white rounded-es-md'
+                                            : 'bg-gray-800 text-gray-100 rounded-ee-md'
                                     }`}
                                     style={{ whiteSpace: 'pre-wrap' }}
                                 >
@@ -137,7 +137,7 @@ export default function ChatWidget() {
                                 <span className="w-6 h-6 flex items-center justify-center rounded-full bg-purple-500/15 text-purple-400 shrink-0">
                                     <Bot size={12} strokeWidth={1.75} />
                                 </span>
-                                <div className="bg-gray-800 px-3 py-2.5 rounded-2xl rounded-bl-md">
+                                <div className="bg-gray-800 px-3 py-2.5 rounded-2xl rounded-ee-md">
                                     <div className="flex gap-1 items-center h-3">
                                         {[0, 1, 2].map(i => (
                                             <div
@@ -168,7 +168,6 @@ export default function ChatWidget() {
                                 onKeyDown={handleKeyDown}
                                 placeholder="اكتب سؤالك..."
                                 rows={1}
-                                dir="rtl"
                                 disabled={loading}
                                 className="flex-1 px-3.5 py-2.5 bg-gray-800 border border-gray-700 text-white rounded-xl text-sm resize-none focus:outline-none focus:border-purple-500/60 focus:ring-1 focus:ring-purple-500/30 placeholder-gray-500 disabled:opacity-50 transition-colors"
                                 style={{ maxHeight: '80px' }}

@@ -107,7 +107,7 @@ export default function PurchaseOrderDetail() {
                     <thead>
                         <tr className="border-b border-gray-800">
                             {['Product', 'Qty', 'Unit Price', 'Total'].map(h => (
-                                <th key={h} className="text-left text-xs text-gray-400 uppercase tracking-wider pb-3">
+                                <th key={h} className="text-start text-xs text-gray-400 uppercase tracking-wider pb-3">
                                     {h}
                                 </th>
                             ))}

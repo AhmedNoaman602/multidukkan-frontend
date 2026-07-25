@@ -155,7 +155,7 @@ const fetchQuickSaleData = async () => {
 {/* Filter row */}
 <div className="flex items-center gap-4 flex-wrap">
     {/* Search + New Order */}
-    <div className="flex items-center gap-3 mr-0 sm:mr-6 w-full sm:w-auto">
+    <div className="flex items-center gap-3 me-0 sm:me-6 w-full sm:w-auto">
         <div className="w-full sm:w-80">
             <SearchInput
                 value={search}
@@ -305,7 +305,7 @@ const fetchQuickSaleData = async () => {
                     <thead className="bg-gray-800">
                         <tr>
                             {['Invoice', 'Customer', 'Items', 'Total', 'Status', 'Date', ''].map(h => (
-                                <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">
                                     {h}
                                 </th>
                             ))}

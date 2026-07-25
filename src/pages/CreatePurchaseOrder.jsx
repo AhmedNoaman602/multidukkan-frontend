@@ -296,7 +296,7 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
                         <div className="px-4 py-2.5 border-b border-gray-800 flex items-center justify-between">
                             <h3 className="text-white text-sm font-semibold">
                                 Items
-                                {items.length > 0 && <span className="ml-1.5 text-gray-500 font-normal">({items.length})</span>}
+                                {items.length > 0 && <span className="ms-1.5 text-gray-500 font-normal">({items.length})</span>}
                             </h3>
                             {items.length > 0 && (
                                 <span className="text-xs text-gray-500">Enter = next field</span>
@@ -327,7 +327,7 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
                                 <thead className="bg-gray-800">
                                     <tr>
                                         {['Product', 'Qty', 'Unit Price', 'Warehouse', 'Unit', 'Total', ''].map(h => (
-                                            <th key={h} className="px-2.5 py-1.5 text-left text-[11px] font-medium text-gray-400 uppercase tracking-wider">{h}</th>
+                                            <th key={h} className="px-2.5 py-1.5 text-start text-[11px] font-medium text-gray-400 uppercase tracking-wider">{h}</th>
                                         ))}
                                     </tr>
                                 </thead>
@@ -497,7 +497,7 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
                                                 )}
                                             </div>
 
-                                            <p className="text-right text-white text-sm font-medium">
+                                            <p className="text-end text-white text-sm font-medium">
                                                 {lineTotal.toFixed(2)} <span className="text-gray-500 text-[10px]">EGP</span>
                                             </p>
                                         </div>

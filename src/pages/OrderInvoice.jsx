@@ -94,7 +94,7 @@ const mergedItems = order.items?.reduce((acc, item) => {
                             <p className="text-gray-500 text-sm mt-1">{order.store_name}</p>
                         )}
                     </div>
-                    <div className="text-right">
+                    <div className="text-end">
                         <p className="text-2xl font-bold text-gray-900">Invoice</p>
                         <p className="text-gray-500 text-sm mt-1">#{order.invoice_number}</p>
                     </div>
@@ -112,7 +112,7 @@ const mergedItems = order.items?.reduce((acc, item) => {
                             <p className="text-gray-500 text-sm">{order.customer_phone}</p>
                         )}
                     </div>
-                    <div className="text-right">
+                    <div className="text-end">
                         <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Date</p>
                         <p className="text-gray-900 text-sm">
                             {new Date(order.order_date || order.created_at).toLocaleDateString('en-GB')}
@@ -133,10 +133,10 @@ const mergedItems = order.items?.reduce((acc, item) => {
                 <table className="w-full mb-6">
                     <thead>
                         <tr className="border-b-2 border-gray-200">
-                            <th className="text-left text-xs text-gray-400 uppercase tracking-wider pb-2">Product</th>
+                            <th className="text-start text-xs text-gray-400 uppercase tracking-wider pb-2">Product</th>
                             <th className="text-center text-xs text-gray-400 uppercase tracking-wider pb-2">Qty</th>
-                            <th className="text-right text-xs text-gray-400 uppercase tracking-wider pb-2">Unit Price</th>
-                            <th className="text-right text-xs text-gray-400 uppercase tracking-wider pb-2">Total</th>
+                            <th className="text-end text-xs text-gray-400 uppercase tracking-wider pb-2">Unit Price</th>
+                            <th className="text-end text-xs text-gray-400 uppercase tracking-wider pb-2">Total</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -144,8 +144,8 @@ const mergedItems = order.items?.reduce((acc, item) => {
                             <tr key={index} className="border-b border-gray-100">
                                 <td className="py-3 text-gray-900 text-sm">{item.product_name}</td>
                                 <td className="py-3 text-center text-gray-600 text-sm">{item.quantity}</td>
-                                <td className="py-3 text-right text-gray-600 text-sm">{item.unit_price} EGP</td>
-                                <td className="py-3 text-right text-gray-900 text-sm font-medium">{item.total} EGP</td>
+                                <td className="py-3 text-end text-gray-600 text-sm">{item.unit_price} EGP</td>
+                                <td className="py-3 text-end text-gray-900 text-sm font-medium">{item.total} EGP</td>
                             </tr>
                         ))}
                     </tbody>

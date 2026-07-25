@@ -75,7 +75,7 @@ export default function ReportPrint() {
                         <h1 className="text-2xl font-bold text-gray-900">{user.business_name}</h1>
                         <p className="text-gray-500 text-sm mt-1">Sales Report</p>
                     </div>
-                    <div className="text-right">
+                    <div className="text-end">
                         <p className="text-gray-500 text-sm">
                             {from === to ? from : `${from} → ${to}`}
                         </p>
@@ -109,10 +109,10 @@ export default function ReportPrint() {
                 <table className="w-full mb-8">
                     <thead>
                         <tr className="border-b-2 border-gray-200">
-                            <th className="text-left text-xs text-gray-400 uppercase pb-2">Customer</th>
+                            <th className="text-start text-xs text-gray-400 uppercase pb-2">Customer</th>
                             <th className="text-center text-xs text-gray-400 uppercase pb-2">Orders</th>
-                            <th className="text-right text-xs text-gray-400 uppercase pb-2">Total</th>
-                            <th className="text-right text-xs text-gray-400 uppercase pb-2">Collected</th>
+                            <th className="text-end text-xs text-gray-400 uppercase pb-2">Total</th>
+                            <th className="text-end text-xs text-gray-400 uppercase pb-2">Collected</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -120,8 +120,8 @@ export default function ReportPrint() {
                             <tr key={i} className="border-b border-gray-100">
                                 <td className="py-2 text-gray-900 text-sm">{c.customer_name}</td>
                                 <td className="py-2 text-center text-gray-600 text-sm">{c.orders_count}</td>
-                                <td className="py-2 text-right text-gray-600 text-sm">{c.total} EGP</td>
-                                <td className="py-2 text-right text-gray-900 text-sm font-medium">{c.collected} EGP</td>
+                                <td className="py-2 text-end text-gray-600 text-sm">{c.total} EGP</td>
+                                <td className="py-2 text-end text-gray-900 text-sm font-medium">{c.collected} EGP</td>
                             </tr>
                         ))}
                     </tbody>
@@ -136,9 +136,9 @@ export default function ReportPrint() {
                         <table className="w-full mb-8">
                             <thead>
                                 <tr className="border-b-2 border-gray-200">
-                                    <th className="text-left text-xs text-gray-400 uppercase pb-2">Date</th>
+                                    <th className="text-start text-xs text-gray-400 uppercase pb-2">Date</th>
                                     <th className="text-center text-xs text-gray-400 uppercase pb-2">Orders</th>
-                                    <th className="text-right text-xs text-gray-400 uppercase pb-2">Revenue</th>
+                                    <th className="text-end text-xs text-gray-400 uppercase pb-2">Revenue</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -148,7 +148,7 @@ export default function ReportPrint() {
                                             {new Date(day.date).toLocaleDateString('en-GB')}
                                         </td>
                                         <td className="py-2 text-center text-gray-600 text-sm">{day.orders}</td>
-                                        <td className="py-2 text-right text-gray-900 text-sm font-medium">{day.revenue} EGP</td>
+                                        <td className="py-2 text-end text-gray-900 text-sm font-medium">{day.revenue} EGP</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -162,12 +162,12 @@ export default function ReportPrint() {
 <table className="w-full mb-8">
     <thead>
         <tr className="border-b-2 border-gray-200">
-            <th className="text-left text-xs text-gray-400 uppercase pb-2">Invoice</th>
-            <th className="text-left text-xs text-gray-400 uppercase pb-2">Customer</th>
-            <th className="text-right text-xs text-gray-400 uppercase pb-2">Revenue</th>
-            <th className="text-right text-xs text-gray-400 uppercase pb-2">Cost</th>
-            <th className="text-right text-xs text-gray-400 uppercase pb-2">Profit</th>
-            <th className="text-right text-xs text-gray-400 uppercase pb-2">Margin</th>
+            <th className="text-start text-xs text-gray-400 uppercase pb-2">Invoice</th>
+            <th className="text-start text-xs text-gray-400 uppercase pb-2">Customer</th>
+            <th className="text-end text-xs text-gray-400 uppercase pb-2">Revenue</th>
+            <th className="text-end text-xs text-gray-400 uppercase pb-2">Cost</th>
+            <th className="text-end text-xs text-gray-400 uppercase pb-2">Profit</th>
+            <th className="text-end text-xs text-gray-400 uppercase pb-2">Margin</th>
         </tr>
     </thead>
     <tbody>
@@ -175,10 +175,10 @@ export default function ReportPrint() {
             <tr key={i} className="border-b border-gray-100">
                 <td className="py-2 text-gray-500 text-sm font-mono">{o.invoice_number}</td>
                 <td className="py-2 text-gray-900 text-sm">{o.customer_name}</td>
-                <td className="py-2 text-right text-gray-600 text-sm">{o.revenue} EGP</td>
-                <td className="py-2 text-right text-gray-600 text-sm">{o.cost} EGP</td>
-                <td className="py-2 text-right text-gray-900 text-sm font-medium">{o.profit} EGP</td>
-                <td className="py-2 text-right text-sm font-medium">{o.margin}%</td>
+                <td className="py-2 text-end text-gray-600 text-sm">{o.revenue} EGP</td>
+                <td className="py-2 text-end text-gray-600 text-sm">{o.cost} EGP</td>
+                <td className="py-2 text-end text-gray-900 text-sm font-medium">{o.profit} EGP</td>
+                <td className="py-2 text-end text-sm font-medium">{o.margin}%</td>
             </tr>
         ))}
     </tbody>
@@ -191,11 +191,11 @@ export default function ReportPrint() {
 <table className="w-full mb-8">
     <thead>
         <tr className="border-b-2 border-gray-200">
-            <th className="text-left text-xs text-gray-400 uppercase pb-2">Invoice</th>
-            <th className="text-left text-xs text-gray-400 uppercase pb-2">Customer</th>
-            <th className="text-right text-xs text-gray-400 uppercase pb-2">Amount</th>
-            <th className="text-right text-xs text-gray-400 uppercase pb-2">Method</th>
-            <th className="text-right text-xs text-gray-400 uppercase pb-2">Time</th>
+            <th className="text-start text-xs text-gray-400 uppercase pb-2">Invoice</th>
+            <th className="text-start text-xs text-gray-400 uppercase pb-2">Customer</th>
+            <th className="text-end text-xs text-gray-400 uppercase pb-2">Amount</th>
+            <th className="text-end text-xs text-gray-400 uppercase pb-2">Method</th>
+            <th className="text-end text-xs text-gray-400 uppercase pb-2">Time</th>
         </tr>
     </thead>
     <tbody>
@@ -203,9 +203,9 @@ export default function ReportPrint() {
             <tr key={i} className="border-b border-gray-100">
                 <td className="py-2 text-gray-500 text-sm font-mono">{p.invoice_number}</td>
                 <td className="py-2 text-gray-900 text-sm">{p.customer_name}</td>
-                <td className="py-2 text-right text-gray-900 text-sm font-medium">{p.amount} EGP</td>
-                <td className="py-2 text-right text-gray-600 text-sm">{methodLabel[p.method] ?? p.method}</td>
-                <td className="py-2 text-right text-gray-500 text-sm">
+                <td className="py-2 text-end text-gray-900 text-sm font-medium">{p.amount} EGP</td>
+                <td className="py-2 text-end text-gray-600 text-sm">{methodLabel[p.method] ?? p.method}</td>
+                <td className="py-2 text-end text-gray-500 text-sm">
                     {new Date(p.paid_at).toLocaleTimeString('en-GB', { 
                         hour: '2-digit', 
                         minute: '2-digit',

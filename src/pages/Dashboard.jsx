@@ -29,7 +29,7 @@ const StatCard = ({ label, value, unit, sub, icon, chip, onClick }) => {
         </div>
         <p className="text-xl sm:text-2xl font-bold text-white tracking-tight tabular-nums">
             {value}
-            {unit && <span className="ml-1.5 text-sm font-normal text-gray-500">{unit}</span>}
+            {unit && <span className="ms-1.5 text-sm font-normal text-gray-500">{unit}</span>}
         </p>
         {sub && <p className="text-xs text-gray-500 mt-1.5">{sub}</p>}
     </div>
@@ -418,10 +418,10 @@ export default function Dashboard() {
                                 {card.icon} {card.label}
                             </span>
                         </div>
-                        <p className="text-white text-sm font-semibold mb-2 text-right" dir="rtl">
+                        <p className="text-white text-sm font-semibold mb-2 text-end">
                             {insights[card.key].title}
                         </p>
-                        <p className="text-gray-400 text-xs leading-relaxed text-right" dir="rtl">
+                        <p className="text-gray-400 text-xs leading-relaxed text-end">
                             {insights[card.key].body}
                         </p>
                     </div>
@@ -520,13 +520,13 @@ export default function Dashboard() {
                                 <thead>
                                     <tr className="border-b border-gray-800">
                                         {[
-                                            { h: 'Invoice', align: 'text-left' },
-                                            { h: 'Customer', align: 'text-left' },
-                                            { h: 'Items', align: 'text-right' },
-                                            { h: 'Total', align: 'text-right' },
-                                            { h: 'Balance', align: 'text-right' },
-                                            { h: 'Status', align: 'text-left' },
-                                            { h: 'Time', align: 'text-right' },
+                                            { h: 'Invoice', align: 'text-start' },
+                                            { h: 'Customer', align: 'text-start' },
+                                            { h: 'Items', align: 'text-end' },
+                                            { h: 'Total', align: 'text-end' },
+                                            { h: 'Balance', align: 'text-end' },
+                                            { h: 'Status', align: 'text-start' },
+                                            { h: 'Time', align: 'text-end' },
                                         ].map(col => (
                                             <th key={col.h} className={`px-2 py-2.5 ${col.align} text-[11px] font-medium text-gray-500 uppercase tracking-wider`}>
                                                 {col.h}
@@ -556,13 +556,13 @@ export default function Dashboard() {
                                                         <p className="text-white text-sm font-medium truncate">{order.customer_name}</p>
                                                     </div>
                                                 </td>
-                                                <td className="px-2 py-3 text-gray-400 text-sm text-right tabular-nums">
+                                                <td className="px-2 py-3 text-gray-400 text-sm text-end tabular-nums">
                                                     {order.items_count}
                                                 </td>
-                                                <td className="px-2 py-3 text-white text-sm font-medium text-right tabular-nums">
+                                                <td className="px-2 py-3 text-white text-sm font-medium text-end tabular-nums">
                                                     {Number(order.total).toLocaleString()} <span className="text-gray-500 text-xs font-normal">EGP</span>
                                                 </td>
-                                                <td className="px-2 py-3 text-sm font-medium text-right tabular-nums">
+                                                <td className="px-2 py-3 text-sm font-medium text-end tabular-nums">
                                                     {order.amount_remaining > 0
                                                         ? <span className="text-red-400 whitespace-nowrap">-{Number(order.amount_remaining).toLocaleString()}</span>
                                                         : <span className="text-gray-600">0</span>
@@ -580,7 +580,7 @@ export default function Dashboard() {
                                                         {order.status === 'paid' ? 'Paid' : 'Unpaid'}
                                                     </span>
                                                 </td>
-                                                <td className="px-2 py-3 text-gray-500 text-xs text-right whitespace-nowrap">
+                                                <td className="px-2 py-3 text-gray-500 text-xs text-end whitespace-nowrap">
                                                     {new Date(order.order_date ?? order.created_at).toLocaleDateString('en-GB', {
                                                         year: 'numeric', month: 'short', day: 'numeric'
                                                     })}
@@ -646,7 +646,7 @@ export default function Dashboard() {
                                             <p className="text-white text-sm font-medium truncate">{item.product_name}</p>
                                             <p className="text-gray-500 text-xs">{item.warehouse_name}</p>
                                         </div>
-                                        <div className="text-right shrink-0">
+                                        <div className="text-end shrink-0">
                                             <p className="text-orange-400 text-sm font-semibold tabular-nums">{item.quantity} left</p>
                                             <p className="text-gray-500 text-xs tabular-nums">threshold: {item.threshold}</p>
                                         </div>

@@ -43,7 +43,7 @@ export default function Navbar() {
     <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-1">
-                <span className="text-xl font-bold text-white mr-6">
+                <span className="text-xl font-bold text-white me-6">
                     Multi<span className="text-blue-400">Dukkan</span>
                 </span>
 
@@ -59,7 +59,7 @@ export default function Navbar() {
 
             <div className="flex items-center gap-3">
                 <div className="hidden lg:flex items-center gap-3">
-                    <div className="text-right">
+                    <div className="text-end">
                         <p className="text-sm font-medium text-white">{user.business_name}</p>
                         <p className="text-xs text-gray-400">{user.name} · <span className="text-blue-400">{user.role?.replace(/_/g, ' ')}</span></p>
                     </div>
@@ -87,7 +87,7 @@ export default function Navbar() {
 
     {/* Mobile menu panel */}
     {isMenuOpen && (
-        <div className="lg:hidden absolute top-16 left-0 right-0 bg-gray-900 border-t border-gray-800 flex flex-col p-4 gap-1">
+        <div className="lg:hidden absolute top-16 inset-x-0 bg-gray-900 border-t border-gray-800 flex flex-col p-4 gap-1">
             {links.map(link => (
                 <NavLink
                     key={link.to}
@@ -110,7 +110,7 @@ export default function Navbar() {
             </div>
             <button
                 onClick={handleLogout}
-                className="mt-2 px-3 py-2 text-sm bg-gray-700 hover:bg-red-600 rounded-md transition-colors text-white text-left"
+                className="mt-2 px-3 py-2 text-sm bg-gray-700 hover:bg-red-600 rounded-md transition-colors text-white text-start"
             >
                 Logout
             </button>

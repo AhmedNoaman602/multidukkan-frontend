@@ -80,16 +80,16 @@ export default function CustomerSearchInput({ customers, value, onSelect, placeh
                     </div>
                     <div className="min-w-0">
                         <span className="text-white text-sm font-medium">{selectedCustomer.name}</span>
-                        <span className="text-gray-400 text-sm ml-2">{selectedCustomer.phone}</span>
+                        <span className="text-gray-400 text-sm ms-2">{selectedCustomer.phone}</span>
                         {selectedCustomer.code && (
-                            <span className="text-gray-500 text-xs ml-2">{selectedCustomer.code}</span>
+                            <span className="text-gray-500 text-xs ms-2">{selectedCustomer.code}</span>
                         )}
                     </div>
                 </div>
                 <button
                     type="button"
                     onClick={handleClear}
-                    className="text-gray-500 hover:text-red-400 transition-colors text-sm ml-3 shrink-0"
+                    className="text-gray-500 hover:text-red-400 transition-colors text-sm ms-3 shrink-0"
                 >
                     ✕
                 </button>

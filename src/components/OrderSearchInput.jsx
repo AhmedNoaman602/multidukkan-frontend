@@ -80,12 +80,12 @@ export default function OrderSearchInput({
             <div className="flex items-center justify-between px-3 py-2.5 bg-gray-800 border border-gray-700 rounded-lg">
                 <div className="min-w-0">
                     <span className="text-white text-sm font-medium font-mono">{selectedOrder.invoice_number}</span>
-                    <span className="text-gray-400 text-sm ml-2">{renderMeta(selectedOrder)}</span>
+                    <span className="text-gray-400 text-sm ms-2">{renderMeta(selectedOrder)}</span>
                 </div>
                 <button
                     type="button"
                     onClick={handleClear}
-                    className="text-gray-500 hover:text-red-400 transition-colors text-sm ml-3 shrink-0"
+                    className="text-gray-500 hover:text-red-400 transition-colors text-sm ms-3 shrink-0"
                 >
                     ✕
                 </button>

@@ -161,7 +161,7 @@ export default function GlobalSearch({ open, onClose }) {
                                     onClick={() => handleSelect(r.path)}
                                     className={`flex items-center justify-between px-4 py-3 cursor-pointer transition-colors border-b border-gray-800/50 ${
                                         r.flatIndex === highlighted
-                                            ? 'bg-blue-600/20 border-l-2 border-l-blue-500'
+                                            ? 'bg-blue-600/20 border-s-2 border-s-blue-500'
                                             : 'hover:bg-gray-800'
                                     }`}
                                 >

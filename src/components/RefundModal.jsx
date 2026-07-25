@@ -95,7 +95,7 @@ export default function RefundModal({
                             <div>
                                 <label className="block text-sm text-gray-400 mb-1">
                                     Refund Specific Payment
-                                    <span className="text-gray-600 ml-1">(optional)</span>
+                                    <span className="text-gray-600 ms-1">(optional)</span>
                                 </label>
                                 <select
                                     value={refundForm.payment_id_target}
@@ -127,7 +127,7 @@ export default function RefundModal({
         <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
             <p className="text-blue-400 text-sm">
                 Available to refund: <span className="font-bold">{selected.refundable ?? selected.paid} EGP</span>
-                <span className="text-blue-600 text-xs ml-2">(cash payments only)</span>
+                <span className="text-blue-600 text-xs ms-2">(cash payments only)</span>
             </p>
         </div>
     ) : null

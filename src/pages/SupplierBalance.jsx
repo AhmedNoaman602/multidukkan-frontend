@@ -246,7 +246,7 @@ const handleBulkAttach = async () => {
     <div className="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
         <h3 className="text-white font-semibold">
             Products
-            <span className="ml-2 text-sm font-normal text-gray-400">
+            <span className="ms-2 text-sm font-normal text-gray-400">
                 ({attachedProducts.length})
             </span>
         </h3>
@@ -267,7 +267,7 @@ const handleBulkAttach = async () => {
             <thead className="bg-gray-800">
                 <tr>
                     {['Product', 'Supplier Cost', 'Last Purchase Price', 'Last Purchased' ,'Preferred', 'Actions'].map(h => (
-                        <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                        <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">
                             {h}
                         </th>
                     ))}
@@ -337,7 +337,7 @@ const handleBulkAttach = async () => {
                     <thead className="bg-gray-800">
                         <tr>
                             {['Invoice', 'Total', 'Paid', 'Remaining', 'Status', 'Date'].map(h => (
-                                <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">
                                     {h}
                                 </th>
                             ))}
@@ -387,7 +387,7 @@ const handleBulkAttach = async () => {
                     <thead className="bg-gray-800">
                         <tr>
                             {['Invoice', 'Amount', 'Method', 'Date'].map(h => (
-                                <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>
+                                <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>
                             ))}
                         </tr>
                     </thead>
@@ -417,7 +417,7 @@ const handleBulkAttach = async () => {
                     <thead className="bg-gray-800">
                         <tr>
                             {['Type', 'Amount', 'Description', 'Date'].map(h => (
-                                <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">
                                     {h}
                                 </th>
                             ))}
@@ -472,7 +472,7 @@ const handleBulkAttach = async () => {
                             <div>
                                 <label className="block text-sm text-gray-400 mb-1">
                                     Pay Specific Order
-                                    <span className="text-gray-600 ml-1">(optional — leave blank for FIFO)</span>
+                                    <span className="text-gray-600 ms-1">(optional — leave blank for FIFO)</span>
                                 </label>
                                 <select
                                     value={payForm.purchase_order_id}
@@ -628,7 +628,7 @@ const handleBulkAttach = async () => {
         <div>
             <label className="block text-sm text-gray-400 mb-1">
                 Supplier Cost (EGP)
-                <span className="text-gray-600 text-xs ml-1 block mt-0.5">What this supplier currently charges</span>
+                <span className="text-gray-600 text-xs ms-1 block mt-0.5">What this supplier currently charges</span>
             </label>
             <input
                 type="number"

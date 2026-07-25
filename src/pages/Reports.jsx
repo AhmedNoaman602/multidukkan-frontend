@@ -148,7 +148,7 @@ export default function Reports() {
           >
             View Report
           </button>
-          <div className="flex gap-2 ml-auto">
+          <div className="flex gap-2 ms-auto">
             {["today", "week", "month"].map((type) => (
               <button
                 key={type}
@@ -322,7 +322,7 @@ export default function Reports() {
                     ].map((h) => (
                       <th
                         key={h}
-                        className="px-4 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                        className="px-4 py-2 text-start text-xs font-medium text-gray-400 uppercase tracking-wider"
                       >
                         {h}
                       </th>
@@ -420,7 +420,7 @@ export default function Reports() {
                     {["Customer", "Orders", "Total", "Collected"].map((h) => (
                       <th
                         key={h}
-                        className="px-4 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                        className="px-4 py-2 text-start text-xs font-medium text-gray-400 uppercase tracking-wider"
                       >
                         {h}
                       </th>
@@ -503,7 +503,7 @@ export default function Reports() {
                     (h) => (
                       <th
                         key={h}
-                        className="px-4 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                        className="px-4 py-2 text-start text-xs font-medium text-gray-400 uppercase tracking-wider"
                       >
                         {h}
                       </th>
@@ -598,7 +598,7 @@ export default function Reports() {
                     {["Date", "Orders", "Revenue"].map((h) => (
                       <th
                         key={h}
-                        className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                        className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider"
                       >
                         {h}
                       </th>

@@ -179,7 +179,7 @@ export default function ProductSearchInput({ products, onSelect, showCostPrice =
                                             <p className="text-gray-500 text-xs mt-0.5">SKU: {product.sku}</p>
                                         )}
                                     </div>
-                                    <div className="text-right">
+                                    <div className="text-end">
 <p className="text-white text-sm font-medium">
     {showCostPrice ? (product.cost_price ?? product.price) : product.price} EGP
 </p>                                        <p className="text-gray-500 text-xs">{product.unit}</p>
