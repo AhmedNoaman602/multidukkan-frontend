@@ -79,11 +79,11 @@ export default function CreateProduct() {
             const saved = res.data.data ?? res.data
             setUnits(prev => [...prev, saved])
             setForm(f => ({ ...f, unit: saved.name }))
-            showToast('Unit created successfully', 'success')
+            showToast('تم إنشاء الوحدة بنجاح', 'success')
             setNewUnit('')
             setShowNewUnit(false)
         } catch {
-            showToast('Failed to save unit', 'error')
+            showToast('حصلت مشكلة في حفظ الوحدة', 'error')
         } finally {
             setSavingUnit(false)
         }
@@ -91,7 +91,7 @@ export default function CreateProduct() {
 
     const handleGenerateDescription = async () => {
         if (!form.name || !form.price || !form.unit) {
-            showToast('Please fill in name, price and unit first.', 'error')
+            showToast('من فضلك املا الاسم والسعر والوحدة الأول.', 'error')
             return
         }
         setGeneratingDesc(true)
@@ -107,7 +107,7 @@ export default function CreateProduct() {
                 description: `${res.data.ar}\n${res.data.en}`,
             }))
         } catch {
-            showToast('Failed to generate description' , 'error')
+            showToast('حصلت مشكلة في توليد الوصف', 'error')
         } finally {
             setGeneratingDesc(false)
         }
@@ -118,7 +118,7 @@ export default function CreateProduct() {
         setSaving(true)
         const hasEmptyWarehouse = stocks.some(s => !s.warehouse_id)
     if (hasEmptyWarehouse) {
-        showToast('Please select a warehouse for all stock rows, or remove empty rows.', 'error')
+        showToast('من فضلك اختر المخزن لكل صفوف المخزون، أو امسح الصفوف الفاضية.', 'error')
         setSaving(false)
         return
     }
@@ -132,7 +132,7 @@ export default function CreateProduct() {
         return
     }
     if (form.cost_price && !form.opening_quantity && stocks.every(s => !s.quantity || parseInt(s.quantity) <= 0)) {
-    showToast('Please add opening quantity or warehouse stock when setting a cost price.', 'error')
+    showToast('لازم تضيف كمية افتتاحية أو مخزون لما تحدد سعر التكلفة.', 'error')
     setSaving(false)
     return
 }
@@ -153,10 +153,10 @@ export default function CreateProduct() {
                         threshold: parseInt(s.threshold) || 10,
                     }))
             })
-            showToast('Product created successfully', 'success')
+            showToast('تم إنشاء المنتج بنجاح', 'success')
             navigate('/products')
         } catch (err) {
-            showToast(err.response?.data?.message || 'Failed to create product', 'error')
+            showToast(err.response?.data?.message || 'حصلت مشكلة في إنشاء المنتج', 'error')
         } finally {
             setSaving(false)
         }
@@ -165,19 +165,19 @@ export default function CreateProduct() {
     return (
         <div>
             <div className="flex items-center gap-4 mb-6">
-                <BackButton label="Back to Products" to="/products" />
-                <h2 className="text-2xl font-bold text-white">Add New Product</h2>
+                <BackButton label="رجوع للمنتجات" to="/products" />
+                <h2 className="text-2xl font-bold text-white">إضافة منتج جديد</h2>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
 
                 {/* Basic Info */}
                 <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-                    <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">Basic Info</h3>
+                    <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">البيانات الأساسية</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                         <div>
-                            <label className="block text-sm text-gray-400 mb-1">Name</label>
+                            <label className="block text-sm text-gray-400 mb-1">اسم المنتج</label>
                             <input
                                 value={form.name}
                                 onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -187,7 +187,7 @@ export default function CreateProduct() {
                         </div>
 
                         <div>
-                            <label className="block text-sm text-gray-400 mb-1">SKU</label>
+                            <label className="block text-sm text-gray-400 mb-1">رمز المنتج</label>
                             <input
                                 value={form.sku}
                                 onChange={(e) => setForm({ ...form, sku: e.target.value })}
@@ -203,12 +203,12 @@ export default function CreateProduct() {
         suppliers={suppliers}
         value={supplierId}
         onSelect={setSupplierId}
-        placeholder="Search suppliers..."
+        placeholder="ابحث عن مورد..."
     />
 </div>
 
                         <div>
-                            <label className="block text-sm text-gray-400 mb-1">Default Price</label>
+                            <label className="block text-sm text-gray-400 mb-1">السعر الافتراضي</label>
                             <input
                                 type="number"
                                 value={form.price}
@@ -225,7 +225,7 @@ export default function CreateProduct() {
         type="number"
         value={form.cost_price}
         onChange={(e) => setForm({ ...form, cost_price: e.target.value })}
-        placeholder="What you paid for it"
+        placeholder="اللي دفعته فيه"
         className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm placeholder-gray-600"
     />
 </div>
@@ -238,18 +238,18 @@ export default function CreateProduct() {
         min="0"
         value={form.opening_quantity}
         onChange={(e) => setForm({ ...form, opening_quantity: e.target.value })}
-        placeholder="Units currently on shelf"
+        placeholder="الكمية الموجودة حالياً"
         className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm placeholder-gray-600"
     />
     {form.opening_quantity && form.cost_price && (
         <p className="text-xs text-blue-400 mt-1">
-            Opening stock value: {(parseFloat(form.opening_quantity) * parseFloat(form.cost_price)).toFixed(2)} EGP
+            Opening stock value: {(parseFloat(form.opening_quantity) * parseFloat(form.cost_price)).toFixed(2)} ج.م
         </p>
     )}
 </div>
 
                         <div>
-                            <label className="block text-sm text-gray-400 mb-1">Unit</label>
+                            <label className="block text-sm text-gray-400 mb-1">الوحدة</label>
                             <div className="flex gap-2">
                                 <select
                                     value={form.unit}
@@ -265,7 +265,7 @@ export default function CreateProduct() {
                                     onClick={() => setShowNewUnit(!showNewUnit)}
                                     className="px-3 py-2 bg-gray-800 border border-gray-700 text-gray-400 hover:text-white rounded-lg text-xs transition-colors"
                                 >
-                                    + New
+                                    + جديدة
                                 </button>
                             </div>
                             {showNewUnit && (
@@ -284,7 +284,7 @@ export default function CreateProduct() {
                                         disabled={savingUnit}
                                         className="px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-xs transition-colors"
                                     >
-                                        {savingUnit ? '...' : 'Save'}
+                                        {savingUnit ? '...' : 'حفظ'}
                                     </button>
                                 </div>
                             )}
@@ -292,14 +292,14 @@ export default function CreateProduct() {
 
                         <div className="col-span-2">
     <div className="flex items-center justify-between mb-1">
-        <label className="block text-sm text-gray-400">Description</label>
+        <label className="block text-sm text-gray-400">الوصف</label>
         <button
             type="button"
             onClick={handleGenerateDescription}
             disabled={generatingDesc || !form.name || !form.price}
             className="px-3 py-1 bg-purple-600/20 border border-purple-500/30 text-purple-400 hover:bg-purple-600/30 disabled:opacity-40 text-xs font-medium rounded-lg transition-colors"
         >
-            {generatingDesc ? 'Generating...' : '✨ Generate with AI'}
+            {generatingDesc ? 'جاري التوليد...' : '✨ Generate with AI'}
         </button>
     </div>
     <textarea
@@ -315,7 +315,7 @@ export default function CreateProduct() {
 
                 {/* Price Tiers */}
                 <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-                    <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">Price Tiers</h3>
+                    <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">فئات الأسعار</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                         {['a', 'b', 'c', 'd', 'e'].map(tier => (
                             <div key={tier}>
@@ -324,7 +324,7 @@ export default function CreateProduct() {
                                     type="number"
                                     value={form[`price_${tier}`]}
                                     onChange={(e) => setForm({ ...form, [`price_${tier}`]: e.target.value })}
-                                    placeholder="Optional"
+                                    placeholder="اختياري"
                                     className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm placeholder-gray-600"
                                 />
                             </div>
@@ -334,10 +334,10 @@ export default function CreateProduct() {
 
                 {/* Secondary Unit */}
                 <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-                    <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">Secondary Unit <span className="text-gray-600 normal-case font-normal">(optional)</span></h3>
+                    <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">الوحدة الثانوية <span className="text-gray-600 normal-case font-normal">(optional)</span></h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm text-gray-400 mb-1">Secondary Unit</label>
+                            <label className="block text-sm text-gray-400 mb-1">الوحدة الثانوية</label>
                             <input
                                 value={form.secondary_unit}
                                 onChange={(e) => setForm({ ...form, secondary_unit: e.target.value })}
@@ -346,7 +346,7 @@ export default function CreateProduct() {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm text-gray-400 mb-1">Conversion Factor</label>
+                            <label className="block text-sm text-gray-400 mb-1">معامل التحويل</label>
                             <input
                                 type="number"
                                 value={form.conversion_factor}
@@ -367,7 +367,7 @@ export default function CreateProduct() {
 <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
     <div className="px-4 py-2.5 border-b border-gray-800 flex items-center justify-between">
         <h3 className="text-white text-sm font-semibold">
-            Warehouse Stock
+            مخزون المخازن
             {stocks.length > 0 && <span className="ms-1.5 text-gray-500 font-normal">({stocks.length})</span>}
         </h3>
         <button
@@ -375,14 +375,14 @@ export default function CreateProduct() {
             onClick={addStock}
             className="px-3 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors"
         >
-            + Add Warehouse
+            + إضافة مخزن
         </button>
     </div>
 
     <table className="w-full">
         <thead className="bg-gray-800">
             <tr>
-                {['Warehouse', 'Quantity', 'Threshold', ''].map(h => (
+                {['المخزن', 'الكمية', 'حد التنبيه', ''].map(h => (
                     <th key={h} className="px-3 py-2 text-start text-[11px] font-medium text-gray-400 uppercase tracking-wider">{h}</th>
                 ))}
             </tr>
@@ -396,7 +396,7 @@ export default function CreateProduct() {
                             onChange={(e) => updateStock(i, 'warehouse_id', e.target.value)}
                             className="w-full px-2 py-1.5 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                         >
-                            <option value="">Select warehouse</option>
+                            <option value="">اختر المخزن</option>
                             {warehouses
                                 .filter(w => !usedWarehouseIds.includes(w.id) || w.id === parseInt(stock.warehouse_id))
                                 .map(w => (
@@ -472,7 +472,7 @@ export default function CreateProduct() {
         disabled={saving}
         className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
     >
-        {saving ? 'Saving...' : 'Save Product'}
+        {saving ? 'جاري الحفظ...' : 'حفظ المنتج'}
     </button>
 </div>
 

@@ -32,7 +32,7 @@ export default function AddItemModal({ open, onClose,orderId, onSuccess }) {
         setWarehouses(warehousesRes.data.data)
         setInventory(inventoryRes.data.data)
     })
-    .catch(err => showToast(err.response?.data?.message || 'Failed to load data', 'error'))
+    .catch(err => showToast(err.response?.data?.message || 'حصلت مشكلة في تحميل البيانات', 'error'))
     },[open , orderId])
 
 
@@ -70,11 +70,11 @@ export default function AddItemModal({ open, onClose,orderId, onSuccess }) {
                 quantity:form.quantity,
                 warehouse_id:form.warehouse_id,
             })
-            showToast('Item added successfully.', 'success')
+            showToast('تم إضافة الصنف بنجاح.', 'success')
             onSuccess()
             handleClose()
         } catch (err) {
-    showToast(err.response?.data?.message || 'Failed to add item', 'error')
+    showToast(err.response?.data?.message || 'حصلت مشكلة في إضافة الصنف', 'error')
 } finally {
     setSaving(false)
 }
@@ -86,13 +86,13 @@ export default function AddItemModal({ open, onClose,orderId, onSuccess }) {
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 max-w-md w-full mx-4">
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-white font-semibold">Add Item</h3>
+                    <h3 className="text-white font-semibold">إضافة صنف</h3>
                     <button onClick={handleClose} className="text-gray-400 hover:text-white text-lg">✕</button>
                 </div>
 
                 {/* Product Search */}
                 <div className="mb-4">
-                    <label className="block text-xs text-gray-400 mb-1">Product</label>
+                    <label className="block text-xs text-gray-400 mb-1">المنتج</label>
                     {selectedProduct && (
                         <div className="flex items-center justify-between px-3 py-2 bg-blue-500/10 border border-blue-500/20 rounded-lg mb-2">
                             <span className="text-white text-sm">{selectedProduct.name}</span>
@@ -109,7 +109,7 @@ export default function AddItemModal({ open, onClose,orderId, onSuccess }) {
                         <ProductSearchInput
                             products={products}
                             onSelect={handleProductSelect}
-                            placeholder="Search by name or SKU..."
+                            placeholder="ابحث بالاسم أو رمز المنتج..."
                         />
                     )}
                 </div>
@@ -119,7 +119,7 @@ export default function AddItemModal({ open, onClose,orderId, onSuccess }) {
                     <div className="space-y-3">
                         {/* Quantity */}
                         <div>
-                            <label className="block text-xs text-gray-400 mb-1">Quantity</label>
+                            <label className="block text-xs text-gray-400 mb-1">الكمية</label>
                             <input
                                 type="number"
                                 min="1"
@@ -131,7 +131,7 @@ export default function AddItemModal({ open, onClose,orderId, onSuccess }) {
 
                         {/* Unit Price */}
                         <div>
-                            <label className="block text-xs text-gray-400 mb-1">Unit Price</label>
+                            <label className="block text-xs text-gray-400 mb-1">سعر الوحدة</label>
                             <input
                                 type="number"
                                 min="0"
@@ -144,13 +144,13 @@ export default function AddItemModal({ open, onClose,orderId, onSuccess }) {
 
                         {/* Warehouse */}
                         <div>
-                            <label className="block text-xs text-gray-400 mb-1">Warehouse</label>
+                            <label className="block text-xs text-gray-400 mb-1">المخزن</label>
                             <select
                                 value={form.warehouse_id}
                                 onChange={e => setForm({ ...form, warehouse_id: e.target.value })}
                                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                             >
-                                <option value="">Select warehouse</option>
+                                <option value="">اختر المخزن</option>
                                 {warehouses.map(w => (
                                     <option key={w.id} value={w.id}>
                                         {w.name} ({getStock(w.id)})
@@ -162,7 +162,7 @@ export default function AddItemModal({ open, onClose,orderId, onSuccess }) {
                         {/* Unit type toggle */}
                         {selectedProduct.secondary_unit && (
                             <div>
-                                <label className="block text-xs text-gray-400 mb-1">Unit</label>
+                                <label className="block text-xs text-gray-400 mb-1">الوحدة</label>
                                 <div className="flex gap-2">
                                     {['base', 'secondary'].map(u => (
                                         <button
@@ -185,9 +185,9 @@ export default function AddItemModal({ open, onClose,orderId, onSuccess }) {
                         {/* Line total preview */}
                         {form.unit_price && form.quantity && (
                             <div className="flex justify-between text-sm border-t border-gray-800 pt-2">
-                                <span className="text-gray-400">Total</span>
+                                <span className="text-gray-400">الإجمالي</span>
                                 <span className="text-white font-medium">
-                                    {(parseFloat(form.unit_price) * parseInt(form.quantity)).toFixed(2)} EGP
+                                    {(parseFloat(form.unit_price) * parseInt(form.quantity)).toFixed(2)} ج.م
                                 </span>
                             </div>
                         )}
@@ -200,14 +200,14 @@ export default function AddItemModal({ open, onClose,orderId, onSuccess }) {
                         onClick={handleClose}
                         className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
                     >
-                        Cancel
+                        إلغاء
                     </button>
                     <button
                         onClick={handleSave}
                         disabled={saving || !form.product_id || !form.warehouse_id}
                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
                     >
-                        {saving ? 'Adding...' : 'Add Item'}
+                        {saving ? 'جاري الإضافة...' : 'إضافة الصنف'}
                     </button>
                 </div>
             </div>

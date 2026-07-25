@@ -5,7 +5,7 @@ export default function DeleteModal({
     onClose,
     onConfirm,
     deleting = false,
-    title = 'Delete Item',
+    title = 'حذف العنصر',
     name,
     warning,
 }) {
@@ -14,9 +14,9 @@ export default function DeleteModal({
             <form onSubmit={(e) => { e.preventDefault(); onConfirm() }}>
                 <div className="space-y-4">
                     <p className="text-gray-300 text-sm">
-                        Are you sure you want to delete{' '}
-                        <span className="text-white font-semibold">{name}</span>?
-                        This action cannot be undone.
+                        متأكد إنك عايز تحذف{' '}
+                        <span className="text-white font-semibold">{name}</span>؟
+                        الخطوة دي مش هتقدر ترجع فيها.
                     </p>
 
                     {warning && (
@@ -31,14 +31,14 @@ export default function DeleteModal({
                             onClick={onClose}
                             className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
                         >
-                            Cancel
+                            إلغاء
                         </button>
                         <button
                             type="submit"
                             disabled={deleting}
                             className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
                         >
-                            {deleting ? 'Deleting...' : 'Yes, Delete'}
+                            {deleting ? 'جاري الحذف...' : 'أيوة، احذف'}
                         </button>
                     </div>
                 </div>

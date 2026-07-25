@@ -83,7 +83,7 @@ const fetchQuickSaleData = async () => {
                 setYears(res.data.years)
                 setStats(res.data.stats || null)
             })
-            .catch(() => showToast('Failed to load orders', 'error'))
+            .catch(() => showToast('حصلت مشكلة في تحميل الطلبات', 'error'))
             .finally(() => setLoading(false))
     }
 
@@ -101,14 +101,14 @@ const fetchQuickSaleData = async () => {
                 amount:      parseFloat(payForm.amount),
                 method:      payForm.method,
             })
-            showToast('Payment processed successfully!', 'success')
+            showToast('تم تسجيل الدفع بنجاح!', 'success')
             setTimeout(() => {
                 setPayTarget(null)
                 setPayForm({ amount: '', method: 'cash' })
                 fetchOrders()
             }, 1000)
         } catch (err) {
-            showToast(err.response?.data?.message || 'Failed to process payment', 'error')
+            showToast(err.response?.data?.message || 'حصلت مشكلة في تنفيذ الدفع', 'error')
         } finally {
             setPaying(false)
         }
@@ -118,6 +118,12 @@ const fetchQuickSaleData = async () => {
         setSearch(value)
         setPage(1)
     }
+
+    // Identify the walk-in customer by id, not by display name — the name is
+    // seeded data and translating it would silently break these checks.
+    const isWalkIn = (order) =>
+        user.walk_in_customer_id != null &&
+        Number(order.customer_id) === Number(user.walk_in_customer_id)
 
     const getPaidAmount = (order) => {
         if (order.amount_paid != null) return Number(order.amount_paid) || 0
@@ -133,7 +139,7 @@ const fetchQuickSaleData = async () => {
             <div className="mb-6 space-y-3">
     {/* Top row */}
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h2 className="text-2xl font-bold text-white">Orders</h2>
+        <h2 className="text-2xl font-bold text-white">الطلبات</h2>
         <div className="flex items-center gap-2 flex-wrap">
                    <button
     onClick={async () => {
@@ -148,7 +154,7 @@ const fetchQuickSaleData = async () => {
             onClick={() => navigate('/orders/create')}
             className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
         >
-            + New Order
+            + طلب جديد
         </button>
     </div>
 </div>
@@ -160,22 +166,22 @@ const fetchQuickSaleData = async () => {
             <SearchInput
                 value={search}
                 onChange={(e) => handleSearch(e.target.value)}
-                placeholder="Search by customer or invoice..."
+                placeholder="ابحث بالعميل أو رقم الفاتورة..."
             />
         </div>
     </div>
 
     {/* Filter mode pills */}
     <div className="flex justify-start items-center gap-2 flex-wrap ">
-        <span className="text-gray-500 text-xs uppercase tracking-wider">Filter:</span>
+        <span className="text-gray-500 text-xs uppercase tracking-wider">تصفية:</span>
 
         {[
-            { label: 'All Time', value: 'all' },
-            { label: 'Today',    value: 'today' },
-            { label: 'Month',    value: 'month' },
-            { label: 'Year',     value: 'year' },
-            { label: 'Range',    value: 'range' },
-            { label: 'Date',     value: 'exact' },
+            { label: 'كل الفترات', value: 'all' },
+            { label: 'اليوم', value: 'today' },
+            { label: 'الشهر', value: 'month' },
+            { label: 'السنة', value: 'year' },
+            { label: 'فترة', value: 'range' },
+            { label: 'تاريخ محدد', value: 'exact' },
         ].map(mode => (
             <button
                 key={mode.value}
@@ -210,7 +216,7 @@ const fetchQuickSaleData = async () => {
                 onChange={(e) => { setYearFilter(e.target.value); setPage(1) }}
                 className="px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg text-sm focus:outline-none focus:border-blue-500"
             >
-                <option value="">Select Year</option>
+                <option value="">اختر السنة</option>
                 {years.map(y => (
                     <option key={y} value={y}>{y}</option>
                 ))}
@@ -225,7 +231,7 @@ const fetchQuickSaleData = async () => {
                 onChange={(e) => { setYearFilter(e.target.value); setPage(1) }}
                 className="px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg text-sm focus:outline-none focus:border-blue-500"
             >
-                <option value="">Select Year</option>
+                <option value="">اختر السنة</option>
                 {years.map(y => (
                     <option key={y} value={y}>{y}</option>
                 ))}
@@ -235,9 +241,9 @@ const fetchQuickSaleData = async () => {
                 onChange={(e) => { setMonthFilter(e.target.value); setPage(1) }}
                 className="px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg text-sm focus:outline-none focus:border-blue-500"
             >
-                <option value="">Select Month</option>
-                {['January','February','March','April','May','June',
-                  'July','August','September','October','November','December'
+                <option value="">اختر الشهر</option>
+                {['يناير','فبراير','مارس','أبريل','مايو','يونيو',
+                  'يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'
                 ].map((name, i) => (
                     <option key={i + 1} value={i + 1}>{name}</option>
                 ))}
@@ -248,7 +254,7 @@ const fetchQuickSaleData = async () => {
     {filterMode === 'range' && (
         <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-                <span className="text-gray-500 text-sm">From</span>
+                <span className="text-gray-500 text-sm">من</span>
                 <input
                     type="date"
                     value={dateFrom}
@@ -258,7 +264,7 @@ const fetchQuickSaleData = async () => {
                 />
             </div>
             <div className="flex items-center gap-2">
-                <span className="text-gray-500 text-sm">To</span>
+                <span className="text-gray-500 text-sm">إلى</span>
                 <input
                     type="date"
                     value={dateTo}
@@ -285,7 +291,7 @@ const fetchQuickSaleData = async () => {
                 onClick={clearFilters}
                 className="px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-400 hover:text-red-300 rounded-lg text-xs transition-colors"
             >
-                Clear ✕
+                مسح ✕
             </button>
         )}
 </div>
@@ -293,10 +299,10 @@ const fetchQuickSaleData = async () => {
 
             {stats && (
                 <StatBoxes stats={[
-                    { label: 'Total Orders',   value: stats.total_orders,              color: 'white'  },
-                    { label: 'Total Revenue',  value: `${stats.total_revenue} EGP`,    color: 'white'  },
-                    { label: 'Paid',           value: `${stats.paid_amount} EGP`,      color: 'green'  },
-                    { label: 'Unpaid',         value: `${stats.unpaid_amount} EGP`,    color: 'red'    },
+                    { label: 'إجمالي الطلبات', value: stats.total_orders, color: 'white'  },
+                    { label: 'إجمالي الإيرادات', value: `${stats.total_revenue} ج.م`, color: 'white'  },
+                    { label: 'المدفوع', value: `${stats.paid_amount} ج.م`, color: 'green'  },
+                    { label: 'غير المدفوع', value: `${stats.unpaid_amount} ج.م`, color: 'red'    },
                 ]} />
             )}
 
@@ -304,7 +310,7 @@ const fetchQuickSaleData = async () => {
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>
-                            {['Invoice', 'Customer', 'Items', 'Total', 'Status', 'Date', ''].map(h => (
+                            {['الفاتورة', 'العميل', 'الأصناف', 'الإجمالي', 'الحالة', 'التاريخ', ''].map(h => (
                                 <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">
                                     {h}
                                 </th>
@@ -334,14 +340,14 @@ const fetchQuickSaleData = async () => {
                                 </td>
                                 <td className="px-4 py-3 text-white text-sm font-medium">{order.customer_name}</td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">{order.items_count} units</td>
-                                <td className="px-4 py-3 text-white text-sm">{order.total} EGP</td>
+                                <td className="px-4 py-3 text-white text-sm">{order.total} ج.م</td>
                                 <td className="px-4 py-3">
                                     <span className={`px-2 py-1 rounded text-xs font-medium ${
                                         order.status === 'paid'
                                             ? 'bg-green-500/20 text-green-400'
                                             : 'bg-red-500/20 text-red-400'
                                     }`}>
-                                        {order.status}
+                                        {order.status === 'paid' ? 'مدفوع' : 'غير مدفوع'}
                                     </span>
                                 </td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">
@@ -358,7 +364,7 @@ const fetchQuickSaleData = async () => {
                                             }}
                                             className="px-3 py-1 bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-medium rounded-lg hover:bg-green-500/20 transition-colors"
                                         >
-                                            Invoice
+                                            فاتورة
                                         </button>
                                         {order.status === 'unpaid' && (
                                             <button
@@ -369,10 +375,10 @@ const fetchQuickSaleData = async () => {
                                                 }}
                                                 className="px-3 py-1 bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-medium rounded-lg hover:bg-purple-500/20 transition-colors"
                                             >
-                                                Pay
+                                                دفع
                                             </button>
                                         )}
-                                        {order.refundable_amount > 0 && order.customer_name !== 'زبون نقدي' && (
+                                        {order.refundable_amount > 0 && !isWalkIn(order) && (
                                          <button
                                                onClick={(e) => {
                                                     e.stopPropagation()
@@ -380,15 +386,15 @@ const fetchQuickSaleData = async () => {
                                                }}
                                          className="px-3 py-1 bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-medium rounded-lg hover:bg-orange-500/20 transition-colors"
                                          >
-                                             Refund
+                                             مرتجع
                                          </button>
                                         )}
-                                        {order.refundable_amount === 0 && order.payments_count > 0 && order.customer_name !== 'زبون نقدي' && (
+                                        {order.refundable_amount === 0 && order.payments_count > 0 && !isWalkIn(order) && (
    <span
-    title="This balance is unpaid credit, not a payment. Cancel the order instead of issuing a refund."
+    title="المبلغ ده رصيد آجل مش دفعة. الغِ الطلب بدل ما تعمل مرتجع."
     className="px-3 py-1 bg-gray-500/10 border border-gray-500/20 text-gray-500 text-xs font-medium rounded-lg cursor-help"
 >
-    Refund ⓘ
+    مرتجع ⓘ
 </span>
 )}
                                     </div>
@@ -400,7 +406,7 @@ const fetchQuickSaleData = async () => {
 
                 {orders.length === 0 && (
                     <div className="text-center py-16 text-gray-500">
-{hasActiveFilters ? 'No orders match your filters.' : 'No orders yet.'}                    </div>
+{hasActiveFilters ? 'مفيش طلبات مطابقة للتصفية.' : 'مفيش طلبات لسه.'}                    </div>
                 )}
             </div>
 
@@ -411,7 +417,7 @@ const fetchQuickSaleData = async () => {
                         disabled={page === 1}
                         className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
                     >
-                        ← Previous
+                        → السابق
                     </button>
                     <span className="text-gray-400 text-sm">Page {page} of {lastPage}</span>
                     <button
@@ -419,7 +425,7 @@ const fetchQuickSaleData = async () => {
                         disabled={page === lastPage}
                         className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
                     >
-                        Next →
+                        التالي ←
                     </button>
                 </div>
             )}
@@ -435,7 +441,7 @@ const fetchQuickSaleData = async () => {
                 {payTarget && (
                     <form onSubmit={handlePay} className="space-y-4">
                         <div>
-                            <label className="block text-sm text-gray-400 mb-1">Amount</label>
+                            <label className="block text-sm text-gray-400 mb-1">المبلغ</label>
                             <input
                                 type="number"
                                 min="0.01"
@@ -447,15 +453,15 @@ const fetchQuickSaleData = async () => {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm text-gray-400 mb-1">Method</label>
+                            <label className="block text-sm text-gray-400 mb-1">طريقة الدفع</label>
                             <select
                                 value={payForm.method}
                                 onChange={(e) => setPayForm({ ...payForm, method: e.target.value })}
                                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-purple-500 text-sm"
                             >
-                                <option value="cash">Cash</option>
-                                <option value="bank_transfer">Bank Transfer</option>
-                                <option value="check">Check</option>
+                                <option value="cash">نقدي</option>
+                                <option value="bank_transfer">تحويل بنكي</option>
+                                <option value="check">شيك</option>
                             </select>
                         </div>
                         <div className="flex justify-end gap-2 pt-2">
@@ -464,14 +470,14 @@ const fetchQuickSaleData = async () => {
                                 onClick={() => setPayTarget(null)}
                                 className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
                             >
-                                Cancel
+                                إلغاء
                             </button>
                             <button
                                 type="submit"
                                 disabled={paying || !payForm.amount}
                                 className="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
                             >
-                                {paying ? 'Processing...' : 'Confirm Payment'}
+                                {paying ? 'جاري التنفيذ...' : 'تأكيد الدفع'}
                             </button>
                         </div>
                     </form>
@@ -526,18 +532,18 @@ const fetchQuickSaleData = async () => {
                     <div className="space-y-2 text-sm">
                         <div className="flex justify-between items-center">
                             <span className="text-gray-400">Total:</span>
-                            <span className="text-white font-medium">{order.total} EGP</span>
+                            <span className="text-white font-medium">{order.total} ج.م</span>
                         </div>
                         <div className="flex justify-between items-center">
                             <span className="text-gray-400">Paid:</span>
                             <span className="text-green-400 font-medium">
-                                {getPaidAmount(order)} EGP
+                                {getPaidAmount(order)} ج.م
                             </span>
                         </div>
                         <div className="flex justify-between items-center border-t border-gray-700 pt-2">
                             <span className="text-gray-400">Remaining:</span>
                             <span className="text-red-400 font-medium">
-                                {order.amount_remaining || 0} EGP
+                                {order.amount_remaining || 0} ج.م
                             </span>
                         </div>
                         {order.payments_count > 0 && (

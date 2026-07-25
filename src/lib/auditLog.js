@@ -24,6 +24,45 @@ export const typeStyles = {
   deleted: 'bg-red-500/20 text-red-400',
 }
 
+// Arabic labels for the `type` field. It is a union across three sources
+// (ledger / inventory / audit), so the keys mirror typeStyles exactly.
+export const typeLabels = {
+  // ledger
+  ORDER_CHARGE: 'قيد طلب',
+  PAYMENT: 'دفعة',
+  REVERSAL: 'عكس قيد',
+  CREDIT_APPLY: 'إضافة رصيد',
+  CREDIT_CONSUMED: 'استخدام رصيد',
+  REFUND: 'مرتجع',
+  PURCHASE_CHARGE: 'قيد شراء',
+  PURCHASE_REVERSAL: 'عكس قيد شراء',
+  SUPPLIER_PAYMENT: 'دفعة لمورد',
+  // inventory
+  SALE: 'بيع',
+  RETURN: 'مرتجع مخزون',
+  TRANSFER_IN: 'تحويل وارد',
+  TRANSFER_OUT: 'تحويل صادر',
+  ADJUSTMENT_IN: 'تسوية إضافة',
+  ADJUSTMENT_OUT: 'تسوية خصم',
+  PURCHASE_IN: 'وارد مشتريات',
+  PURCHASE_OUT: 'صادر مشتريات',
+  // audit (record edits)
+  created: 'إنشاء',
+  updated: 'تعديل',
+  deleted: 'حذف',
+}
+
+// The API sends class_basename(), so these are short model names — not FQCNs.
+export const entityLabels = {
+  Product: 'منتج',
+  Customer: 'عميل',
+  Supplier: 'مورد',
+  Store: 'متجر',
+  Order: 'طلب',
+  PurchaseOrder: 'أمر شراء',
+  Expense: 'مصروف',
+}
+
 export function humanizeField(key) {
   return key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 }
@@ -59,8 +98,8 @@ export function groupByDay(rows) {
   for (const row of rows) {
     const rowDate = new Date(row.created_at)
     let label
-    if (sameDay(rowDate, today)) label = 'Today'
-    else if (sameDay(rowDate, yesterday)) label = 'Yesterday'
+    if (sameDay(rowDate, today)) label = 'النهاردة'
+    else if (sameDay(rowDate, yesterday)) label = 'إمبارح'
     else label = rowDate.toLocaleDateString('en-GB')
 
     const lastGroup = groups[groups.length - 1]

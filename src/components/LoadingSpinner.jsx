@@ -15,10 +15,10 @@ export default function LoadingSpinner() {
       {/* Shimmering loading text */}
       <div className="flex flex-col items-center gap-1">
         <span className="text-xl font-semibold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-slate-200 via-blue-400 to-slate-200 bg-[length:200%_auto] animate-shimmer">
-          Loading Data
+          جاري تحميل البيانات
         </span>
         <span className="text-sm text-slate-500 animate-pulse">
-          Please wait a moment
+          استنى لحظة من فضلك
         </span>
       </div>
     </div>

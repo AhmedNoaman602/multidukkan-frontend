@@ -28,7 +28,7 @@ export default function Customers() {
                 setStats(res.data.stats)
             })
             .catch(() => {
-                showToast('Failed to load customers', 'error')
+                showToast('حصلت مشكلة في تحميل العملاء', 'error')
                 setCustomers([])
                 setStats(null)
             })
@@ -42,11 +42,11 @@ export default function Customers() {
         setDeleting(true)
         try {
             await api.delete(`/customers/${deleteTarget.id}`)
-            showToast('Customer deleted successfully', 'success')
+            showToast('تم حذف العميل بنجاح', 'success')
             setDeleteTarget(null)
             fetchCustomers()
         } catch (err) {
-            showToast(err.response?.data?.message || 'Failed to delete customer' , 'error')
+            showToast(err.response?.data?.message || 'حصلت مشكلة في حذف العميل', 'error')
             setDeleteTarget(null)
         } finally {
             setDeleting(false)
@@ -63,19 +63,19 @@ export default function Customers() {
     return (
         <div>
   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-    <h2 className="text-xl sm:text-2xl font-bold text-white">Customers</h2>
+    <h2 className="text-xl sm:text-2xl font-bold text-white">العملاء</h2>
     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         <SearchInput
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
-            placeholder="Search by name, customer code, or phone..."
+            placeholder="ابحث بالاسم أو كود العميل أو رقم التليفون..."
         />
         {user.role !== 'store_staff' && (
             <button
                 onClick={() => navigate('/customers/create')}
                 className="px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors whitespace-nowrap"
             >
-                + Add Customer
+                + إضافة عميل
             </button>
         )}
     </div>
@@ -84,8 +84,8 @@ export default function Customers() {
             {
                 stats && (
                     <StatBoxes stats={[
-                        { label: 'Total Customers',   value: stats.total_customers, color: 'white' },
-                        { label: 'Total Outstanding', value: `${stats.total_outstanding} EGP`, color: 'red'},
+                        { label: 'إجمالي العملاء', value: stats.total_customers, color: 'white' },
+                        { label: 'إجمالي المستحقات', value: `${stats.total_outstanding} ج.م`, color: 'red'},
                     ]} />
                 )
             }
@@ -94,7 +94,7 @@ export default function Customers() {
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>
-                            {['Code', 'Name', 'Phone', 'Address', 'Area', 'Price Tier', 'Actions'].map(h => (
+                            {['الكود', 'الاسم', 'التليفون', 'العنوان', 'المنطقة', 'فئة السعر', 'إجراءات'].map(h => (
                                 <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">
                                     {h}
                                 </th>
@@ -130,7 +130,7 @@ export default function Customers() {
                                             : 'bg-blue-500/20 text-blue-400'
                                     }`}>
                                         {!customer.price_tier || customer.price_tier === 'default'
-                                            ? 'Default'
+                                            ? 'افتراضي'
                                             : `سعر ${customer.price_tier.toUpperCase()}`}
                                     </span>
                                 </td>
@@ -144,7 +144,7 @@ export default function Customers() {
                                                 }}
                                                 className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium rounded-lg hover:bg-blue-500/20 transition-colors"
                                             >
-                                                Edit
+                                                تعديل
                                             </button>
                                         )}
                                         {user.role === 'tenant_admin' && (
@@ -155,7 +155,7 @@ export default function Customers() {
                                                 }}
                                                 className="px-3 py-1 bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium rounded-lg hover:bg-red-500/20 transition-colors"
                                             >
-                                                Delete
+                                                حذف
                                             </button>
                                         )}
                                     </div>
@@ -167,7 +167,7 @@ export default function Customers() {
 
                 {customers.length === 0 && (
                     <div className="text-center py-16 text-gray-500">
-                        {search ? `No customers matching "${search}"` : 'No customers yet. Add your first customer.'}
+                        {search ? `No customers matching "${search}"` : 'مفيش عملاء لسه. أضف أول عميل.'}
                     </div>
                 )}
             </div>
@@ -179,7 +179,7 @@ export default function Customers() {
                         disabled={page === 1}
                         className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
                     >
-                        ← Previous
+                        → السابق
                     </button>
                     <span className="text-gray-400 text-sm">Page {page} of {lastPage}</span>
                     <button
@@ -187,7 +187,7 @@ export default function Customers() {
                         disabled={page === lastPage}
                         className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
                     >
-                        Next →
+                        التالي ←
                     </button>
                 </div>
             )}
@@ -197,9 +197,9 @@ export default function Customers() {
             onClose={() => setDeleteTarget(null)}
             onConfirm={handleDelete}
             deleting={deleting}
-            title="Delete Customer"
+            title="حذف العميل"
             name={deleteTarget?.name}
-            warning="All balance history and transactions linked to this customer will be affected."
+            warning="كل سجل الرصيد والمعاملات المرتبطة بالعميل ده هتتأثر."
            />
         </div>
     )

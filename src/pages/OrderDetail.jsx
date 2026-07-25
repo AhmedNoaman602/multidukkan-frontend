@@ -36,7 +36,7 @@ export default function OrderDetail() {
                     discount:   res.data.discount ?? 0,
                 })
             })
-            .catch(() => showToast('Failed to load order' , 'error'))
+            .catch(() => showToast('حصلت مشكلة في تحميل الطلب', 'error'))
             .finally(() => setLoading(false))
     }
 
@@ -47,9 +47,9 @@ export default function OrderDetail() {
         try {
             await api.delete(`/orders/${id}`)
             navigate('/orders')
-            showToast('Order cancelled successfully.', 'success')
+            showToast('تم إلغاء الطلب بنجاح.', 'success')
         } catch (err) {
-            showToast(err.response?.data?.message || 'Failed to cancel order', 'error')
+            showToast(err.response?.data?.message || 'حصلت مشكلة في إلغاء الطلب', 'error')
             setShowConfirm(false)
         } finally {
             setCancelling(false)
@@ -70,9 +70,9 @@ export default function OrderDetail() {
             })
             setOrder(res.data)
             setEditMode(false)
-            showToast('Order updated successfully.', 'success')
+            showToast('تم تعديل الطلب بنجاح.', 'success')
         } catch (err) {
-            showToast(err.response?.data?.message || 'Failed to update order', 'error')
+            showToast(err.response?.data?.message || 'حصلت مشكلة في تعديل الطلب', 'error')
         } finally {
             setSaving(false)
         }
@@ -85,11 +85,11 @@ export default function OrderDetail() {
                 quantity:itemForm.quantity,
                 unit_price:itemForm.unit_price
             })
-            showToast('Item updated successfully.', 'success')
+            showToast('تم تعديل الصنف بنجاح.', 'success')
             setEditingItem(null)
             fetchOrder()
         } catch (err) {
-    showToast(err.response?.data?.message || 'Failed to update item', 'error')
+    showToast(err.response?.data?.message || 'حصلت مشكلة في تعديل الصنف', 'error')
 } finally {
     setSaving(false)
 }
@@ -123,7 +123,7 @@ const displayTotal = editMode
         <div className="max-w-4xl">
             {/* Back + actions */}
             <div className="flex items-center justify-between mb-6">
-                <BackButton label="Back" />
+                <BackButton label="رجوع" />
                 <div className="flex gap-2">
                     <button
                         onClick={() => window.open(`/orders/${id}/invoice`, '_blank')}
@@ -147,14 +147,14 @@ const displayTotal = editMode
                                 onClick={handleCancelEdit}
                                 className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
                             >
-                                Cancel
+                                إلغاء
                             </button>
                             <button
                                 onClick={handleSave}
                                 disabled={saving}
                                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
                             >
-                                {saving ? 'Saving...' : 'Save Changes'}
+                                {saving ? 'جاري الحفظ...' : 'حفظ التعديلات'}
                             </button>
                         </>
                     )}
@@ -164,7 +164,7 @@ const displayTotal = editMode
                             onClick={() => setShowConfirm(true)}
                             className="px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium rounded-lg hover:bg-red-500/20 transition-colors"
                         >
-                            Cancel Order
+                            إلغاء الطلب
                         </button>
                     )}
                 </div>
@@ -174,7 +174,7 @@ const displayTotal = editMode
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
                 <div className="flex items-start justify-between">
                     <div>
-                        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Invoice Number</p>
+                        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">رقم الفاتورة</p>
                         <p className="text-white text-2xl font-bold font-mono">{order.invoice_number}</p>
                     </div>
                     <span className={`px-3 py-1 rounded-lg text-sm font-medium ${
@@ -182,24 +182,24 @@ const displayTotal = editMode
                             ? 'bg-green-500/20 text-green-400'
                             : 'bg-red-500/20 text-red-400'
                     }`}>
-                        {order.status === 'paid' ? 'Paid' : 'Unpaid'}
+                        {order.status === 'paid' ? 'مدفوع' : 'غير مدفوع'}
                     </span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
                     <div>
-                        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Customer</p>
+                        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">العميل</p>
                         <p className="text-white text-sm font-medium">{order.customer_name}</p>
                         {order.customer_phone && (
                             <p className="text-gray-400 text-sm">{order.customer_phone}</p>
                         )}
                     </div>
                     <div>
-                        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Store</p>
+                        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">المتجر</p>
                         <p className="text-white text-sm">{order.store_name || '—'}</p>
                     </div>
                     <div>
-                        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Date</p>
+                        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">التاريخ</p>
                         {editMode ? (
                             <input
                                 type="date"
@@ -218,12 +218,12 @@ const displayTotal = editMode
 
             {/* Items */}
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-                <h3 className="text-white font-semibold mb-4">Order Items</h3>
+                <h3 className="text-white font-semibold mb-4">أصناف الطلب</h3>
                 <div className="overflow-x-auto">
                 <table className="w-full">
                     <thead>
                         <tr className="border-b border-gray-800">
-                            {['Product', 'Qty', 'Unit Price', 'Warehouses' , 'Total' , 'Actions'].map(h => (
+                            {['المنتج', 'الكمية', 'سعر الوحدة', 'المخازن', 'الإجمالي', 'إجراءات'].map(h => (
                                 <th key={h} className="text-start text-xs text-gray-400 uppercase tracking-wider pb-3">
                                     {h}
                                 </th>
@@ -255,25 +255,25 @@ const displayTotal = editMode
                 ? <input type="number" min="0" step="0.01" value={itemForm.unit_price}
                     onChange={e => setItemForm({...itemForm, unit_price: e.target.value})}
                     className="w-24 px-2 py-1 bg-gray-800 border border-gray-600 text-white rounded-lg text-sm"/>
-                : `${item.unit_price} EGP`
+                : `${item.unit_price} ج.م`
             }
         </td>
         <td className="px-4 py-3 text-gray-400 text-sm">
     {item.warehouse_name ?? '—'}
 </td>
 
-        <td className="py-3 text-white text-sm font-medium">{item.total} EGP</td>
+        <td className="py-3 text-white text-sm font-medium">{item.total} ج.م</td>
 
         <td className="py-3">
             {editingItem === item.id ? (
                 <div className="flex gap-2">
                     <button onClick={() => handleSaveItem(item)}
                         className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-medium rounded-lg hover:bg-blue-500/20 transition-colors">
-                        Save
+                        حفظ
                     </button>
                     <button onClick={() => setEditingItem(null)}
                         className="px-2 py-1 text-gray-400 text-xs">
-                        Cancel
+                        إلغاء
                     </button>
                 </div>
             ) : (
@@ -283,7 +283,7 @@ const displayTotal = editMode
                         setItemForm({ quantity: item.quantity, unit_price: item.unit_price })
                     }}
                         className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-medium rounded-lg hover:bg-blue-500/20 transition-colors">
-                       Edit
+                       تعديل
                     </button>
                 )
             )}
@@ -301,7 +301,7 @@ const displayTotal = editMode
 }}
         className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors"
     >
-        + Add Item
+        + إضافة صنف
     </button>
 )}
 
@@ -309,8 +309,8 @@ const displayTotal = editMode
                 <div className="flex justify-end mt-4">
                     <div className="w-56 space-y-2 border-t border-gray-800 pt-4">
                         <div className="flex justify-between text-sm text-gray-400">
-                            <span>Subtotal</span>
-                            <span>{order.subtotal} EGP</span>
+                            <span>الإجمالي الفرعي</span>
+                            <span>{order.subtotal} ج.م</span>
                         </div>
 {/* Discount row */}
 {editMode ? (
@@ -323,7 +323,7 @@ const displayTotal = editMode
                         discountType === t ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400'
                     }`}
                 >
-                    {t === 'amount' ? 'EGP' : '%'}
+                    {t === 'amount' ? 'ج.م' : '%'}
                 </button>
             ))}
         </div>
@@ -339,21 +339,21 @@ const displayTotal = editMode
 ) : (
     order.discount > 0 && (
         <div className="flex justify-between text-sm text-green-400">
-            <span>Discount</span>
-            <span>- {order.discount} EGP</span>
+            <span>الخصم</span>
+            <span>- {order.discount} ج.م</span>
         </div>
     )
 )}
 
 
                         <div className="flex justify-between text-base font-bold text-white border-t border-gray-800 pt-2">
-                            <span>Total</span>
-                            <span>{displayTotal} EGP</span>
+                            <span>الإجمالي</span>
+                            <span>{displayTotal} ج.م</span>
                         </div>
                         {order.status === 'unpaid' && order.amount_remaining > 0 && (
                             <div className="flex justify-between text-sm text-red-400">
-                                <span>Amount Due</span>
-                                <span>{displayAmountDue} EGP</span>
+                                <span>المبلغ المستحق</span>
+                                <span>{displayAmountDue} ج.م</span>
                             </div>
                         )}
                     </div>
@@ -362,27 +362,27 @@ const displayTotal = editMode
 {/* Profit */}
 {order.items.some(i => i.cost_price !== null) && (
     <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-        <p className="text-gray-400 text-xs uppercase tracking-wider mb-4">Profit Summary</p>
+        <p className="text-gray-400 text-xs uppercase tracking-wider mb-4">ملخص الربح</p>
         <div className="flex gap-8">
             <div>
-                <p className="text-gray-500 text-xs mb-1">Revenue</p>
-                <p className="text-white font-semibold">{order.total} EGP</p>
+                <p className="text-gray-500 text-xs mb-1">الإيرادات</p>
+                <p className="text-white font-semibold">{order.total} ج.م</p>
             </div>
             <div>
-                <p className="text-gray-500 text-xs mb-1">Cost</p>
+                <p className="text-gray-500 text-xs mb-1">التكلفة</p>
                 <p className="text-white font-semibold">
-                    {order.items.reduce((sum, i) => sum + ((i.cost_price ?? 0) * i.quantity), 0).toFixed(2)} EGP
+                    {order.items.reduce((sum, i) => sum + ((i.cost_price ?? 0) * i.quantity), 0).toFixed(2)} ج.م
                 </p>
             </div>
             <div>
-                <p className="text-gray-500 text-xs mb-1">Gross Profit</p>
+                <p className="text-gray-500 text-xs mb-1">إجمالي الربح</p>
                 {(() => {
                     const cost = order.items.reduce((sum, i) => sum + ((i.cost_price ?? 0) * i.quantity), 0)
                     const profit = order.total - cost
                     const margin = order.total > 0 ? ((profit / order.total) * 100).toFixed(1) : 0
                     return (
                         <p className={`font-semibold ${profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                            {profit.toFixed(2)} EGP <span className="text-xs text-gray-500">({margin}%)</span>
+                            {profit.toFixed(2)} ج.م <span className="text-xs text-gray-500">({margin}%)</span>
                         </p>
                     )
                 })()}
@@ -393,13 +393,13 @@ const displayTotal = editMode
 
             {/* Notes */}
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-                <p className="text-gray-400 text-xs uppercase tracking-wider mb-2">Notes</p>
+                <p className="text-gray-400 text-xs uppercase tracking-wider mb-2">ملاحظات</p>
                 {editMode ? (
                     <textarea
                         value={editForm.notes}
                         onChange={e => setEditForm({ ...editForm, notes: e.target.value })}
                         rows={3}
-                        placeholder="Add notes..."
+                        placeholder="أضف ملاحظات..."
                         className="w-full px-3 py-2 bg-gray-800 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm resize-none"
                     />
                 ) : (
@@ -412,9 +412,9 @@ const displayTotal = editMode
             onClose={() => setShowConfirm(false)}
             onConfirm={handleCancel}
             deleting={cancelling}
-            title="Cancel Order"
-            name={"Order " + order.invoice_number}
-            warning="This will reverse the ledger charge and restore inventory. This cannot be undone."
+            title="إلغاء الطلب"
+            name={"طلب " + order.invoice_number}
+            warning="ده هيعكس القيد في الحساب ويرجّع المخزون. مش هتقدر ترجع في الخطوة دي."
            />
             
             {showAddItem && (

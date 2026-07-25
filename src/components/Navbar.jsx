@@ -17,21 +17,27 @@ export default function Navbar() {
     }
 
     const baseLinks = [
-        { to: '/dashboard', label: 'Dashboard' },
-        { to: '/products', label: 'Products' },
-        { to: '/customers', label: 'Customers' },
-        { to: '/orders', label: 'Orders' },
-        { to: '/inventory', label: 'Inventory' },
-        { to: '/suppliers', label: 'Suppliers' },
-        { to: '/purchase-orders', label: 'Purchases' },
+        { to: '/dashboard', label: 'لوحة التحكم' },
+        { to: '/products', label: 'المنتجات' },
+        { to: '/customers', label: 'العملاء' },
+        { to: '/orders', label: 'الطلبات' },
+        { to: '/inventory', label: 'المخزون' },
+        { to: '/suppliers', label: 'الموردين' },
+        { to: '/purchase-orders', label: 'المشتريات' },
     ]
 
     const links = [
         ...baseLinks,
-        ...(user.role === 'tenant_admin' ? [{ to: '/reports', label: 'Reports' }] : []),
-        ...(user.role === 'tenant_admin' ? [{ to: '/audit-log', label: 'Activity' }] : []),
-        ...(user.role === 'tenant_admin' || user.role === 'store_manager' ? [{ to: '/settings', label: 'Settings' }] : []),
+        ...(user.role === 'tenant_admin' ? [{ to: '/reports', label: 'التقارير' }] : []),
+        ...(user.role === 'tenant_admin' ? [{ to: '/audit-log', label: 'النشاط' }] : []),
+        ...(user.role === 'tenant_admin' || user.role === 'store_manager' ? [{ to: '/settings', label: 'الإعدادات' }] : []),
     ]
+
+    const roleLabels = {
+        tenant_admin: 'صاحب المتجر',
+        store_manager: 'مدير المتجر',
+        store_staff: 'موظف',
+    }
 
     const linkClass = ({ isActive }) =>
         `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
@@ -61,7 +67,7 @@ export default function Navbar() {
                 <div className="hidden lg:flex items-center gap-3">
                     <div className="text-end">
                         <p className="text-sm font-medium text-white">{user.business_name}</p>
-                        <p className="text-xs text-gray-400">{user.name} · <span className="text-blue-400">{user.role?.replace(/_/g, ' ')}</span></p>
+                        <p className="text-xs text-gray-400">{user.name} · <span className="text-blue-400">{roleLabels[user.role] || user.role}</span></p>
                     </div>
                     <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold">
                         {user.name?.charAt(0).toUpperCase()}
@@ -70,7 +76,7 @@ export default function Navbar() {
                         onClick={handleLogout}
                         className="px-3 py-1.5 text-sm bg-gray-700 hover:bg-red-600 rounded-md transition-colors text-white"
                     >
-                        Logout
+                        تسجيل الخروج
                     </button>
                 </div>
 
@@ -105,14 +111,14 @@ export default function Navbar() {
                 </div>
                 <div className="flex-1">
                     <p className="text-sm font-medium text-white">{user.business_name}</p>
-                    <p className="text-xs text-gray-400">{user.name} · <span className="text-blue-400">{user.role?.replace(/_/g, ' ')}</span></p>
+                    <p className="text-xs text-gray-400">{user.name} · <span className="text-blue-400">{roleLabels[user.role] || user.role}</span></p>
                 </div>
             </div>
             <button
                 onClick={handleLogout}
                 className="mt-2 px-3 py-2 text-sm bg-gray-700 hover:bg-red-600 rounded-md transition-colors text-white text-start"
             >
-                Logout
+                تسجيل الخروج
             </button>
         </div>
     )}

@@ -318,7 +318,7 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
 
                         {items.length === 0 ? (
                             <div className="text-center py-10 text-gray-500 text-sm">
-                                Search or browse products to add items →
+                                ابحث أو اتصفح المنتجات عشان تضيف أصناف ←
                             </div>
                         ) : (
                             <>

@@ -47,7 +47,7 @@ export default function Inventory() {
             setStores(storesRes.data.data)
             setWarehousesList(warehousesRes.data.data)
         } catch (err) {
-            showToast(err.response?.data?.message || 'Failed to load inventory', 'error')
+            showToast(err.response?.data?.message || 'حصلت مشكلة في تحميل المخزون', 'error')
         } finally {
             setLoading(false)
         }
@@ -75,7 +75,7 @@ export default function Inventory() {
             return
         }
         if (!adjustNotes.trim()) {
-            showToast('Please enter a reason for this adjustment.', 'error')
+            showToast('من فضلك اكتب سبب التعديل ده.', 'error')
             return
         }
         setAdjustLoading(true)
@@ -89,7 +89,7 @@ export default function Inventory() {
             await fetchInventory()
             closeAdjustModal()
         } catch (err) {
-            showToast(err.response?.data?.message || 'Failed to adjust stock', 'error')
+            showToast(err.response?.data?.message || 'حصلت مشكلة في تعديل المخزون', 'error')
         } finally {
             setAdjustLoading(false)
         }
@@ -118,13 +118,13 @@ export default function Inventory() {
     return (
         <div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-                <h2 className="text-2xl font-bold text-white">Inventory</h2>
+                <h2 className="text-2xl font-bold text-white">المخزون</h2>
 
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                     <SearchInput
                         value={search}
                         onChange={(e) => handleSearch(e.target.value)}
-                        placeholder="Search by product name..."
+                        placeholder="ابحث باسم المنتج..."
                     />
                     <button
     onClick={() => { setLowStockOnly(!lowStockOnly); setPage(1) }}
@@ -142,7 +142,7 @@ export default function Inventory() {
                         onChange={(e) => setSelectedStore(e.target.value)}
                         className="px-3 py-1.5 bg-gray-800 border border-gray-700 text-white rounded-lg text-sm focus:outline-none focus:border-blue-500"
                     >
-                        <option value="">All Stores</option>
+                        <option value="">كل المتاجر</option>
                         {stores.map(s => (
                             <option key={s.id} value={s.id}>{s.name}</option>
                         ))}
@@ -164,7 +164,7 @@ export default function Inventory() {
     )}
 
             <div className="flex gap-2 mb-4 border-b border-gray-800 pb-3 overflow-x-auto">
-    {[{ key: '', label: 'All Warehouses' }, ...warehousesList.map(w => ({ key: w.id, label: w.name }))].map(tab => (
+    {[{ key: '', label: 'كل المخازن' }, ...warehousesList.map(w => ({ key: w.id, label: w.name }))].map(tab => (
         <button
             key={tab.key}
             onClick={() => { setSelectedWarehouse(tab.key) ; setPage(1) }}
@@ -183,13 +183,13 @@ export default function Inventory() {
                     <thead className="bg-gray-800">
                         <tr>
                             {[
-                                'Product',
-                                ...(isAdmin ? ['Store'] : []),
-                                'Warehouse',
-                                'Quantity',
-                                'Threshold',
-                                'Status',
-                                'Actions'
+                                'المنتج',
+                                ...(isAdmin ? ['المتجر'] : []),
+                                'المخزن',
+                                'الكمية',
+                                'حد التنبيه',
+                                'الحالة',
+                                'إجراءات'
                             ].map(h => (
                                 <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">
                                     {h}
@@ -223,11 +223,11 @@ export default function Inventory() {
                                 <td className="px-4 py-3">
                                     {item.low_stock ? (
                                         <span className="px-2 py-1 bg-red-500/20 text-red-400 text-xs font-bold rounded-lg uppercase tracking-wider">
-                                            Low Stock
+                                            مخزون منخفض
                                         </span>
                                     ) : (
                                         <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs font-bold rounded-lg uppercase tracking-wider">
-                                            In Stock
+                                            متوفر
                                         </span>
                                     )}
                                 </td>
@@ -238,14 +238,14 @@ export default function Inventory() {
                                                 onClick={() => openAdjustModal(item, 'in')}
                                                 className="px-3 py-1 bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-medium rounded-lg hover:bg-green-500/20 transition-colors"
                                             >
-                                                + Add
+                                                + إضافة
                                             </button>
                                             <button
                                                 onClick={() => openAdjustModal(item, 'out')}
                                                 disabled={item.quantity === 0}
                                                 className="px-3 py-1 bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium rounded-lg hover:bg-red-500/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                                             >
-                                                − Remove
+                                                − خصم
                                             </button>
                                         </div>
                                     ) : (
@@ -259,7 +259,7 @@ export default function Inventory() {
 
                 {filteredInventory.length === 0 && (
                     <div className="text-center py-16 text-gray-500">
-                        {selectedStore ? 'No inventory for this store.' : 'No inventory records found.'}
+                        {selectedStore ? 'مفيش مخزون للمتجر ده.' : 'مفيش سجلات مخزون.'}
                     </div>
                 )}
             </div>
@@ -271,7 +271,7 @@ export default function Inventory() {
             disabled={page === 1}
             className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
         >
-            ← Previous
+            → السابق
         </button>
         <span className="text-gray-400 text-sm">Page {page} of {lastPage}</span>
         <button
@@ -279,7 +279,7 @@ export default function Inventory() {
             disabled={page === lastPage}
             className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
         >
-            Next →
+            التالي ←
         </button>
     </div>
 )}
@@ -287,7 +287,7 @@ export default function Inventory() {
             <Modal
                 open={!!adjustingItem}
                 onClose={closeAdjustModal}
-                title={adjustDirection === 'in' ? 'Add Stock' : 'Remove Stock'}
+                title={adjustDirection === 'in' ? 'إضافة مخزون' : 'خصم مخزون'}
                 setAdjustUnitType={'base'}
             >
                 {adjustingItem && (
@@ -313,7 +313,7 @@ export default function Inventory() {
                             </div>
                             {adjustingItem?.secondary_unit && (
     <div>
-        <label className="block text-sm text-gray-400 mb-1">Unit</label>
+        <label className="block text-sm text-gray-400 mb-1">الوحدة</label>
         <div className="flex gap-2">
             {['base', 'secondary'].map(u => (
                 <button
@@ -349,13 +349,13 @@ export default function Inventory() {
                                     onChange={(e) => setAdjustNotes(e.target.value)}
                                     rows={2}
                                     maxLength={500}
-                                    placeholder="e.g. damaged goods, stock count correction..."
+                                    placeholder="مثلاً: بضاعة تالفة، تصحيح جرد..."
                                     className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm resize-none"
                                 />
                             </div>
                             <div className="flex justify-end gap-2 pt-2">
                                 <button type="button" onClick={closeAdjustModal} className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">
-                                    Cancel
+                                    إلغاء
                                 </button>
                                 <button
                                     type="submit"
@@ -364,7 +364,7 @@ export default function Inventory() {
                                         adjustDirection === 'in' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'
                                     }`}
                                 >
-                                    {adjustLoading ? 'Saving...' : adjustDirection === 'in' ? 'Add Stock' : 'Remove Stock'}
+                                    {adjustLoading ? 'جاري الحفظ...' : adjustDirection === 'in' ? 'إضافة مخزون' : 'خصم مخزون'}
                                 </button>
                             </div>
                         </div>

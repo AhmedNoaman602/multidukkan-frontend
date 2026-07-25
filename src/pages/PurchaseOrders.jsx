@@ -447,7 +447,7 @@ export default function PurchaseOrders() {
             disabled={page === 1}
             className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
           >
-            ← Previous
+            → السابق
           </button>
           <span className="text-gray-400 text-sm">
             Page {page} of {lastPage}
@@ -457,7 +457,7 @@ export default function PurchaseOrders() {
             disabled={page === lastPage}
             className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
           >
-            Next →
+            التالي ←
           </button>
         </div>
       )}

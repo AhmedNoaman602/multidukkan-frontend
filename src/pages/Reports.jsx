@@ -383,7 +383,7 @@ export default function Reports() {
                     disabled={data.profit_by_order.current_page === 1}
                     className="px-3 py-1 bg-gray-800 text-gray-400 text-xs rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
                   >
-                    ← Previous
+                    → السابق
                   </button>
                   <span className="text-gray-500 text-xs">
                     Page {data.profit_by_order.current_page} of{" "}
@@ -401,7 +401,7 @@ export default function Reports() {
                     }
                     className="px-3 py-1 bg-gray-800 text-gray-400 text-xs rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
                   >
-                    Next →
+                    التالي ←
                   </button>
                 </div>
               )}
@@ -465,7 +465,7 @@ export default function Reports() {
                     disabled={data.orders_by_customer.current_page === 1}
                     className="px-3 py-1 bg-gray-800 text-gray-400 text-xs rounded-lg disabled:opacity-50 hover:bg-gray-700"
                   >
-                    ← Previous
+                    → السابق
                   </button>
                   <span className="text-gray-500 text-xs">
                     Page {data.orders_by_customer.current_page} of{" "}
@@ -483,7 +483,7 @@ export default function Reports() {
                     }
                     className="px-3 py-1 bg-gray-800 text-gray-400 text-xs rounded-lg disabled:opacity-50 hover:bg-gray-700"
                   >
-                    Next →
+                    التالي ←
                   </button>
                 </div>
               )}
@@ -560,7 +560,7 @@ export default function Reports() {
                   disabled={data.payments_history.current_page === 1}
                   className="px-3 py-1 bg-gray-800 text-gray-400 text-xs rounded-lg disabled:opacity-50 hover:bg-gray-700"
                 >
-                  ← Previous
+                  → السابق
                 </button>
                 <span className="text-gray-500 text-xs">
                   Page {data.payments_history.current_page} of{" "}
@@ -578,7 +578,7 @@ export default function Reports() {
                   }
                   className="px-3 py-1 bg-gray-800 text-gray-400 text-xs rounded-lg disabled:opacity-50 hover:bg-gray-700"
                 >
-                  Next →
+                  التالي ←
                 </button>
               </div>
             )}
@@ -633,7 +633,7 @@ export default function Reports() {
                         disabled={data.daily_breakdown.current_page === 1}
                         className="px-3 py-1 bg-gray-800 text-gray-400 text-xs rounded-lg disabled:opacity-50 hover:bg-gray-700"
                       >
-                        ← Previous
+                        → السابق
                       </button>
                       <span className="text-gray-500 text-xs">
                         Page {data.daily_breakdown.current_page} of{" "}
@@ -651,7 +651,7 @@ export default function Reports() {
                         }
                         className="px-3 py-1 bg-gray-800 text-gray-400 text-xs rounded-lg disabled:opacity-50 hover:bg-gray-700"
                       >
-                        Next →
+                        التالي ←
                       </button>
                     </div>
                   )}

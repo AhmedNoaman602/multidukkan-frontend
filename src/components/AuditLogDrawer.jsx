@@ -17,7 +17,7 @@ import {
   TableHead,
   TableCell,
 } from '@/components/ui/table'
-import { typeStyles, humanizeField, getInitials, formatDateTime } from '@/lib/auditLog'
+import { typeStyles, typeLabels, entityLabels, humanizeField, getInitials, formatDateTime } from '@/lib/auditLog'
 
 export default function AuditLogDrawer({ row, onClose }) {
   const [batchItems, setBatchItems] = useState(null)
@@ -48,19 +48,21 @@ export default function AuditLogDrawer({ row, onClose }) {
             <SheetHeader>
               <div className="flex items-center gap-2">
                 <Badge className={typeStyles[row.type] || 'bg-gray-700 text-gray-300'}>
-                  {row.type}
+                  {typeLabels[row.type] || row.type}
                 </Badge>
                 <span className="text-xs text-muted-foreground">{formatDateTime(row.created_at)}</span>
               </div>
-              <SheetTitle>{entityLabel || row.auditable_type || 'Activity'}</SheetTitle>
-              {row.auditable_type && <SheetDescription>{row.auditable_type}</SheetDescription>}
+              <SheetTitle>{entityLabel || entityLabels[row.auditable_type] || row.auditable_type || 'نشاط'}</SheetTitle>
+              {row.auditable_type && (
+                <SheetDescription>{entityLabels[row.auditable_type] || row.auditable_type}</SheetDescription>
+              )}
             </SheetHeader>
 
             <div className="flex items-center gap-2 mt-4">
               <Avatar className="h-7 w-7">
                 <AvatarFallback>{getInitials(row.user_name)}</AvatarFallback>
               </Avatar>
-              <span className="text-sm text-foreground">{row.user_name || 'System'}</span>
+              <span className="text-sm text-foreground">{row.user_name || 'النظام'}</span>
             </div>
 
             <div className="mt-6">
@@ -68,9 +70,9 @@ export default function AuditLogDrawer({ row, onClose }) {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Field</TableHead>
-                      <TableHead>Previous</TableHead>
-                      <TableHead>New</TableHead>
+                      <TableHead>الحقل</TableHead>
+                      <TableHead>القيمة السابقة</TableHead>
+                      <TableHead>القيمة الجديدة</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -86,17 +88,17 @@ export default function AuditLogDrawer({ row, onClose }) {
               ) : isBatch ? (
                 <div className="space-y-3">
                   <p className="text-sm text-muted-foreground">
-                    {row.item_count} products — {row.quantity} units total
+                    المنتجات: {row.item_count} — إجمالي الكمية: {row.quantity}
                   </p>
                   {loadingBatch ? (
-                    <p className="text-sm text-muted-foreground">Loading...</p>
+                    <p className="text-sm text-muted-foreground">جاري التحميل...</p>
                   ) : (
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Product</TableHead>
-                          <TableHead>Warehouse</TableHead>
-                          <TableHead>Quantity</TableHead>
+                          <TableHead>المنتج</TableHead>
+                          <TableHead>المخزن</TableHead>
+                          <TableHead>الكمية</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -113,15 +115,15 @@ export default function AuditLogDrawer({ row, onClose }) {
                 </div>
               ) : (
                 <div className="space-y-2 text-sm">
-                  <p className="text-foreground">{row.description || 'No description available.'}</p>
+                  <p className="text-foreground">{row.description || 'لا يوجد وصف.'}</p>
                   {row.amount !== null && (
                     <p className="text-muted-foreground">
-                      Amount: <span className="text-foreground">{row.amount} EGP</span>
+                      المبلغ: <span className="text-foreground">{row.amount} ج.م</span>
                     </p>
                   )}
                   {row.quantity !== null && (
                     <p className="text-muted-foreground">
-                      Quantity: <span className="text-foreground">{row.quantity}</span>
+                      الكمية: <span className="text-foreground">{row.quantity}</span>
                     </p>
                   )}
                 </div>

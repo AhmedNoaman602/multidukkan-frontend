@@ -24,19 +24,19 @@ export default function ProductDetail() {
     }, [id])
 
     if (loading) return <LoadingSpinner />
-    if (!product) return <div className="text-red-400">Product not found</div>
+    if (!product) return <div className="text-red-400">المنتج غير موجود</div>
 
     const totalStock = product.stocks?.reduce((sum, s) => sum + s.quantity, 0) ?? 0
 
     return (
         <div className="max-w-3xl">
             <div className="flex items-center justify-between mb-6">
-                <BackButton label="Back to Products" to="/products" />
+                <BackButton label="رجوع للمنتجات" to="/products" />
                 <button
                     onClick={() => navigate(`/products/${id}/edit`)}
                     className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
                 >
-                    Edit Product
+                    تعديل المنتج
                 </button>
             </div>
 
@@ -50,34 +50,34 @@ export default function ProductDetail() {
                     <span className={`px-3 py-1 rounded-lg text-sm font-medium ${
                         totalStock > 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
                     }`}>
-                        {totalStock > 0 ? `${totalStock} in stock` : 'Out of stock'}
+                        {totalStock > 0 ? `${totalStock} in stock` : 'خلص من المخزن'}
                     </span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
-                        <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Default Price</p>
-                        <p className="text-white text-lg font-semibold">{product.price} EGP</p>
+                        <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">السعر الافتراضي</p>
+                        <p className="text-white text-lg font-semibold">{product.price} ج.م</p>
                     </div>
                     <div>
-                        <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Cost Price</p>
+                        <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">سعر التكلفة</p>
                         <p className="text-white text-lg font-semibold">
-                            {product.cost_price ? `${product.cost_price} EGP` : '—'}
+                            {product.cost_price ? `${product.cost_price} ج.م` : '—'}
                         </p>
                     </div>
                     <div>
-                        <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Profit Margin</p>
+                        <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">هامش الربح</p>
                         <p className="text-blue-400 text-lg font-semibold">
                             {product.profit_margin ? `${product.profit_margin}%` : '—'}
                         </p>
                     </div>
                     <div>
-                        <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Unit</p>
+                        <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">الوحدة</p>
                         <p className="text-white text-sm">{product.unit}</p>
                     </div>
                     {product.secondary_unit && (
                         <div>
-                            <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Secondary Unit</p>
+                            <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">الوحدة الثانوية</p>
                             <p className="text-white text-sm">
                                 1 {product.secondary_unit} = {product.conversion_factor} {product.unit}
                             </p>
@@ -89,13 +89,13 @@ export default function ProductDetail() {
             {/* Price Tiers */}
             {['a', 'b', 'c', 'd', 'e'].some(t => product[`price_${t}`]) && (
                 <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-4">
-                    <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">Price Tiers</h3>
+                    <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">فئات الأسعار</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                         {['a', 'b', 'c', 'd', 'e'].map(tier => (
                             <div key={tier}>
                                 <p className="text-gray-500 text-xs mb-1">Price {tier.toUpperCase()}</p>
                                 <p className="text-white text-sm font-medium">
-                                    {product[`price_${tier}`] ? `${product[`price_${tier}`]} EGP` : '—'}
+                                    {product[`price_${tier}`] ? `${product[`price_${tier}`]} ج.م` : '—'}
                                 </p>
                             </div>
                         ))}
@@ -106,12 +106,12 @@ export default function ProductDetail() {
             {/* Warehouse Stock */}
             <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto mb-4">
                 <div className="px-4 py-3 border-b border-gray-800">
-                    <h3 className="text-white font-semibold text-sm">Warehouse Stock</h3>
+                    <h3 className="text-white font-semibold text-sm">مخزون المخازن</h3>
                 </div>
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>
-                            {['Warehouse', 'Quantity', 'Threshold'].map(h => (
+                            {['المخزن', 'الكمية', 'حد التنبيه'].map(h => (
                                 <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>
                             ))}
                         </tr>
@@ -137,19 +137,19 @@ export default function ProductDetail() {
                     </tbody>
                 </table>
                 {(!product.stocks || product.stocks.length === 0) && (
-                    <div className="text-center py-8 text-gray-500 text-sm">No stock data</div>
+                    <div className="text-center py-8 text-gray-500 text-sm">مفيش بيانات مخزون</div>
                 )}
             </div>
 
             {/* Suppliers */}
             <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto mb-4">
                 <div className="px-4 py-3 border-b border-gray-800">
-                    <h3 className="text-white font-semibold text-sm">Suppliers</h3>
+                    <h3 className="text-white font-semibold text-sm">الموردين</h3>
                 </div>
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>
-                            {['Supplier', 'Cost Price', 'Last Purchase', 'Preferred'].map(h => (
+                            {['المورد', 'سعر التكلفة', 'آخر شراء', 'المفضل'].map(h => (
                                 <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>
                             ))}
                         </tr>
@@ -168,7 +168,7 @@ export default function ProductDetail() {
                     </tbody>
                 </table>
                 {suppliers.length === 0 && (
-                    <div className="text-center py-8 text-gray-500 text-sm">No suppliers linked</div>
+                    <div className="text-center py-8 text-gray-500 text-sm">مفيش موردين مرتبطين</div>
                 )}
             </div>
         </div>

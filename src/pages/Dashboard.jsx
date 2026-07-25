@@ -60,7 +60,7 @@ export default function Dashboard() {
     // 5. Derived values — computed from state/props, no side effects
     const user = JSON.parse(localStorage.getItem('user') || '{}')
     const today = new Date().toLocaleDateString('en-CA')
-    const todayFormatted = new Date().toLocaleDateString('en-EG', {
+    const todayFormatted = new Date().toLocaleDateString('ar-EG-u-nu-latn', {
         weekday: 'long', month: 'long', day: 'numeric'
     })
 
@@ -147,7 +147,7 @@ export default function Dashboard() {
             setLowStockItems(d.low_stock)
 
         } catch (err) {
-            showToast(err.response?.data?.message || 'Failed to load dashboard', 'error')
+            showToast(err.response?.data?.message || 'حصلت مشكلة في تحميل لوحة التحكم', 'error')
         } finally {
             setLoading(false)
         }
@@ -169,25 +169,30 @@ export default function Dashboard() {
                     </div>
                     <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
                         {/* {getGreeting()} يا  */}
-                        Good day, {user.name}
+                        نهارك سعيد، {user.name}
                     </h1>
                     <p className="text-gray-500 text-sm mt-1">
                         {/* {getSubMessage()} */}
-                        Welcome back to your dashboard! Here's a quick overview of your business performance and insights for today.
+                        أهلاً بيك من تاني! دي نظرة سريعة على أداء متجرك والتحليلات بتاعة النهاردة.
                     </p>
                 </div>
                 <div className="flex items-center gap-1 bg-gray-900 border border-gray-800 rounded-xl p-1 self-start overflow-x-auto">
-                    {['Today', 'Week', 'Month', 'Year'].map(period => (
+                    {[
+                        { value: 'Today', label: 'اليوم' },
+                        { value: 'Week', label: 'الأسبوع' },
+                        { value: 'Month', label: 'الشهر' },
+                        { value: 'Year', label: 'السنة' },
+                    ].map(period => (
                         <button
-                            key={period}
-                            onClick={() => setActivePeriod(period)}
+                            key={period.value}
+                            onClick={() => setActivePeriod(period.value)}
                             className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150 whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 ${
-                                activePeriod === period
+                                activePeriod === period.value
                                     ? 'bg-blue-600 text-white'
                                     : 'text-gray-400 hover:text-white'
                             }`}
                         >
-                            {period}
+                            {period.label}
                         </button>
                     ))}
                 </div>
@@ -195,42 +200,42 @@ export default function Dashboard() {
 
             {/* PRIMARY — Today's performance */}
             <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Today</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">اليوم</p>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                     <StatCard
-                        label="Revenue collected"
+                        label="الإيرادات المحصلة"
                         value={stats.todayRevenue > 0 ? stats.todayRevenue.toLocaleString() : '—'}
-                        unit={stats.todayRevenue > 0 ? 'EGP' : null}
+                        unit={stats.todayRevenue > 0 ? 'ج.م' : null}
                         sub={stats.todayRevenue > 0
-                            ? `${stats.todayPaymentsCount} payment${stats.todayPaymentsCount !== 1 ? 's' : ''}`
-                            : 'No sales yet today'}
+                            ? `الدفعات: ${stats.todayPaymentsCount}`
+                            : 'مفيش مبيعات لحد دلوقتي'}
                         icon={Banknote}
                         chip="bg-green-500/10 border-green-500/30 text-green-400"
                         onClick={user.role === 'tenant_admin' ? () => navigate('/reports') : undefined}
                     />
                     <StatCard
-                        label="New orders"
+                        label="الطلبات الجديدة"
                         value={stats.todayOrdersCount > 0 ? stats.todayOrdersCount.toLocaleString() : '—'}
                         sub={stats.todayOrdersCount > 0
-                            ? `${stats.todaySales.toLocaleString()} EGP in sales`
-                            : 'No orders yet today'}
+                            ? `المبيعات: ${stats.todaySales.toLocaleString()} ج.م`
+                            : 'مفيش طلبات لحد دلوقتي'}
                         icon={ShoppingCart}
                         chip="bg-violet-500/10 border-violet-500/30 text-violet-400"
                         onClick={() => navigate('/orders')}
                     />
                     <StatCard
-                        label="Unpaid orders"
+                        label="الطلبات غير المدفوعة"
                         value={stats.unpaidOrders.toLocaleString()}
-                        sub={stats.unpaidOrders > 0 ? 'needs follow-up' : 'all settled ✓'}
+                        sub={stats.unpaidOrders > 0 ? 'محتاجة متابعة' : 'كله متسدد ✓'}
                         icon={stats.unpaidOrders > 0 ? Clock : CheckCircle2}
                         chip={stats.unpaidOrders > 0 ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : 'bg-gray-800/60 border-gray-700 text-gray-400'}
                         onClick={() => navigate('/orders')}
                     />
                     <StatCard
-                        label="Total owed"
+                        label="إجمالي المستحقات"
                         value={stats.totalOwed > 0 ? stats.totalOwed.toLocaleString() : '—'}
-                        unit={stats.totalOwed > 0 ? 'EGP' : null}
-                        sub={stats.totalOwed > 0 ? 'across all customers' : 'Nothing owed 🎉'}
+                        unit={stats.totalOwed > 0 ? 'ج.م' : null}
+                        sub={stats.totalOwed > 0 ? 'على كل العملاء' : 'مفيش مستحقات 🎉'}
                         icon={Receipt}
                         chip="bg-red-500/10 border-red-500/30 text-red-400"
                         onClick={() => navigate('/customers')}
@@ -240,28 +245,28 @@ export default function Dashboard() {
 
             {/* SECONDARY — Business overview */}
             <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Overview</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">نظرة عامة</p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                     <StatCard
-                        label="Total customers"
+                        label="إجمالي العملاء"
                         value={stats.totalCustomers > 0 ? stats.totalCustomers.toLocaleString() : '—'}
-                        sub={stats.totalCustomers > 0 ? null : 'Add your first customer'}
+                        sub={stats.totalCustomers > 0 ? null : 'أضف أول عميل'}
                         icon={Users}
                         chip="bg-purple-500/10 border-purple-500/30 text-purple-400"
                         onClick={() => navigate('/customers')}
                     />
                     <StatCard
-                        label="Total products"
+                        label="إجمالي المنتجات"
                         value={stats.totalProducts > 0 ? stats.totalProducts.toLocaleString() : '—'}
-                        sub={stats.totalProducts > 0 ? null : 'Add your first product'}
+                        sub={stats.totalProducts > 0 ? null : 'أضف أول منتج'}
                         icon={Package}
                         chip="bg-cyan-500/10 border-cyan-500/30 text-cyan-400"
                         onClick={() => navigate('/products')}
                     />
                     <StatCard
-                        label="Low stock alert"
+                        label="تنبيه نقص المخزون"
                         value={stats.lowStock.toLocaleString()}
-                        sub={stats.lowStock > 0 ? 'tap to review' : 'all stocked ✓'}
+                        sub={stats.lowStock > 0 ? 'اضغط للمراجعة' : 'المخزون كويس ✓'}
                         icon={stats.lowStock > 0 ? AlertTriangle : CheckCircle2}
                         chip={stats.lowStock > 0 ? 'bg-orange-500/10 border-orange-500/30 text-orange-400' : 'bg-green-500/10 border-green-500/30 text-green-400'}
                         onClick={() => navigate('/inventory?low_stock=1')}
@@ -271,21 +276,21 @@ export default function Dashboard() {
 
             {/* Quick actions */}
             <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Quick Actions</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">إجراءات سريعة</p>
                 <div className="flex flex-wrap items-center gap-2">
                     <button
                         onClick={() => navigate('/orders/create')}
                         className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors duration-150 shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
                     >
                         <Plus size={15} strokeWidth={2} />
-                        New Order
+                        طلب جديد
                     </button>
                     <button
                         onClick={() => navigate('/customers/create')}
                         className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-300 hover:text-white text-sm font-medium rounded-lg transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
                     >
                         <Plus size={15} strokeWidth={2} />
-                        Add Customer
+                        إضافة عميل
                     </button>
                     {user.role === 'tenant_admin' && (
                         <>
@@ -294,14 +299,14 @@ export default function Dashboard() {
                                 className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-300 hover:text-white text-sm font-medium rounded-lg transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
                             >
                                 <Plus size={15} strokeWidth={2} />
-                                Add Product
+                                إضافة منتج
                             </button>
                             <button
                                 onClick={() => navigate('/reports')}
                                 className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-300 hover:text-white text-sm font-medium rounded-lg transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
                             >
                                 <BarChart3 size={15} strokeWidth={2} />
-                                View Reports
+                                عرض التقارير
                             </button>
                         </>
                     )}
@@ -314,7 +319,7 @@ export default function Dashboard() {
                     >
                         {/* ⚡ بيع سريع */}
                         <Zap size={15} strokeWidth={2} />
-                        Quick Sale
+                        بيع سريع
                     </button>
                 </div>
             </div>
@@ -324,7 +329,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
                 <div className="w-1 h-4 bg-purple-500 rounded-full" />
-                <p className="text-xs text-gray-400 uppercase tracking-widest font-semibold">AI Insights</p>
+                <p className="text-xs text-gray-400 uppercase tracking-widest font-semibold">تحليلات ذكية</p>
                 <span className="text-xs px-2 py-0.5 bg-purple-500/15 text-purple-400 rounded-full">آخر 30 يوم</span>
                 {insightsFetched && (
                     <span className="text-xs px-2 py-0.5 bg-green-500/15 text-green-400 rounded-full">✓ محدّث</span>
@@ -385,7 +390,7 @@ export default function Dashboard() {
             {[
                 {
                     key: 'opportunity',
-                    label: 'OPPORTUNITY',
+                    label: 'فرصة',
                     icon: '💡',
                     color: 'green',
                     border: 'border-green-500/20',
@@ -394,7 +399,7 @@ export default function Dashboard() {
                 },
                 {
                     key: 'urgent',
-                    label: 'URGENT',
+                    label: 'عاجل',
                     icon: '⚠️',
                     color: 'red',
                     border: 'border-red-500/20',
@@ -403,7 +408,7 @@ export default function Dashboard() {
                 },
                 {
                     key: 'trend',
-                    label: 'TREND',
+                    label: 'اتجاه',
                     icon: '📈',
                     color: 'blue',
                     border: 'border-blue-500/20',
@@ -450,16 +455,16 @@ export default function Dashboard() {
                 <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden self-start">
                     <div className="flex items-start justify-between px-4 pt-4">
                         <div>
-                            <p className="text-white text-sm font-semibold">Recent orders</p>
+                            <p className="text-white text-sm font-semibold">أحدث الطلبات</p>
                             <p className="text-gray-500 text-xs mt-0.5">
-                                {recentOrders.length} orders · today and recent
+                                الطلبات: {recentOrders.length} · النهاردة والأحدث
                             </p>
                         </div>
                         <button
                             onClick={() => navigate('/orders')}
                             className="text-blue-400 hover:text-blue-300 text-xs font-medium transition-colors duration-150"
                         >
-                            View all →
+                            عرض الكل ←
                         </button>
                     </div>
 
@@ -467,9 +472,9 @@ export default function Dashboard() {
                         <div className="flex items-center px-4 py-3">
                             <div className="flex items-center gap-0.5 bg-gray-950/60 border border-gray-800 rounded-lg p-0.5">
                                 {[
-                                    { label: 'All', value: 'all', count: recentOrders.length },
-                                    { label: 'Paid', value: 'paid', count: recentOrders.filter(o => o.status === 'paid').length },
-                                    { label: 'Unpaid', value: 'unpaid', count: recentOrders.filter(o => o.status === 'unpaid').length },
+                                    { label: 'الكل', value: 'all', count: recentOrders.length },
+                                    { label: 'مدفوع', value: 'paid', count: recentOrders.filter(o => o.status === 'paid').length },
+                                    { label: 'غير مدفوع', value: 'unpaid', count: recentOrders.filter(o => o.status === 'unpaid').length },
                                 ].map(tab => (
                                     <button
                                         key={tab.value}
@@ -497,12 +502,12 @@ export default function Dashboard() {
                                 <span className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-800 text-gray-500 mb-3">
                                     <Inbox size={18} strokeWidth={1.75} />
                                 </span>
-                                <p className="text-gray-500 text-sm mb-2">No orders yet</p>
+                                <p className="text-gray-500 text-sm mb-2">مفيش طلبات لسه</p>
                                 <button
                                     onClick={() => navigate('/orders/create')}
                                     className="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors duration-150"
                                 >
-                                    Create your first order →
+                                    اعمل أول طلب ←
                                 </button>
                             </div>
                         ) : (
@@ -520,13 +525,13 @@ export default function Dashboard() {
                                 <thead>
                                     <tr className="border-b border-gray-800">
                                         {[
-                                            { h: 'Invoice', align: 'text-start' },
-                                            { h: 'Customer', align: 'text-start' },
-                                            { h: 'Items', align: 'text-end' },
-                                            { h: 'Total', align: 'text-end' },
-                                            { h: 'Balance', align: 'text-end' },
-                                            { h: 'Status', align: 'text-start' },
-                                            { h: 'Time', align: 'text-end' },
+                                            { h: 'الفاتورة', align: 'text-start' },
+                                            { h: 'العميل', align: 'text-start' },
+                                            { h: 'الأصناف', align: 'text-end' },
+                                            { h: 'الإجمالي', align: 'text-end' },
+                                            { h: 'المتبقي', align: 'text-end' },
+                                            { h: 'الحالة', align: 'text-start' },
+                                            { h: 'الوقت', align: 'text-end' },
                                         ].map(col => (
                                             <th key={col.h} className={`px-2 py-2.5 ${col.align} text-[11px] font-medium text-gray-500 uppercase tracking-wider`}>
                                                 {col.h}
@@ -560,7 +565,7 @@ export default function Dashboard() {
                                                     {order.items_count}
                                                 </td>
                                                 <td className="px-2 py-3 text-white text-sm font-medium text-end tabular-nums">
-                                                    {Number(order.total).toLocaleString()} <span className="text-gray-500 text-xs font-normal">EGP</span>
+                                                    {Number(order.total).toLocaleString()} <span className="text-gray-500 text-xs font-normal">ج.م</span>
                                                 </td>
                                                 <td className="px-2 py-3 text-sm font-medium text-end tabular-nums">
                                                     {order.amount_remaining > 0
@@ -577,7 +582,7 @@ export default function Dashboard() {
                                                         <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
                                                             order.status === 'paid' ? 'bg-green-400' : 'bg-amber-400'
                                                         }`} />
-                                                        {order.status === 'paid' ? 'Paid' : 'Unpaid'}
+                                                        {order.status === 'paid' ? 'مدفوع' : 'غير مدفوع'}
                                                     </span>
                                                 </td>
                                                 <td className="px-2 py-3 text-gray-500 text-xs text-end whitespace-nowrap">
@@ -598,13 +603,13 @@ export default function Dashboard() {
                 <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden self-start">
                     <div className="flex items-center justify-between px-4 pt-4 pb-3">
                         <p className="text-white text-sm font-semibold">
-                            {topDebtors.length > 0 ? 'Top debtors' : 'Low stock items'}
+                            {topDebtors.length > 0 ? 'أكبر المديونيات' : 'منتجات قربت تخلص'}
                         </p>
                         <button
                             onClick={() => navigate(topDebtors.length > 0 ? '/customers' : '/inventory')}
                             className="text-blue-400 hover:text-blue-300 text-xs font-medium transition-colors duration-150"
                         >
-                            View all →
+                            عرض الكل ←
                         </button>
                     </div>
 
@@ -629,7 +634,7 @@ export default function Dashboard() {
                                             </div>
                                         </div>
                                         <p className="text-red-400 text-sm font-semibold shrink-0 tabular-nums">
-                                            {Math.round(debtor.balance).toLocaleString()} <span className="text-gray-500 text-xs font-normal">EGP</span>
+                                            {Math.round(debtor.balance).toLocaleString()} <span className="text-gray-500 text-xs font-normal">ج.م</span>
                                         </p>
                                     </div>
                                 ))}
@@ -658,8 +663,8 @@ export default function Dashboard() {
                                 <span className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-800 text-green-400 mb-3">
                                     <CheckCircle2 size={18} strokeWidth={1.75} />
                                 </span>
-                                <p className="text-gray-500 text-sm">All good!</p>
-                                <p className="text-gray-600 text-xs mt-1">No debts, no low stock</p>
+                                <p className="text-gray-500 text-sm">كله تمام!</p>
+                                <p className="text-gray-600 text-xs mt-1">مفيش مديونيات ولا نقص مخزون</p>
                             </div>
                         )}
                     </div>

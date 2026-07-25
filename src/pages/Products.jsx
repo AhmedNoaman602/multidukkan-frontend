@@ -24,7 +24,7 @@ export default function Products() {
             setProducts(res.data.data)
             setLastPage(res.data.meta.last_page)
         } catch (err) {
-            showToast('Failed to load products' , 'error')
+            showToast('حصلت مشكلة في تحميل المنتجات', 'error')
         } finally {
             setLoading(false)
         }
@@ -44,7 +44,7 @@ export default function Products() {
         setDeleteTarget(null)
         fetchData()
     } catch (err) {
-        showToast(err.response?.data?.message || 'Failed to delete product' , 'error')
+        showToast(err.response?.data?.message || 'حصلت مشكلة في حذف المنتج', 'error')
         setDeleteTarget(null)
     } finally {
         setDeleting(false)
@@ -57,19 +57,19 @@ export default function Products() {
         <div>
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-                <h2 className="text-2xl font-bold text-white">Products</h2>
+                <h2 className="text-2xl font-bold text-white">المنتجات</h2>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                     <SearchInput
                         value={search}
                         onChange={(e) => handleSearch(e.target.value)}
-                        placeholder="Search by name or SKU..."
+                        placeholder="ابحث بالاسم أو رمز المنتج..."
                     />
                     {user.role === 'tenant_admin' && (
                         <button
                             onClick={() => navigate('/products/create')}
                             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
                         >
-                            + Add Product
+                            + إضافة منتج
                         </button>
                     )}
                 </div>
@@ -79,7 +79,7 @@ export default function Products() {
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>
-                            {['Name', 'SKU', 'Default', 'سعر أ', 'سعر ب', 'سعر ج', 'سعر د', 'سعر هـ', 'Cost Price', 'Profit Margin', 'Unit', 'Actions'].map(h => (
+                            {['الاسم', 'رمز المنتج', 'السعر الافتراضي', 'سعر أ', 'سعر ب', 'سعر ج', 'سعر د', 'سعر هـ', 'سعر التكلفة', 'هامش الربح', 'الوحدة', 'إجراءات'].map(h => (
                                 <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">
                                     {h}
                                 </th>
@@ -91,7 +91,7 @@ export default function Products() {
                             <tr key={product.id} onClick={() => navigate(`/products/${product.id}`)} className="hover:bg-gray-800/50 transition-colors cursor-pointer">
                                 <td className="px-4 py-3 text-white text-sm">{product.name}</td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">{product.sku}</td>
-                                <td className="px-4 py-3 text-white text-sm">{product.price} EGP</td>
+                                <td className="px-4 py-3 text-white text-sm">{product.price} ج.م</td>
                                {['a', 'b', 'c', 'd', 'e'].map(tier => (
     <td key={tier} className="px-4 py-3 text-sm">
         <div className="text-gray-300">
@@ -110,7 +110,7 @@ export default function Products() {
 ))}
                               
     <td className='px-4 py-3 text-white text-sm'>
-    {product.cost_price ? `${product.cost_price} EGP` : '—'}
+    {product.cost_price ? `${product.cost_price} ج.م` : '—'}
     </td>
 
     <td className={`px-4 py-3 text-sm font-medium ${
@@ -126,14 +126,14 @@ export default function Products() {
     onClick={(e) => { e.stopPropagation(); navigate('/products/create', { state: { duplicate: product } }) }}
     className="px-3 py-1 bg-gray-500/10 border border-gray-500/20 text-gray-400 text-xs font-medium rounded-lg hover:bg-gray-500/20 transition-colors"
 >
-    Duplicate
+    نسخ
 </button>
         {user.role !== 'store_staff' && (
             <button
     onClick={(e) => { e.stopPropagation(); navigate(`/products/${product.id}/edit`) }}
                 className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium rounded-lg hover:bg-blue-500/20 transition-colors"
             >
-                Edit
+                تعديل
             </button>
         )}
         {user.role === 'tenant_admin' && (
@@ -141,7 +141,7 @@ export default function Products() {
     onClick={(e) => { e.stopPropagation(); setDeleteTarget(product) }}
                 className="px-3 py-1 bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium rounded-lg hover:bg-red-500/20 transition-colors"
             >
-                Delete
+                حذف
             </button>
         )}
     </div>
@@ -153,7 +153,7 @@ export default function Products() {
 
                 {products.length === 0 && (
                     <div className="text-center py-16 text-gray-500">
-                        {search ? `No products matching "${search}"` : 'No products yet. Add your first product.'}
+                        {search ? `No products matching "${search}"` : 'مفيش منتجات لسه. أضف أول منتج.'}
                     </div>
                 )}
             </div>
@@ -164,7 +164,7 @@ export default function Products() {
             disabled={page === 1}
             className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
         >
-            ← Previous
+            → السابق
         </button>
         <span className="text-gray-400 text-sm">Page {page} of {lastPage}</span>
         <button
@@ -172,7 +172,7 @@ export default function Products() {
             disabled={page === lastPage}
             className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
         >
-            Next →
+            التالي ←
         </button>
     </div>
 )}
@@ -181,7 +181,7 @@ export default function Products() {
                 onClose={() => setDeleteTarget(null)}
                 onConfirm={handleDelete}
                 deleting={deleting}
-                title="Delete Product"
+                title="حذف المنتج"
                 name={deleteTarget?.name}
             />
         </div>

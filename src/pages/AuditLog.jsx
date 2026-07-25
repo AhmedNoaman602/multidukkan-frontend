@@ -7,7 +7,7 @@ import { useToast } from '../hooks/useToast'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { typeStyles, getInitials, formatDateTime, groupByDay } from '@/lib/auditLog'
+import { typeStyles, typeLabels, getInitials, formatDateTime, groupByDay } from '@/lib/auditLog'
 
 const sourcePills = [
     { value: 'all', label: 'All' },
@@ -93,7 +93,7 @@ export default function AuditLog() {
                                     </Avatar>
 
                                     <Badge className={typeStyles[row.type] || 'bg-gray-700 text-gray-300'}>
-                                        {row.type}
+                                        {typeLabels[row.type] || row.type}
                                     </Badge>
 
                                     <span className="flex-1 text-sm text-white truncate">
@@ -127,7 +127,7 @@ export default function AuditLog() {
                         disabled={page === 1}
                         className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
                     >
-                        ← Previous
+                        → السابق
                     </button>
                     <span className="text-gray-400 text-sm">Page {page} of {lastPage}</span>
                     <button
@@ -135,7 +135,7 @@ export default function AuditLog() {
                         disabled={page === lastPage}
                         className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
                     >
-                        Next →
+                        التالي ←
                     </button>
                 </div>
             )}

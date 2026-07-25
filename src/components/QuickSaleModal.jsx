@@ -88,18 +88,18 @@ export default function QuickSaleModal({
            const user = JSON.parse(localStorage.getItem('user') || '{}') 
     
     if (!user.walk_in_customer_id) {
-        showToast('Walk-in customer not configured. Please logout and login again.', 'error')
+        showToast('العميل النقدي مش متظبط. من فضلك اعمل تسجيل خروج ودخول تاني.', 'error')
         return
     }
         const resolvedStoreId = storeId || user.store_id
 
         if (items.length === 0) {
-            showToast('Add at least one item.', 'error')
+            showToast('ضيف صنف واحد على الأقل.', 'error')
             return
         }
         const missingWarehouse = items.some(i => !i.warehouse_id)
         if (missingWarehouse) {
-            showToast('Please select a warehouse for all items.', 'error')
+            showToast('من فضلك اختر المخزن لكل الأصناف.', 'error')
             return
         }
         // Resolve store_id from the selected warehouse of the first item
@@ -108,7 +108,7 @@ export default function QuickSaleModal({
         const finalStoreId = resolvedStoreId || (selectedWarehouse ? selectedWarehouse.store_id : null)
 
         if (!finalStoreId) {
-            showToast('Could not resolve store for the selected warehouse.', 'error')
+            showToast('مش قادر يحدد المتجر للمخزن المختار.', 'error')
             return
         }
         setSaving(true)
@@ -134,10 +134,10 @@ setDiscount(0)
 try {
     onClose()
 } catch(e) {
-    showToast('Failed to close modal', 'error')
+    showToast('حصلت مشكلة في قفل النافذة', 'error')
 }
         } catch (err) {
-            showToast(err.response?.data?.message || 'Failed to create order', 'error')
+            showToast(err.response?.data?.message || 'حصلت مشكلة في إنشاء الطلب', 'error')
         } finally {
             setSaving(false)
         }
@@ -322,7 +322,7 @@ try {
                                             discountType === t ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400'
                                         }`}
                                     >
-                                        {t === 'amount' ? 'EGP' : '%'}
+                                        {t === 'amount' ? 'ج.م' : '%'}
                                     </button>
                                 ))}
                             </div>
@@ -349,7 +349,7 @@ try {
             className="w-24 px-2 py-1 bg-gray-800 border border-gray-700 text-white rounded-lg text-sm text-end focus:outline-none focus:border-blue-500"
         />
         <p className="text-gray-500 text-[10px] mt-0.5">
-            المحسوب تلقائيًا: {grandTotal.toFixed(2)} EGP
+            المحسوب تلقائيًا: {grandTotal.toFixed(2)} ج.م
         </p>
     </div>
 </div>
