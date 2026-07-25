@@ -5,24 +5,36 @@ import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import QuickSaleModal from '../components/QuickSaleModal'
 import { useToast } from '../hooks/useToast'
+import {
+    Banknote, ShoppingCart, Clock, Receipt, Users, Package,
+    AlertTriangle, CheckCircle2, Plus, BarChart3, Zap, Inbox,
+} from 'lucide-react'
 
 // 2. Constants — small reusable sub-component used only by this file
-const StatCard = ({ label, value, sub, icon, gradient, onClick, accent }) => (
+const StatCard = ({ label, value, unit, sub, icon, chip, onClick }) => {
+    const Icon = icon
+    return (
     <div
         onClick={onClick}
-        className={`group relative overflow-hidden rounded-2xl border border-gray-800 bg-gradient-to-br ${gradient} p-3 sm:p-5 transition-all duration-300 ${onClick ? 'cursor-pointer hover:border-gray-700 hover:-translate-y-0.5' : ''}`}
+        role={onClick ? 'button' : undefined}
+        tabIndex={onClick ? 0 : undefined}
+        onKeyDown={onClick ? (e) => { if (e.key === 'Enter') onClick() } : undefined}
+        className={`rounded-2xl border border-gray-800 bg-gray-900 p-4 sm:p-5 transition-colors duration-150 outline-none ${onClick ? 'cursor-pointer hover:border-gray-700 hover:bg-gray-900/80 focus-visible:ring-2 focus-visible:ring-blue-500/40' : ''}`}
     >
-        <div className={`absolute -top-8 -right-8 w-32 h-32 rounded-full blur-3xl opacity-10 ${accent}`} />
-        <div className="relative">
-            <div className="flex items-start justify-between mb-1.5 sm:mb-3">
-                <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">{label}</p>
-                <span className="text-lg sm:text-xl opacity-60 group-hover:opacity-100 transition-opacity">{icon}</span>
-            </div>
-            <p className="text-lg sm:text-2xl font-bold text-white tracking-tight">{value}</p>
-            {sub && <p className="text-xs text-gray-500 mt-1 sm:mt-2">{sub}</p>}
+        <div className="flex items-start justify-between mb-4">
+            <p className="text-xs font-medium text-gray-400 mt-1">{label}</p>
+            <span className={`flex items-center justify-center w-9 h-9 rounded-lg border shrink-0 ${chip}`}>
+                <Icon size={16} strokeWidth={1.75} />
+            </span>
         </div>
+        <p className="text-xl sm:text-2xl font-bold text-white tracking-tight tabular-nums">
+            {value}
+            {unit && <span className="ml-1.5 text-sm font-normal text-gray-500">{unit}</span>}
+        </p>
+        {sub && <p className="text-xs text-gray-500 mt-1.5">{sub}</p>}
     </div>
-)
+    )
+}
 
 // 3. Component
 export default function Dashboard() {
@@ -146,84 +158,81 @@ export default function Dashboard() {
     if (loading) return <LoadingSpinner />
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6">
 
             {/* Header */}
-           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-    <div>
-        <div className="flex items-center gap-2 mb-1">
-            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            <p className="text-gray-500 text-sm">{todayFormatted}</p>
-        </div>
-        <h1 className="text-xl sm:text-3xl font-bold text-white tracking-tight" dir="rtl">
-     {getGreeting()} يا {user.name}
-        </h1>
-        <p className="text-gray-500 text-sm mt-1" dir='rtl'>
-            {getSubMessage()}
-        </p>
-    </div>
-    <div className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-xl p-1 self-start overflow-x-auto">
-    {['Today', 'Week', 'Month', 'Year'].map(period => (
-        <button
-            key={period}
-            onClick={() => setActivePeriod(period)}
-            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap ${
-                activePeriod === period
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-400 hover:text-white'
-            }`}
-        >
-            {period}
-        </button>
-    ))}
-</div>
-</div>
-
-           {/* PRIMARY — Today's performance */}
-            <div>
-                <div className="flex items-center gap-2 mb-3">
-                    <div className="w-1 h-4 bg-green-500 rounded-full" />
-                    <p className="text-xs text-gray-400 uppercase tracking-widest font-semibold">Today</p>
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                <div>
+                    <div className="flex items-center gap-2 mb-1">
+                        <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+                        <p className="text-gray-500 text-sm">{todayFormatted}</p>
+                    </div>
+                    <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                        {/* {getGreeting()} يا  */}
+                        Good day, {user.name}
+                    </h1>
+                    <p className="text-gray-500 text-sm mt-1">
+                        {/* {getSubMessage()} */}
+                        Welcome back to your dashboard! Here's a quick overview of your business performance and insights for today.
+                    </p>
                 </div>
+                <div className="flex items-center gap-1 bg-gray-900 border border-gray-800 rounded-xl p-1 self-start overflow-x-auto">
+                    {['Today', 'Week', 'Month', 'Year'].map(period => (
+                        <button
+                            key={period}
+                            onClick={() => setActivePeriod(period)}
+                            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150 whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 ${
+                                activePeriod === period
+                                    ? 'bg-blue-600 text-white'
+                                    : 'text-gray-400 hover:text-white'
+                            }`}
+                        >
+                            {period}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* PRIMARY — Today's performance */}
+            <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Today</p>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                     <StatCard
-                        label="Revenue Collected"
-                        value={stats.todayRevenue > 0 ? `${stats.todayRevenue} EGP` : '—'}
+                        label="Revenue collected"
+                        value={stats.todayRevenue > 0 ? stats.todayRevenue.toLocaleString() : '—'}
+                        unit={stats.todayRevenue > 0 ? 'EGP' : null}
                         sub={stats.todayRevenue > 0
                             ? `${stats.todayPaymentsCount} payment${stats.todayPaymentsCount !== 1 ? 's' : ''}`
                             : 'No sales yet today'}
-                        icon="💰"
-                        gradient="from-green-500/10 to-gray-900"
-                        accent="bg-green-400"
+                        icon={Banknote}
+                        chip="bg-green-500/10 border-green-500/30 text-green-400"
                         onClick={user.role === 'tenant_admin' ? () => navigate('/reports') : undefined}
                     />
                     <StatCard
-                        label="New Orders"
-                        value={stats.todayOrdersCount > 0 ? stats.todayOrdersCount : '—'}
+                        label="New orders"
+                        value={stats.todayOrdersCount > 0 ? stats.todayOrdersCount.toLocaleString() : '—'}
                         sub={stats.todayOrdersCount > 0
-                            ? `${stats.todaySales} EGP in sales`
+                            ? `${stats.todaySales.toLocaleString()} EGP in sales`
                             : 'No orders yet today'}
-                        icon="🛒"
-                        gradient="from-blue-500/10 to-gray-900"
-                        accent="bg-blue-400"
+                        icon={ShoppingCart}
+                        chip="bg-violet-500/10 border-violet-500/30 text-violet-400"
                         onClick={() => navigate('/orders')}
                     />
                     <StatCard
-                        label="Unpaid Orders"
-                        value={stats.unpaidOrders}
+                        label="Unpaid orders"
+                        value={stats.unpaidOrders.toLocaleString()}
                         sub={stats.unpaidOrders > 0 ? 'needs follow-up' : 'all settled ✓'}
-                        icon={stats.unpaidOrders > 0 ? '⏳' : '✨'}
-                        gradient={stats.unpaidOrders > 0 ? 'from-red-500/10 to-gray-900' : 'from-gray-800 to-gray-900'}
-                        accent="bg-red-400"
+                        icon={stats.unpaidOrders > 0 ? Clock : CheckCircle2}
+                        chip={stats.unpaidOrders > 0 ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : 'bg-gray-800/60 border-gray-700 text-gray-400'}
                         onClick={() => navigate('/orders')}
                     />
                     <StatCard
-                        label="Total Owed"
-                        value={stats.totalOwed > 0 ? `${stats.totalOwed} EGP` : '—'}
+                        label="Total owed"
+                        value={stats.totalOwed > 0 ? stats.totalOwed.toLocaleString() : '—'}
+                        unit={stats.totalOwed > 0 ? 'EGP' : null}
                         sub={stats.totalOwed > 0 ? 'across all customers' : 'Nothing owed 🎉'}
-                        icon="📋"
-                        gradient="from-amber-500/10 to-gray-900"
-                        accent="bg-amber-400"
+                        icon={Receipt}
+                        chip="bg-red-500/10 border-red-500/30 text-red-400"
                         onClick={() => navigate('/customers')}
                     />
                 </div>
@@ -231,36 +240,30 @@ export default function Dashboard() {
 
             {/* SECONDARY — Business overview */}
             <div>
-                <div className="flex items-center gap-2 mb-3">
-                    <div className="w-1 h-4 bg-blue-500 rounded-full" />
-                    <p className="text-xs text-gray-400 uppercase tracking-widest font-semibold">Overview</p>
-                </div>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Overview</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                     <StatCard
-                        label="Total Customers"
-                        value={stats.totalCustomers > 0 ? stats.totalCustomers : '—'}
+                        label="Total customers"
+                        value={stats.totalCustomers > 0 ? stats.totalCustomers.toLocaleString() : '—'}
                         sub={stats.totalCustomers > 0 ? null : 'Add your first customer'}
-                        icon="👥"
-                        gradient="from-purple-500/10 to-gray-900"
-                        accent="bg-purple-400"
+                        icon={Users}
+                        chip="bg-purple-500/10 border-purple-500/30 text-purple-400"
                         onClick={() => navigate('/customers')}
                     />
                     <StatCard
-                        label="Total Products"
-                        value={stats.totalProducts > 0 ? stats.totalProducts : '—'}
+                        label="Total products"
+                        value={stats.totalProducts > 0 ? stats.totalProducts.toLocaleString() : '—'}
                         sub={stats.totalProducts > 0 ? null : 'Add your first product'}
-                        icon="📦"
-                        gradient="from-indigo-500/10 to-gray-900"
-                        accent="bg-indigo-400"
+                        icon={Package}
+                        chip="bg-cyan-500/10 border-cyan-500/30 text-cyan-400"
                         onClick={() => navigate('/products')}
                     />
                     <StatCard
-                        label="Low Stock Alert"
-                        value={stats.lowStock}
+                        label="Low stock alert"
+                        value={stats.lowStock.toLocaleString()}
                         sub={stats.lowStock > 0 ? 'tap to review' : 'all stocked ✓'}
-                        icon={stats.lowStock > 0 ? '⚠️' : '✅'}
-                        gradient={stats.lowStock > 0 ? 'from-orange-500/10 to-gray-900' : 'from-gray-800 to-gray-900'}
-                        accent="bg-orange-400"
+                        icon={stats.lowStock > 0 ? AlertTriangle : CheckCircle2}
+                        chip={stats.lowStock > 0 ? 'bg-orange-500/10 border-orange-500/30 text-orange-400' : 'bg-green-500/10 border-green-500/30 text-green-400'}
                         onClick={() => navigate('/inventory?low_stock=1')}
                     />
                 </div>
@@ -268,50 +271,55 @@ export default function Dashboard() {
 
             {/* Quick actions */}
             <div>
-                <div className="flex items-center gap-2 mb-3">
-                    <div className="w-1 h-4 bg-white rounded-full" />
-                    <p className="text-xs text-gray-400 uppercase tracking-widest font-semibold">Quick Actions</p>
-                </div>
-                <div className="flex flex-wrap gap-3">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Quick Actions</p>
+                <div className="flex flex-wrap items-center gap-2">
                     <button
                         onClick={() => navigate('/orders/create')}
-                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-xl transition-all hover:shadow-lg hover:shadow-blue-500/20"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors duration-150 shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
                     >
-                        + New Order
+                        <Plus size={15} strokeWidth={2} />
+                        New Order
                     </button>
                     <button
                         onClick={() => navigate('/customers/create')}
-                        className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white text-sm font-medium rounded-xl transition-all"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-300 hover:text-white text-sm font-medium rounded-lg transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
                     >
-                        + Add Customer
+                        <Plus size={15} strokeWidth={2} />
+                        Add Customer
                     </button>
                     {user.role === 'tenant_admin' && (
                         <>
                             <button
                                 onClick={() => navigate('/products/create')}
-                                className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white text-sm font-medium rounded-xl transition-all"
+                                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-300 hover:text-white text-sm font-medium rounded-lg transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
                             >
-                                + Add Product
+                                <Plus size={15} strokeWidth={2} />
+                                Add Product
                             </button>
                             <button
                                 onClick={() => navigate('/reports')}
-                                className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white text-sm font-medium rounded-xl transition-all"
+                                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-300 hover:text-white text-sm font-medium rounded-lg transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
                             >
-                                📊 View Reports
+                                <BarChart3 size={15} strokeWidth={2} />
+                                View Reports
                             </button>
                         </>
                     )}
-                    <button  onClick={async () => {
-    await fetchQuickSaleData()
-    setShowQuickSale(true)
-}}
-    className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg">
-    ⚡ بيع سريع
-</button>
+                    <button
+                        onClick={async () => {
+                            await fetchQuickSaleData()
+                            setShowQuickSale(true)
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 text-green-400 text-sm font-medium rounded-lg transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-green-500/40"
+                    >
+                        {/* ⚡ بيع سريع */}
+                        <Zap size={15} strokeWidth={2} />
+                        Quick Sale
+                    </button>
                 </div>
             </div>
 {/* AI Insights */}
-{user.role === 'tenant_admin' && (
+ {user.role === 'tenant_admin' && (
     <div>
         <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -366,6 +374,13 @@ export default function Dashboard() {
 
             {insights && !loadingInsights && (
     <div className="p-5">
+        {insights.no_data ? (
+            <div className="text-center py-6">
+                <div className="text-3xl mb-3">📊</div>
+                <p className="text-gray-300 text-sm font-medium mb-1">لا توجد بيانات كافية</p>
+                <p className="text-gray-600 text-xs">{insights.message}</p>
+            </div>
+        ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
                 {
@@ -413,6 +428,7 @@ export default function Dashboard() {
                 )
             ))}
         </div>
+        )}
         <div className="mt-4 pt-4 border-t border-gray-800 flex items-center justify-between">
             <p className="text-gray-600 text-xs">تم التحليل بواسطة الذكاء الاصطناعي</p>
             <button
@@ -426,179 +442,184 @@ export default function Dashboard() {
 )}
         </div>
     </div>
-)}
+)} 
             {/* Two-column info panels */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                 {/* Recent Orders */}
-<div>
-    <div className="flex items-center justify-between mb-3">
-        <div>
-            <div className="flex items-center gap-2">
-                <div className="w-1 h-4 bg-blue-500 rounded-full" />
-                <p className="text-xs text-gray-400 uppercase tracking-widest font-semibold">Recent Orders</p>
-            </div>
-            <p className="text-gray-600 text-xs mt-0.5 ml-3">
-                {recentOrders.length} orders · today and recent
-            </p>
-        </div>
-        <button
-            onClick={() => navigate('/orders')}
-            className="text-blue-400 hover:text-blue-300 text-xs font-medium"
-        >
-            View all →
-        </button>
-    </div>
-
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
-        {/* Filter tabs */}
-        <div className="flex items-center gap-1 px-4 py-3 border-b border-gray-800">
-            {[
-                { label: 'All', value: 'all', count: recentOrders.length },
-                { label: 'Paid', value: 'paid', count: recentOrders.filter(o => o.status === 'paid').length },
-                { label: 'Unpaid', value: 'unpaid', count: recentOrders.filter(o => o.status === 'unpaid').length },
-            ].map(tab => (
-                <button
-                    key={tab.value}
-                    onClick={() => setOrdersFilter(tab.value)}
-                    className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
-                        ordersFilter === tab.value
-                            ? 'bg-gray-700 text-white'
-                            : 'text-gray-500 hover:text-gray-300'
-                    }`}
-                >
-                    {tab.label}
-                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${
-                        ordersFilter === tab.value ? 'bg-gray-600 text-white' : 'bg-gray-800 text-gray-500'
-                    }`}>
-                        {tab.count}
-                    </span>
-                </button>
-            ))}
-        </div>
-
-        {/* Table */}
-        {recentOrders.length === 0 ? (
-            <div className="text-center py-10">
-                <p className="text-4xl mb-2">📭</p>
-                <p className="text-gray-500 text-sm mb-3">No orders yet</p>
-                <button
-                    onClick={() => navigate('/orders/create')}
-                    className="text-blue-400 hover:text-blue-300 text-sm font-medium"
-                >
-                    Create your first order →
-                </button>
-            </div>
-        ) : (
-            <div className="overflow-x-auto">
-            <table className="w-full table-fixed">
-                <colgroup>
-    <col className="w-16" />
-    <col className="w-28"/>
-    <col className="w-12" />
-    <col className="w-20" />
-    <col className="w-20" />
-    <col className="w-20" />
-    <col className="w-24" />
-</colgroup>
-                <thead>
-                    <tr className="border-b border-gray-800">
-                        {['Invoice', 'Customer', 'Items', 'Total', 'Balance', 'Status', 'Time'].map(h => (
-                            <th key={h} className="px-2 py-2.5 text-left text-[11px] font-medium text-gray-500 uppercase tracking-wider">
-                                {h}
-                            </th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-800/60">
-                
-                    {recentOrders
-                        .filter(o => ordersFilter === 'all' || o.status === ordersFilter)
-                        .map(order => (
-                            
-                            <tr
-                                key={order.id}
-                                onClick={() => navigate(`/orders/${order.id}`)}
-                                className="hover:bg-gray-800/50 transition-colors cursor-pointer"
-                            >
-                                <td className="px-2 py-3 text-gray-500 text-xs font-mono">
-                                    #{order.id}
-                                </td>
-                                <td className="px-2 py-3">
-                                    <div className="flex items-center gap-1.5">
-                                        <div className="w-6 h-6 rounded-md bg-blue-600/20 border border-blue-500/20 flex items-center justify-center text-blue-400 text-xs font-bold shrink-0">
-                                            {order.customer_name?.charAt(0) ?? '?'}
-                                        </div>
-                                        <p className="text-white text-sm font-medium truncate">{order.customer_name}</p>
-                                    </div>
-                                </td>
-                                <td className="px-2 py-3 text-gray-400 text-sm">
-                                    {order.items_count}
-                                </td>
-                                <td className="px-2 py-3 text-white text-sm font-semibold">
-                                    {order.total} <span className="text-gray-500 text-xs font-normal">EGP</span>
-                                </td>
-                                <td className="px-2 py-3 text-sm font-medium">
-                                    {order.amount_remaining > 0
-                                        ? <span className="text-red-400 whitespace-nowrap">-{order.amount_remaining}</span>
-                                        : <span className="text-gray-600">—</span>
-                                    }
-                                </td>
-                                <td className="px-2 py-3 whitespace-nowrap">
-                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold whitespace-nowrap ${
-                                        order.status === 'paid'
-                                            ? 'bg-green-500/15 text-green-400'
-                                            : 'bg-red-500/15 text-red-400'
-                                    }`}>
-                                        {order.status === 'paid' ? '✓ Paid' : '⏳ Unpaid'}
-                                    </span>
-                                </td>
-                                <td className="px-2 py-3 text-gray-500 text-xs whitespace-nowrap">
-                                    {new Date(order.order_date ?? order.created_at).toLocaleDateString('en-GB', {
-                                        year: 'numeric', month: 'short', day: 'numeric'
-                                    })}
-                                </td>
-                            </tr>
-                        ))}
-                        
-                </tbody>
-            </table>
-            </div>
-        )}
-    </div>
-</div>
-
-                {/* Top debtors OR Low stock */}
-                <div>
-                    <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                            <div className="w-1 h-4 bg-amber-500 rounded-full" />
-                            <p className="text-xs text-gray-400 uppercase tracking-widest font-semibold">
-                                {topDebtors.length > 0 ? 'Top Debtors' : 'Low Stock Items'}
+                <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden self-start">
+                    <div className="flex items-start justify-between px-4 pt-4">
+                        <div>
+                            <p className="text-white text-sm font-semibold">Recent orders</p>
+                            <p className="text-gray-500 text-xs mt-0.5">
+                                {recentOrders.length} orders · today and recent
                             </p>
                         </div>
                         <button
-                            onClick={() => navigate(topDebtors.length > 0 ? '/customers' : '/inventory')}
-                            className="text-blue-400 hover:text-blue-300 text-xs font-medium"
+                            onClick={() => navigate('/orders')}
+                            className="text-blue-400 hover:text-blue-300 text-xs font-medium transition-colors duration-150"
                         >
                             View all →
                         </button>
                     </div>
 
-                    <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+                        {/* Filter tabs */}
+                        <div className="flex items-center px-4 py-3">
+                            <div className="flex items-center gap-0.5 bg-gray-950/60 border border-gray-800 rounded-lg p-0.5">
+                                {[
+                                    { label: 'All', value: 'all', count: recentOrders.length },
+                                    { label: 'Paid', value: 'paid', count: recentOrders.filter(o => o.status === 'paid').length },
+                                    { label: 'Unpaid', value: 'unpaid', count: recentOrders.filter(o => o.status === 'unpaid').length },
+                                ].map(tab => (
+                                    <button
+                                        key={tab.value}
+                                        onClick={() => setOrdersFilter(tab.value)}
+                                        className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 ${
+                                            ordersFilter === tab.value
+                                                ? 'bg-white text-gray-900'
+                                                : 'text-gray-400 hover:text-white'
+                                        }`}
+                                    >
+                                        {tab.label}
+                                        <span className={`tabular-nums ${
+                                            ordersFilter === tab.value ? 'text-gray-500' : 'text-gray-600'
+                                        }`}>
+                                            {tab.count}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Table */}
+                        {recentOrders.length === 0 ? (
+                            <div className="flex flex-col items-center py-12">
+                                <span className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-800 text-gray-500 mb-3">
+                                    <Inbox size={18} strokeWidth={1.75} />
+                                </span>
+                                <p className="text-gray-500 text-sm mb-2">No orders yet</p>
+                                <button
+                                    onClick={() => navigate('/orders/create')}
+                                    className="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors duration-150"
+                                >
+                                    Create your first order →
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                            <table className="w-full table-fixed">
+                                <colgroup>
+                                    <col className="w-16" />
+                                    <col className="w-28" />
+                                    <col className="w-12" />
+                                    <col className="w-20" />
+                                    <col className="w-20" />
+                                    <col className="w-20" />
+                                    <col className="w-24" />
+                                </colgroup>
+                                <thead>
+                                    <tr className="border-b border-gray-800">
+                                        {[
+                                            { h: 'Invoice', align: 'text-left' },
+                                            { h: 'Customer', align: 'text-left' },
+                                            { h: 'Items', align: 'text-right' },
+                                            { h: 'Total', align: 'text-right' },
+                                            { h: 'Balance', align: 'text-right' },
+                                            { h: 'Status', align: 'text-left' },
+                                            { h: 'Time', align: 'text-right' },
+                                        ].map(col => (
+                                            <th key={col.h} className={`px-2 py-2.5 ${col.align} text-[11px] font-medium text-gray-500 uppercase tracking-wider`}>
+                                                {col.h}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-800/60">
+
+                                    {recentOrders
+                                        .filter(o => ordersFilter === 'all' || o.status === ordersFilter)
+                                        .map(order => (
+
+                                            <tr
+                                                key={order.id}
+                                                onClick={() => navigate(`/orders/${order.id}`)}
+                                                className="hover:bg-gray-800/50 transition-colors duration-150 cursor-pointer"
+                                            >
+                                                <td className="px-2 py-3 text-gray-500 text-xs font-mono">
+                                                    #{order.id}
+                                                </td>
+                                                <td className="px-2 py-3">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <div className="w-6 h-6 rounded-md bg-blue-600/20 border border-blue-500/20 flex items-center justify-center text-blue-400 text-xs font-bold shrink-0">
+                                                            {order.customer_name?.charAt(0) ?? '?'}
+                                                        </div>
+                                                        <p className="text-white text-sm font-medium truncate">{order.customer_name}</p>
+                                                    </div>
+                                                </td>
+                                                <td className="px-2 py-3 text-gray-400 text-sm text-right tabular-nums">
+                                                    {order.items_count}
+                                                </td>
+                                                <td className="px-2 py-3 text-white text-sm font-medium text-right tabular-nums">
+                                                    {Number(order.total).toLocaleString()} <span className="text-gray-500 text-xs font-normal">EGP</span>
+                                                </td>
+                                                <td className="px-2 py-3 text-sm font-medium text-right tabular-nums">
+                                                    {order.amount_remaining > 0
+                                                        ? <span className="text-red-400 whitespace-nowrap">-{Number(order.amount_remaining).toLocaleString()}</span>
+                                                        : <span className="text-gray-600">0</span>
+                                                    }
+                                                </td>
+                                                <td className="px-2 py-3 whitespace-nowrap">
+                                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border whitespace-nowrap ${
+                                                        order.status === 'paid'
+                                                            ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                                                            : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                                    }`}>
+                                                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                                                            order.status === 'paid' ? 'bg-green-400' : 'bg-amber-400'
+                                                        }`} />
+                                                        {order.status === 'paid' ? 'Paid' : 'Unpaid'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-2 py-3 text-gray-500 text-xs text-right whitespace-nowrap">
+                                                    {new Date(order.order_date ?? order.created_at).toLocaleDateString('en-GB', {
+                                                        year: 'numeric', month: 'short', day: 'numeric'
+                                                    })}
+                                                </td>
+                                            </tr>
+                                        ))}
+
+                                </tbody>
+                            </table>
+                            </div>
+                        )}
+                </div>
+
+                {/* Top debtors OR Low stock */}
+                <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden self-start">
+                    <div className="flex items-center justify-between px-4 pt-4 pb-3">
+                        <p className="text-white text-sm font-semibold">
+                            {topDebtors.length > 0 ? 'Top debtors' : 'Low stock items'}
+                        </p>
+                        <button
+                            onClick={() => navigate(topDebtors.length > 0 ? '/customers' : '/inventory')}
+                            className="text-blue-400 hover:text-blue-300 text-xs font-medium transition-colors duration-150"
+                        >
+                            View all →
+                        </button>
+                    </div>
+
+                    <div className="border-t border-gray-800">
                         {topDebtors.length > 0 ? (
                             <div className="divide-y divide-gray-800">
                                 {topDebtors.map((debtor, i) => (
                                     <div
                                         key={debtor.id}
                                         onClick={() => navigate(`/customers/${debtor.id}/balance`)}
-                                        className="flex items-center justify-between px-4 py-3 hover:bg-gray-800/50 transition-colors cursor-pointer"
+                                        className="flex items-center justify-between px-4 py-3 hover:bg-gray-800/50 transition-colors duration-150 cursor-pointer"
                                     >
                                         <div className="flex items-center gap-3 min-w-0">
-                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
-                                                i === 0 ? 'bg-red-500/20 text-red-400' :
-                                                i === 1 ? 'bg-orange-500/20 text-orange-400' :
-                                                'bg-amber-500/20 text-amber-400'
+                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold shrink-0 ${
+                                                i === 0 ? 'bg-amber-500/15 text-amber-400' : 'bg-gray-800 text-gray-500'
                                             }`}>
                                                 #{i + 1}
                                             </div>
@@ -607,7 +628,9 @@ export default function Dashboard() {
                                                 <p className="text-gray-500 text-xs">{debtor.unpaid_orders_count} unpaid order{debtor.unpaid_orders_count !== 1 ? 's' : ''}</p>
                                             </div>
                                         </div>
-                                        <p className="text-red-400 text-sm font-bold shrink-0">{Math.round(debtor.balance)} EGP</p>
+                                        <p className="text-red-400 text-sm font-semibold shrink-0 tabular-nums">
+                                            {Math.round(debtor.balance).toLocaleString()} <span className="text-gray-500 text-xs font-normal">EGP</span>
+                                        </p>
                                     </div>
                                 ))}
                             </div>
@@ -617,22 +640,24 @@ export default function Dashboard() {
                                     <div
                                         key={item.id}
                                         onClick={() => navigate('/inventory')}
-                                        className="flex items-center justify-between px-4 py-3 hover:bg-gray-800/50 transition-colors cursor-pointer"
+                                        className="flex items-center justify-between px-4 py-3 hover:bg-gray-800/50 transition-colors duration-150 cursor-pointer"
                                     >
                                         <div className="min-w-0">
                                             <p className="text-white text-sm font-medium truncate">{item.product_name}</p>
                                             <p className="text-gray-500 text-xs">{item.warehouse_name}</p>
                                         </div>
                                         <div className="text-right shrink-0">
-                                            <p className="text-orange-400 text-sm font-bold">{item.quantity} left</p>
-                                            <p className="text-gray-500 text-xs">threshold: {item.threshold}</p>
+                                            <p className="text-orange-400 text-sm font-semibold tabular-nums">{item.quantity} left</p>
+                                            <p className="text-gray-500 text-xs tabular-nums">threshold: {item.threshold}</p>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <div className="text-center py-10">
-                                <p className="text-4xl mb-2">🎉</p>
+                            <div className="flex flex-col items-center py-12">
+                                <span className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-800 text-green-400 mb-3">
+                                    <CheckCircle2 size={18} strokeWidth={1.75} />
+                                </span>
                                 <p className="text-gray-500 text-sm">All good!</p>
                                 <p className="text-gray-600 text-xs mt-1">No debts, no low stock</p>
                             </div>
@@ -646,11 +671,10 @@ export default function Dashboard() {
         onClose={() => setShowQuickSale(false)}
         products={products}
         warehouses={warehouses}
-         inventory={inventory} 
+         inventory={inventory}
         storeId={user.store_id}
     />
 )}
-
         </div>
     )
 }
