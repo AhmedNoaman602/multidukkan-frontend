@@ -15,6 +15,7 @@ export default function Inventory() {
     const [loading, setLoading] = useState(true)
     const [adjustingItem, setAdjustingItem] = useState(null)
     const [adjustQty, setAdjustQty] = useState('')
+    const [adjustNotes, setAdjustNotes] = useState('')
     const [adjustDirection, setAdjustDirection] = useState('in')
     const [adjustLoading, setAdjustLoading] = useState(false)
     const [search, setSearch] = useState('')
@@ -54,15 +55,17 @@ export default function Inventory() {
 
     useEffect(() => { fetchInventory() }, [page, search, selectedWarehouse , lowStockOnly])
 
-    const openAdjustModal = (item, direction) => { 
+    const openAdjustModal = (item, direction) => {
         setAdjustingItem(item)
         setAdjustDirection(direction)
         setAdjustQty('')
+        setAdjustNotes('')
     }
 
     const closeAdjustModal = () => {
         setAdjustingItem(null)
         setAdjustQty('')
+        setAdjustNotes('')
     }
 
     const submitAdjust = async () => {
@@ -71,12 +74,17 @@ export default function Inventory() {
             showToast('Please enter a quantity of 1 or more.', 'error')
             return
         }
+        if (!adjustNotes.trim()) {
+            showToast('Please enter a reason for this adjustment.', 'error')
+            return
+        }
         setAdjustLoading(true)
         try {
             await api.post(`/inventory/${adjustingItem.id}/adjust`, {
                 quantity: qty,
                 direction: adjustDirection,
                 unit_type: adjustUnitType,
+                notes: adjustNotes.trim(),
             })
             await fetchInventory()
             closeAdjustModal()
@@ -332,13 +340,26 @@ export default function Inventory() {
                                     New stock will be: <span className="text-white font-semibold">{previewNewQty()}</span>
                                 </div>
                             )}
+                            <div>
+                                <label className="block text-sm text-gray-400 mb-1">
+                                    Reason *
+                                </label>
+                                <textarea
+                                    value={adjustNotes}
+                                    onChange={(e) => setAdjustNotes(e.target.value)}
+                                    rows={2}
+                                    maxLength={500}
+                                    placeholder="e.g. damaged goods, stock count correction..."
+                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm resize-none"
+                                />
+                            </div>
                             <div className="flex justify-end gap-2 pt-2">
                                 <button type="button" onClick={closeAdjustModal} className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    disabled={adjustLoading || !adjustQty}
+                                    disabled={adjustLoading || !adjustQty || !adjustNotes.trim()}
                                     className={`px-4 py-2 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                                         adjustDirection === 'in' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'
                                     }`}
