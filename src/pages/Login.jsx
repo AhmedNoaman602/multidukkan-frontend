@@ -70,7 +70,7 @@ export default function Login() {
                         Multi<span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Dukkan</span>
                     </h1>
                     <h3 className="text-slate-400 mt-2 text-sm">
-                        Manage. <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Track</span>. Grow.
+                        إدارة. <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">متابعة</span>. نمو.
                     </h3>
                 </div>
 
@@ -84,7 +84,7 @@ export default function Login() {
                     <form onSubmit={handleLogin} autoComplete="off" className="space-y-6">
                         <div>
                             <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                                Email
+                                البريد الإلكتروني
                             </label>
                             <input
                                 id="login-email"
@@ -99,7 +99,7 @@ export default function Login() {
 
                         <div>
                             <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                                Password
+                                كلمة المرور
                             </label>
                             <input
                                 id="login-password"
@@ -124,14 +124,14 @@ export default function Login() {
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                                     </svg>
-                                    Signing in...
+                                    جاري تسجيل الدخول...
                                 </span>
                             ) : 'تسجيل الدخول'}
                         </button>
                         <p className="text-center text-slate-500 text-sm mt-6">
-                            Don't have an account? {' '}
+                            معندكش حساب؟ {' '}
                             <Link to="/register" className="text-blue-400 hover:text-blue-300 transition-colors">
-                                Create one
+                                أنشئ واحد
                             </Link>
                         </p>
                     </form>

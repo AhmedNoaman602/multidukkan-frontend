@@ -32,7 +32,7 @@ export default function AddCreditModal({ customer, onClose, onSuccess }) {
         <Modal open={true} onClose={onClose} title={`Add Credit — ${customer.customer_name}`}>
             <div className="space-y-3">
                 <div>
-                    <label className="text-gray-400 text-sm">Amount (ج.م)</label>
+                    <label className="text-gray-400 text-sm">المبلغ (ج.م)</label>
                     <input
                         type="number"
                         min="0"
@@ -45,13 +45,13 @@ export default function AddCreditModal({ customer, onClose, onSuccess }) {
                     />
                 </div>
                 <div>
-                    <label className="text-gray-400 text-sm">Note (optional)</label>
+                    <label className="text-gray-400 text-sm">ملاحظة (اختياري)</label>
                     <input
                         type="text"
                         value={description}
                         onChange={e => setDescription(e.target.value)}
                         className="w-full mt-1 bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 text-sm"
-                        placeholder="e.g. Advance payment"
+                        placeholder="مثلاً: دفعة مقدمة"
                     />
                 </div>
             </div>

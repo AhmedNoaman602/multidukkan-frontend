@@ -295,7 +295,7 @@ export default function CreateOrder() {
                                 {items.length > 0 && <span className="ms-1.5 text-gray-500 font-normal">({items.length})</span>}
                             </h3>
                             {items.length > 0 && (
-                                <span className="text-xs text-gray-500">Enter = next field</span>
+                                <span className="text-xs text-gray-500">Enter = الحقل التالي</span>
                             )}
                         </div>
 
@@ -553,7 +553,7 @@ export default function CreateOrder() {
                                     </span>
                                 </div>
                                 {discountType === 'percent' && discountAmount > 0 && (
-                                    <p className="text-green-400 text-xs">= {discountAmount} ج.م off</p>
+                                    <p className="text-green-400 text-xs">= خصم {discountAmount} ج.م</p>
                                 )}
                             </div>
 

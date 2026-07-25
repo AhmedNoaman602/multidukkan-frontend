@@ -299,13 +299,13 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
                                 {items.length > 0 && <span className="ms-1.5 text-gray-500 font-normal">({items.length})</span>}
                             </h3>
                             {items.length > 0 && (
-                                <span className="text-xs text-gray-500">Enter = next field</span>
+                                <span className="text-xs text-gray-500">Enter = الحقل التالي</span>
                             )}
                         </div>
                         {supplierChanged && (
     <div className="px-4 py-2 bg-yellow-500/10 border-b border-yellow-500/20 flex items-start sm:items-center justify-between gap-2">
         <span className="text-yellow-400 text-xs">
-            ⚠️ Supplier changed — prices below may be outdated. Remove and re-add a product to refresh its price.
+            ⚠️ المورد اتغير — الأسعار تحت ممكن تكون قديمة. امسح المنتج وضيفه تاني عشان السعر يتحدث.
         </span>
       <button
     onClick={() => setPricedForSupplier(supplierId)}

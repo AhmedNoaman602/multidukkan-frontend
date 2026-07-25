@@ -47,7 +47,7 @@ export default function Register() {
                     <h1 className="text-4xl font-bold text-white tracking-tight">
                         Multi<span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Dukkan</span>
                     </h1>
-                    <p className="text-slate-400 mt-2 text-sm">Create your business account</p>
+                    <p className="text-slate-400 mt-2 text-sm">أنشئ حساب نشاطك</p>
                 </div>
 
                 <div className="glass-card rounded-2xl p-8">
@@ -60,7 +60,7 @@ export default function Register() {
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                                Business Name
+                                اسم النشاط
                             </label>
                             <input
                                 value={form.business_name}
@@ -73,20 +73,20 @@ export default function Register() {
 
                         <div>
                             <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                                Your Name
+                                اسمك
                             </label>
                             <input
                                 value={form.name}
                                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                                 required
-                                placeholder="Ahmed"
+                                placeholder="أحمد"
                                 className="w-full px-4 py-2.5 bg-white/[0.04] border border-slate-700/60 text-white rounded-lg focus:outline-none focus:border-blue-500/60 focus:ring-1 focus:ring-blue-500/40 placeholder-slate-500 transition-all duration-200"
                             />
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                                Email
+                                البريد الإلكتروني
                             </label>
                             <input
                                 type="email"
@@ -100,7 +100,7 @@ export default function Register() {
 
                         <div>
                             <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                                Password
+                                كلمة المرور
                             </label>
                             <input
                                 type="password"
@@ -114,7 +114,7 @@ export default function Register() {
 
                         <div>
                             <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                                Confirm Password
+                                تأكيد كلمة المرور
                             </label>
                             <input
                                 type="password"
@@ -136,9 +136,9 @@ export default function Register() {
                     </form>
 
                     <p className="text-center text-slate-500 text-sm mt-6">
-                        Already have an account?{' '}
+                        عندك حساب بالفعل؟{' '}
                         <Link to="/login" className="text-blue-400 hover:text-blue-300 transition-colors">
-                            Sign in
+                            تسجيل الدخول
                         </Link>
                     </p>
                 </div>

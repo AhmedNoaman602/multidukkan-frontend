@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 
-export default function ProductSearchInput({ products, onSelect, showCostPrice = false, placeholder = 'Search by name or SKU...', inputRef: externalRef }) {
+export default function ProductSearchInput({ products, onSelect, showCostPrice = false, placeholder = 'ابحث بالاسم أو رمز المنتج...', inputRef: externalRef }) {
     const [query, setQuery] = useState('')
     const [open, setOpen] = useState(false)
     const [highlighted, setHighlighted] = useState(0)
@@ -102,12 +102,12 @@ export default function ProductSearchInput({ products, onSelect, showCostPrice =
 {showCostPrice 
     ? (product.cost_price ?? product.price) 
     : product.price
-} EGP
+} ج.م
                                         </span>
                                     </div>
                                     {product.sku && (
                                         <div className={`text-xs mt-0.5 ${i === highlighted ? 'text-blue-200' : 'text-gray-500'}`}>
-                                            SKU: {product.sku}
+                                            رمز المنتج: {product.sku}
                                         </div>
                                     )}
                                 </div>
@@ -117,7 +117,7 @@ export default function ProductSearchInput({ products, onSelect, showCostPrice =
 
                     {open && query.length > 0 && filtered.length === 0 && (
                         <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl px-3 py-3 text-gray-400 text-sm">
-                            No products found for "{query}"
+                            مفيش منتجات بـ "{query}"
                         </div>
                     )}
                 </div>
@@ -127,7 +127,7 @@ export default function ProductSearchInput({ products, onSelect, showCostPrice =
                     onClick={() => setBrowseOpen(true)}
                     className="px-3 py-2 bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-300 text-sm rounded-lg transition-colors whitespace-nowrap"
                 >
-                    Browse
+                    تصفح
                 </button>
             </div>
 
@@ -142,7 +142,7 @@ export default function ProductSearchInput({ products, onSelect, showCostPrice =
                         onClick={e => e.stopPropagation()}
                     >
                         <div className="flex items-center justify-between p-4 border-b border-gray-800">
-                            <h3 className="text-white font-semibold">Browse Products</h3>
+                            <h3 className="text-white font-semibold">تصفح المنتجات</h3>
                             <button
                                 type="button"
                                 onClick={() => { setBrowseOpen(false); setBrowseQuery('') }}
@@ -162,7 +162,7 @@ export default function ProductSearchInput({ products, onSelect, showCostPrice =
                                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                             />
                             <p className="text-gray-500 text-xs mt-2">
-                                {browseFiltered.length} product{browseFiltered.length !== 1 ? 's' : ''}
+                                المنتجات: {browseFiltered.length}
                             </p>
                         </div>
 
@@ -176,18 +176,18 @@ export default function ProductSearchInput({ products, onSelect, showCostPrice =
                                     <div>
                                         <p className="text-white text-sm font-medium">{product.name}</p>
                                         {product.sku && (
-                                            <p className="text-gray-500 text-xs mt-0.5">SKU: {product.sku}</p>
+                                            <p className="text-gray-500 text-xs mt-0.5">رمز المنتج: {product.sku}</p>
                                         )}
                                     </div>
                                     <div className="text-end">
 <p className="text-white text-sm font-medium">
-    {showCostPrice ? (product.cost_price ?? product.price) : product.price} EGP
+    {showCostPrice ? (product.cost_price ?? product.price) : product.price} ج.م
 </p>                                        <p className="text-gray-500 text-xs">{product.unit}</p>
                                     </div>
                                 </div>
                             ))}
                             {browseFiltered.length === 0 && (
-                                <div className="text-center py-12 text-gray-500 text-sm">No products found.</div>
+                                <div className="text-center py-12 text-gray-500 text-sm">مفيش منتجات.</div>
                             )}
                         </div>
                     </div>

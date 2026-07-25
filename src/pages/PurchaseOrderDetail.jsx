@@ -47,7 +47,7 @@ export default function PurchaseOrderDetail() {
                         onClick={() => window.open(`/purchase-orders/${id}/invoice`, '_blank')}
                         className="px-4 py-2 bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-medium rounded-lg hover:bg-green-500/20 transition-colors"
                     >
-                        🖨️ Invoice
+                        🖨️ فاتورة
                     </button>
                     {user.role === 'tenant_admin' && (
                         <button
@@ -161,7 +161,7 @@ export default function PurchaseOrderDetail() {
                     <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 max-w-sm w-full mx-4">
                         <h3 className="text-white font-semibold mb-2">إلغاء أمر الشراء؟</h3>
                         <p className="text-gray-400 text-sm mb-6">
-                            This will reverse the supplier ledger charge and deduct inventory. This cannot be undone.
+                            ده هيعكس القيد في حساب المورد ويخصم من المخزون. مش هتقدر ترجع في الخطوة دي.
                         </p>
                         <div className="flex justify-end gap-2">
                             <button

@@ -134,7 +134,7 @@ export default function Inventory() {
             : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-white'
     }`}
 >
-    ⚠️ Low Stock Only
+    ⚠️ الناقص بس
 </button>
                     {isAdmin && stores.length > 0 && (
                         <select
@@ -153,12 +153,12 @@ export default function Inventory() {
 {/* Low stock toggle */}
     {lowStockOnly && (
         <div className="flex items-center gap-2 mb-4 px-3 py-2 bg-orange-500/10 border border-orange-500/20 rounded-lg">
-           <span className="text-orange-400 text-sm">⚠️ Showing low stock items only</span>
+           <span className="text-orange-400 text-sm">⚠️ بيعرض الناقص بس</span>
             <button 
                 onClick={() => setLowStockOnly(false)} 
                 className="text-xs text-gray-500 hover:text-white ms-auto"
             >
-                Clear filter ✕
+                مسح التصفية ✕
             </button>
         </div>
     )}
@@ -294,9 +294,9 @@ export default function Inventory() {
                     <form onSubmit={(e) => { e.preventDefault(); submitAdjust(); }}>
                         <div className="space-y-4">
                             <div className="text-sm text-gray-400">
-                                <div className="mb-1">Product: <span className="text-white font-medium">{adjustingItem.product_name}</span></div>
-                                <div className="mb-1">Warehouse: <span className="text-white font-medium">{adjustingItem.warehouse_name}</span></div>
-                                <div>Current stock: <span className="text-white font-semibold">{adjustingItem.quantity}</span></div>
+                                <div className="mb-1">المنتج: <span className="text-white font-medium">{adjustingItem.product_name}</span></div>
+                                <div className="mb-1">المخزن: <span className="text-white font-medium">{adjustingItem.warehouse_name}</span></div>
+                                <div>المخزون الحالي: <span className="text-white font-semibold">{adjustingItem.quantity}</span></div>
                             </div>
                             <div>
                                 <label className="block text-sm text-gray-400 mb-1">

@@ -197,7 +197,7 @@ export default function CreateProduct() {
                         </div>
                         <div className="col-span-2">
     <label className="block text-sm text-gray-400 mb-1">
-        Supplier <span className="text-gray-600">(optional)</span>
+        Supplier <span className="text-gray-600">(اختياري)</span>
     </label>
     <SupplierSearchInput
         suppliers={suppliers}
@@ -219,7 +219,7 @@ export default function CreateProduct() {
                         </div>
                          <div>
     <label className="block text-sm text-gray-400 mb-1">
-        Cost Price <span className="text-gray-600">(optional)</span>
+        Cost Price <span className="text-gray-600">(اختياري)</span>
     </label>
     <input
         type="number"
@@ -231,7 +231,7 @@ export default function CreateProduct() {
 </div>
 <div>
     <label className="block text-sm text-gray-400 mb-1">
-        Opening Quantity <span className="text-gray-600">(optional)</span>
+        Opening Quantity <span className="text-gray-600">(اختياري)</span>
     </label>
     <input
         type="number"
@@ -243,7 +243,7 @@ export default function CreateProduct() {
     />
     {form.opening_quantity && form.cost_price && (
         <p className="text-xs text-blue-400 mt-1">
-            Opening stock value: {(parseFloat(form.opening_quantity) * parseFloat(form.cost_price)).toFixed(2)} ج.م
+            قيمة المخزون الافتتاحي: {(parseFloat(form.opening_quantity) * parseFloat(form.cost_price)).toFixed(2)} ج.م
         </p>
     )}
 </div>
@@ -334,7 +334,7 @@ export default function CreateProduct() {
 
                 {/* Secondary Unit */}
                 <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-                    <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">الوحدة الثانوية <span className="text-gray-600 normal-case font-normal">(optional)</span></h3>
+                    <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">الوحدة الثانوية <span className="text-gray-600 normal-case font-normal">(اختياري)</span></h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm text-gray-400 mb-1">الوحدة الثانوية</label>

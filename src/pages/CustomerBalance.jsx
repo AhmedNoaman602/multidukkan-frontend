@@ -255,7 +255,7 @@ export default function CustomerBalance() {
             : 'bg-purple-600 hover:bg-purple-700 text-white'
     }`}
 >
-    edit
+    تعديل
 </button>
                                 </td>
                             </tr>
@@ -322,7 +322,7 @@ export default function CustomerBalance() {
                             <div>
                                 <label className="block text-sm text-gray-400 mb-1">
                                     دفع لطلب محدد
-                                    <span className="text-gray-600 ms-1">(optional — leave blank for auto)</span>
+                                    <span className="text-gray-600 ms-1">(اختياري — سيبه فاضي للتلقائي)</span>
                                 </label>
                                 <select value={autoForm.order_id}
                                     onChange={e => setAutoForm({ ...autoForm, order_id: e.target.value })}

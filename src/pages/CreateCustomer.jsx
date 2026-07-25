@@ -50,7 +50,7 @@ const {showToast} = useToast()
                             <input
                                 value={form.code}
                                 onChange={e => setForm({ ...form, code: e.target.value })}
-                                placeholder="Auto-generated (C-XXX)"
+                                placeholder="يتولد تلقائي (C-XXX)"
                                 className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                             />
                             <p className="text-gray-500 text-xs mt-1">سيبه فاضي عشان يتولد تلقائي</p>

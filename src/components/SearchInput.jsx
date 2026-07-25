@@ -1,4 +1,4 @@
-export default function SearchInput({ value, onChange, placeholder = "Search..." }) {
+export default function SearchInput({ value, onChange, placeholder = "بحث..." }) {
     return (
         <input
             type="text"

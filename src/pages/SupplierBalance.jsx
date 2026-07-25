@@ -290,7 +290,7 @@ const handleBulkAttach = async () => {
                         </td>
                         <td className="px-4 py-3 text-sm">
                             {product.is_preferred
-                                ? <span className="text-yellow-400">⭐ Preferred</span>
+                                ? <span className="text-yellow-400">⭐ المفضل</span>
                                 : <span className="text-gray-600">—</span>
                             }
                         </td>
@@ -323,7 +323,7 @@ const handleBulkAttach = async () => {
         </table>
     ) : (
         <div className="text-center py-10 text-gray-500 text-sm">
-            No products linked to this supplier yet.
+            مفيش منتجات مربوطة بالمورد ده لسه.
         </div>
     )}
 </div>
@@ -470,7 +470,7 @@ const handleBulkAttach = async () => {
                             <div>
                                 <label className="block text-sm text-gray-400 mb-1">
                                     دفع لأمر شراء محدد
-                                    <span className="text-gray-600 ms-1">(optional — leave blank for FIFO)</span>
+                                    <span className="text-gray-600 ms-1">(اختياري — سيبه فاضي لـ FIFO)</span>
                                 </label>
                                 <select
                                     value={payForm.purchase_order_id}
@@ -539,7 +539,7 @@ const handleBulkAttach = async () => {
     <div className="space-y-4">
         {/* Search */}
         <div>
-            <label className="block text-sm text-gray-400 mb-1">Search & Add Products</label>
+            <label className="block text-sm text-gray-400 mb-1">بحث وإضافة منتجات</label>
             <ProductSearchInput
                 products={allProducts
                     .filter(p => !cart.find(c => c.id === p.id))
@@ -551,7 +551,7 @@ const handleBulkAttach = async () => {
             />
             {allProducts.filter(p => !attachedProducts.find(a => a.id === p.id)).length === 0 && (
                 <p className="text-yellow-400 text-xs mt-1">
-                    ✓ All your products are already linked to this supplier
+                    ✓ كل منتجاتك مربوطة بالمورد ده بالفعل
                 </p>
             )}
         </div>
@@ -559,7 +559,7 @@ const handleBulkAttach = async () => {
         {/* Cart */}
         {cart.length > 0 && (
             <div className="space-y-2 max-h-64 overflow-y-auto">
-                <p className="text-xs text-gray-500">{cart.length} product(s) selected</p>
+                <p className="text-xs text-gray-500">المنتجات المتحددة: {cart.length}</p>
                {cart.map(item => (
     <div key={item.id} className="bg-gray-800 rounded-lg px-3 py-2 flex items-center gap-3">
         <span className="text-white text-sm font-medium flex-1">{item.name}</span>
@@ -583,7 +583,7 @@ const handleBulkAttach = async () => {
                     : 'bg-gray-700 text-gray-500 border border-gray-600 hover:text-gray-300'
             }`}
         >
-            ⭐ Preferred
+            ⭐ المفضل
         </button>
         <button
             onClick={() => removeFromCart(item.id)}
@@ -625,7 +625,7 @@ const handleBulkAttach = async () => {
     <div className="space-y-4">
         <div>
             <label className="block text-sm text-gray-400 mb-1">
-                Supplier Cost (ج.م)
+                تكلفة المورد (ج.م)
                 <span className="text-gray-600 text-xs ms-1 block mt-0.5">السعر اللي المورد بيحاسب بيه دلوقتي</span>
             </label>
             <input
@@ -646,11 +646,11 @@ const handleBulkAttach = async () => {
                 className="rounded"
             />
             <label htmlFor="is_preferred_edit" className="text-sm text-gray-400">
-                ⭐ Mark as preferred supplier for this product
+                ⭐ اعتبره المورد المفضل للمنتج ده
             </label>
         </div>
         <div>
-            <label className="block text-sm text-gray-400 mb-1">Notes (optional)</label>
+            <label className="block text-sm text-gray-400 mb-1">ملاحظات (اختياري)</label>
             <input
                 type="text"
                 value={pivotForm.notes}

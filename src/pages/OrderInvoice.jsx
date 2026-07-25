@@ -20,7 +20,7 @@ try {
     useEffect(() => {
         api.get(`/orders/${id}`)
             .then(res => setOrder(res.data))
-            .catch(() => showToast('Failed to load invoice', 'error'))
+            .catch(() => showToast('حصلت مشكلة في تحميل الفاتورة', 'error'))
             .finally(() => setLoading(false))
     }, [id])
 
@@ -32,7 +32,7 @@ try {
 
     if (!order) return (
         <div className="flex items-center justify-center min-h-screen bg-white">
-            <p className="text-red-500">Order not found</p>
+            <p className="text-red-500">الطلب غير موجود</p>
         </div>
     )
 
@@ -74,13 +74,13 @@ const mergedItems = order.items?.reduce((acc, item) => {
         onClick={() => window.close()}
         className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-medium rounded-lg transition-colors"
     >
-        ✕ Close
+        ✕ إغلاق
     </button>
     <button
         onClick={() => window.print()}
         className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
     >
-        🖨️ Print / Save as PDF
+        🖨️ طباعة / حفظ PDF
     </button>
 </div>
 
@@ -95,7 +95,7 @@ const mergedItems = order.items?.reduce((acc, item) => {
                         )}
                     </div>
                     <div className="text-end">
-                        <p className="text-2xl font-bold text-gray-900">Invoice</p>
+                        <p className="text-2xl font-bold text-gray-900">فاتورة</p>
                         <p className="text-gray-500 text-sm mt-1">#{order.invoice_number}</p>
                     </div>
                 </div>
@@ -106,14 +106,14 @@ const mergedItems = order.items?.reduce((acc, item) => {
                 {/* Customer + Date */}
                 <div className="flex justify-between mb-8">
                     <div>
-                        <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Bill To</p>
+                        <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">فاتورة إلى</p>
                         <p className="text-gray-900 font-semibold">{order.customer_name}</p>
                         {order.customer_phone && (
                             <p className="text-gray-500 text-sm">{order.customer_phone}</p>
                         )}
                     </div>
                     <div className="text-end">
-                        <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Date</p>
+                        <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">التاريخ</p>
                         <p className="text-gray-900 text-sm">
                             {new Date(order.order_date || order.created_at).toLocaleDateString('en-GB')}
                         </p>
@@ -123,7 +123,7 @@ const mergedItems = order.items?.reduce((acc, item) => {
                                     ? 'bg-green-100 text-green-700'
                                     : 'bg-red-100 text-red-700'
                             }`}>
-                                {order.status === 'paid' ? 'Paid' : 'Unpaid'}
+                                {order.status === 'paid' ? 'مدفوع' : 'غير مدفوع'}
                             </span>
                         </div>
                     </div>
@@ -133,10 +133,10 @@ const mergedItems = order.items?.reduce((acc, item) => {
                 <table className="w-full mb-6">
                     <thead>
                         <tr className="border-b-2 border-gray-200">
-                            <th className="text-start text-xs text-gray-400 uppercase tracking-wider pb-2">Product</th>
-                            <th className="text-center text-xs text-gray-400 uppercase tracking-wider pb-2">Qty</th>
-                            <th className="text-end text-xs text-gray-400 uppercase tracking-wider pb-2">Unit Price</th>
-                            <th className="text-end text-xs text-gray-400 uppercase tracking-wider pb-2">Total</th>
+                            <th className="text-start text-xs text-gray-400 uppercase tracking-wider pb-2">المنتج</th>
+                            <th className="text-center text-xs text-gray-400 uppercase tracking-wider pb-2">الكمية</th>
+                            <th className="text-end text-xs text-gray-400 uppercase tracking-wider pb-2">سعر الوحدة</th>
+                            <th className="text-end text-xs text-gray-400 uppercase tracking-wider pb-2">الإجمالي</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -144,8 +144,8 @@ const mergedItems = order.items?.reduce((acc, item) => {
                             <tr key={index} className="border-b border-gray-100">
                                 <td className="py-3 text-gray-900 text-sm">{item.product_name}</td>
                                 <td className="py-3 text-center text-gray-600 text-sm">{item.quantity}</td>
-                                <td className="py-3 text-end text-gray-600 text-sm">{item.unit_price} EGP</td>
-                                <td className="py-3 text-end text-gray-900 text-sm font-medium">{item.total} EGP</td>
+                                <td className="py-3 text-end text-gray-600 text-sm">{item.unit_price} ج.م</td>
+                                <td className="py-3 text-end text-gray-900 text-sm font-medium">{item.total} ج.م</td>
                             </tr>
                         ))}
                     </tbody>
@@ -155,23 +155,23 @@ const mergedItems = order.items?.reduce((acc, item) => {
                 <div className="flex justify-end mb-6">
                     <div className="w-56 space-y-2">
                         <div className="flex justify-between text-sm text-gray-600">
-                            <span>Subtotal</span>
-                            <span>{order.subtotal} EGP</span>
+                            <span>الإجمالي الفرعي</span>
+                            <span>{order.subtotal} ج.م</span>
                         </div>
                         {hasDiscount && (
                             <div className="flex justify-between text-sm text-green-600">
-                                <span>Discount</span>
-                                <span>- {order.discount} EGP</span>
+                                <span>الخصم</span>
+                                <span>- {order.discount} ج.م</span>
                             </div>
                         )}
                         <div className="flex justify-between text-base font-bold text-gray-900 border-t border-gray-200 pt-2">
-                            <span>Total</span>
-                            <span>{order.total} EGP</span>
+                            <span>الإجمالي</span>
+                            <span>{order.total} ج.م</span>
                         </div>
                         {order.status === 'unpaid' && order.amount_remaining > 0 && (
                             <div className="flex justify-between text-sm text-red-600">
-                                <span>Amount Due</span>
-                                <span>{order.amount_remaining} EGP</span>
+                                <span>المبلغ المستحق</span>
+                                <span>{order.amount_remaining} ج.م</span>
                             </div>
                         )}
                     </div>
@@ -180,14 +180,14 @@ const mergedItems = order.items?.reduce((acc, item) => {
                 {/* Notes */}
                 {order.notes && (
                     <div className="border-t border-gray-200 pt-4">
-                        <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Notes</p>
+                        <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">ملاحظات</p>
                         <p className="text-gray-600 text-sm">{order.notes}</p>
                     </div>
                 )}
 
                 {/* Footer */}
                 <div className="border-t border-gray-200 mt-8 pt-4 text-center">
-                    <p className="text-gray-400 text-xs">Thank you for your business — {user.business_name}</p>
+                    <p className="text-gray-400 text-xs">شكراً لتعاملك معانا — {user.business_name}</p>
                 </div>
 
             </div>

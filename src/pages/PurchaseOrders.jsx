@@ -376,7 +376,7 @@ export default function PurchaseOrders() {
                   {order.supplier_name}
                 </td>
                 <td className="px-4 py-3 text-gray-400 text-sm">
-                  {order.items_count} items
+                  الأصناف: {order.items_count}
                 </td>
                 <td className="px-4 py-3 text-white text-sm">
                   {order.total} ج.م
@@ -538,27 +538,26 @@ export default function PurchaseOrders() {
                 <div className="relative bg-gray-800 border border-gray-700 rounded-lg shadow-2xl px-4 py-3 w-60">
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-400">Total:</span>
+                      <span className="text-gray-400">الإجمالي:</span>
                       <span className="text-white font-medium">
                         {order.total} ج.م
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-400">Paid:</span>
+                      <span className="text-gray-400">المدفوع:</span>
                       <span className="text-green-400 font-medium">
                         {getPaidAmount(order)} ج.م
                       </span>
                     </div>
                     <div className="flex justify-between items-center border-t border-gray-700 pt-2">
-                      <span className="text-gray-400">Remaining:</span>
+                      <span className="text-gray-400">المتبقي:</span>
                       <span className="text-red-400 font-medium">
                         {order.amount_remaining || 0} ج.م
                       </span>
                     </div>
                     {order.payments_count > 0 && (
                       <div className="text-xs text-gray-500 text-center pt-1">
-                        {order.payments_count} payment
-                        {order.payments_count !== 1 ? "s" : ""}
+                        الدفعات: {order.payments_count}
                       </div>
                     )}
                   </div>

@@ -45,7 +45,7 @@ export default function ProductDetail() {
                 <div className="flex items-start justify-between mb-4">
                     <div>
                         <h2 className="text-2xl font-bold text-white">{product.name}</h2>
-                        <p className="text-gray-400 text-sm mt-1">SKU: {product.sku}</p>
+                        <p className="text-gray-400 text-sm mt-1">رمز المنتج: {product.sku}</p>
                     </div>
                     <span className={`px-3 py-1 rounded-lg text-sm font-medium ${
                         totalStock > 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
@@ -93,7 +93,7 @@ export default function ProductDetail() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                         {['a', 'b', 'c', 'd', 'e'].map(tier => (
                             <div key={tier}>
-                                <p className="text-gray-500 text-xs mb-1">Price {tier.toUpperCase()}</p>
+                                <p className="text-gray-500 text-xs mb-1">سعر {tier.toUpperCase()}</p>
                                 <p className="text-white text-sm font-medium">
                                     {product[`price_${tier}`] ? `${product[`price_${tier}`]} ج.م` : '—'}
                                 </p>

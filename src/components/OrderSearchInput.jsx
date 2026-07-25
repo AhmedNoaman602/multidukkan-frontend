@@ -5,7 +5,7 @@ export default function OrderSearchInput({
     value,
     onSelect,
     placeholder = 'ابحث برقم الفاتورة...',
-    renderMeta = (order) => `${order.total} EGP`,
+    renderMeta = (order) => `${order.total} ج.م`,
 }) {
     const [query, setQuery] = useState('')
     const [open, setOpen] = useState(false)
@@ -131,7 +131,7 @@ export default function OrderSearchInput({
 
                     {open && query.length > 0 && filtered.length === 0 && (
                         <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl px-3 py-3 text-gray-400 text-sm">
-                            No orders found for "{query}"
+                            مفيش طلبات بـ "{query}"
                         </div>
                     )}
                 </div>
@@ -141,11 +141,11 @@ export default function OrderSearchInput({
                     onClick={() => setBrowseOpen(true)}
                     className="px-3 py-2 bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-300 text-sm rounded-lg transition-colors whitespace-nowrap"
                 >
-                    Browse
+                    تصفح
                 </button>
             </div>
 
-            {/* Browse Orders Modal */}
+            {/* تصفح الطلبات Modal */}
             {browseOpen && (
                 <div
                     className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
@@ -156,7 +156,7 @@ export default function OrderSearchInput({
                         onClick={e => e.stopPropagation()}
                     >
                         <div className="flex items-center justify-between p-4 border-b border-gray-800">
-                            <h3 className="text-white font-semibold">Browse Orders</h3>
+                            <h3 className="text-white font-semibold">تصفح الطلبات</h3>
                             <button
                                 type="button"
                                 onClick={() => { setBrowseOpen(false); setBrowseQuery('') }}
@@ -176,7 +176,7 @@ export default function OrderSearchInput({
                                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-orange-500 text-sm"
                             />
                             <p className="text-gray-500 text-xs mt-2">
-                                {browseFiltered.length} order{browseFiltered.length !== 1 ? 's' : ''}
+                                الطلبات: {browseFiltered.length}
                             </p>
                         </div>
 
@@ -192,7 +192,7 @@ export default function OrderSearchInput({
                                 </div>
                             ))}
                             {browseFiltered.length === 0 && (
-                                <div className="text-center py-12 text-gray-500 text-sm">No orders found.</div>
+                                <div className="text-center py-12 text-gray-500 text-sm">مفيش طلبات.</div>
                             )}
                         </div>
                     </div>

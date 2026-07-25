@@ -50,10 +50,10 @@ export default function GlobalSearch({ open, onClose }) {
     // Flatten all results into one list for keyboard navigation
     const flatResults = [
         ...results.customers.map(c => ({ type: 'customer', item: c, path: `/customers/${c.id}/balance`, label: c.name, sub: `${c.code} · ${c.phone}` })),
-        ...results.products.map(p => ({ type: 'product', item: p, path: `/products/${p.id}`, label: p.name, sub: `SKU: ${p.sku} · ${p.price} EGP` })),
-        ...results.orders.map(o => ({ type: 'order', item: o, path: `/orders/${o.id}`, label: o.invoice_number, sub: `${o.customer_name} · ${o.total} EGP` })),
+        ...results.products.map(p => ({ type: 'product', item: p, path: `/products/${p.id}`, label: p.name, sub: `رمز المنتج: ${p.sku} · ${p.price} ج.م` })),
+        ...results.orders.map(o => ({ type: 'order', item: o, path: `/orders/${o.id}`, label: o.invoice_number, sub: `${o.customer_name} · ${o.total} ج.م` })),
         ...results.suppliers.map(s => ({ type: 'supplier', item: s, path: `/suppliers/${s.id}/balance`, label: s.name, sub: `${s.code} · ${s.phone}` })),
-        ...results.purchaseOrders.map(po => ({ type: 'purchaseOrder', item: po, path: `/purchase-orders/${po.id}`, label: po.invoice_number, sub: `${po.supplier_name} · ${po.total} EGP`, status: po.status })),
+        ...results.purchaseOrders.map(po => ({ type: 'purchaseOrder', item: po, path: `/purchase-orders/${po.id}`, label: po.invoice_number, sub: `${po.supplier_name} · ${po.total} ج.م`, status: po.status })),
     ]
 
     const handleSelect = (path) => {
@@ -78,10 +78,10 @@ export default function GlobalSearch({ open, onClose }) {
     const hasResults = flatResults.length > 0
 
     const sectionLabel = {
-        customer:      'Customers',
-        product:       'Products',
-        order:         'Orders',
-        supplier:      'Suppliers',
+        customer:      'العملاء',
+        product:       'المنتجات',
+        order:         'الطلبات',
+        supplier:      'الموردين',
         purchaseOrder: 'أوامر الشراء',
     }
 
@@ -123,7 +123,7 @@ export default function GlobalSearch({ open, onClose }) {
                         placeholder="ابحث في العملاء والمنتجات والطلبات والموردين..."
                         className="flex-1 bg-transparent text-white text-sm focus:outline-none placeholder-gray-500"
                     />
-                    {loading && <span className="text-gray-500 text-xs">Searching...</span>}
+                    {loading && <span className="text-gray-500 text-xs">جاري البحث...</span>}
                     <kbd className="px-2 py-1 bg-gray-800 text-gray-400 text-xs rounded border border-gray-700">Esc</kbd>
                 </div>
 
@@ -132,9 +132,9 @@ export default function GlobalSearch({ open, onClose }) {
                     {/* Empty state */}
                     {!query && (
                         <div className="text-center py-10 text-gray-500 text-sm">
-                            Type to search customers, products, orders and suppliers...
+                            اكتب للبحث في العملاء والمنتجات والطلبات والموردين...
                             <div className="mt-3 flex justify-center gap-4 text-xs text-gray-600">
-                                <span>↑↓ navigate</span>
+                                <span>↑↓ للتنقل</span>
                                 <span>Enter للاختيار</span>
                                 <span>Esc للإغلاق</span>
                             </div>
@@ -144,7 +144,7 @@ export default function GlobalSearch({ open, onClose }) {
                     {/* No results */}
                     {query.length >= 2 && !loading && !hasResults && (
                         <div className="text-center py-10 text-gray-500 text-sm">
-                            No results found for "{query}"
+                            مفيش نتائج بـ "{query}"
                         </div>
                     )}
 

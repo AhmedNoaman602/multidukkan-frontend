@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 
-export default function CustomerSearchInput({ customers, value, onSelect, placeholder = 'Search by name, phone, or code...' }) {
+export default function CustomerSearchInput({ customers, value, onSelect, placeholder = 'ابحث بالاسم أو التليفون أو الكود...' }) {
     const [query, setQuery] = useState('')
     const [open, setOpen] = useState(false)
     const [highlighted, setHighlighted] = useState(0)
@@ -136,7 +136,7 @@ export default function CustomerSearchInput({ customers, value, onSelect, placeh
 
                     {open && query.length > 0 && filtered.length === 0 && (
                         <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl px-3 py-3 text-gray-400 text-sm">
-                            No customers found for "{query}"
+                            مفيش عملاء بـ "{query}"
                         </div>
                     )}
                 </div>
@@ -146,11 +146,11 @@ export default function CustomerSearchInput({ customers, value, onSelect, placeh
                     onClick={() => setBrowseOpen(true)}
                     className="px-3 py-2 bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-300 text-sm rounded-lg transition-colors whitespace-nowrap"
                 >
-                    Browse
+                    تصفح
                 </button>
             </div>
 
-            {/* Browse Customers Modal */}
+            {/* تصفح العملاء Modal */}
             {browseOpen && (
                 <div
                     className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
@@ -161,7 +161,7 @@ export default function CustomerSearchInput({ customers, value, onSelect, placeh
                         onClick={e => e.stopPropagation()}
                     >
                         <div className="flex items-center justify-between p-4 border-b border-gray-800">
-                            <h3 className="text-white font-semibold">Browse Customers</h3>
+                            <h3 className="text-white font-semibold">تصفح العملاء</h3>
                             <button
                                 type="button"
                                 onClick={() => { setBrowseOpen(false); setBrowseQuery('') }}
@@ -207,7 +207,7 @@ export default function CustomerSearchInput({ customers, value, onSelect, placeh
                                 </div>
                             ))}
                             {browseFiltered.length === 0 && (
-                                <div className="text-center py-12 text-gray-500 text-sm">No customers found.</div>
+                                <div className="text-center py-12 text-gray-500 text-sm">مفيش عملاء.</div>
                             )}
                         </div>
                     </div>

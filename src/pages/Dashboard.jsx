@@ -630,7 +630,7 @@ export default function Dashboard() {
                                             </div>
                                             <div className="min-w-0">
                                                 <p className="text-white text-sm font-medium truncate">{debtor.name}</p>
-                                                <p className="text-gray-500 text-xs">{debtor.unpaid_orders_count} unpaid order{debtor.unpaid_orders_count !== 1 ? 's' : ''}</p>
+                                                <p className="text-gray-500 text-xs">طلبات غير مدفوعة: {debtor.unpaid_orders_count}</p>
                                             </div>
                                         </div>
                                         <p className="text-red-400 text-sm font-semibold shrink-0 tabular-nums">

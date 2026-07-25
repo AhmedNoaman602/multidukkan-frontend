@@ -363,7 +363,7 @@ export default function Reports() {
               </table>
               {data.profit_by_order.data.length === 0 && (
                 <div className="text-center py-8 text-gray-500 text-sm">
-                  No orders
+                  مفيش طلبات
                 </div>
               )}
               {data.profit_by_order.last_page > 1 && (
@@ -445,7 +445,7 @@ export default function Reports() {
               </table>
               {data.orders_by_customer.data.length === 0 && (
                 <div className="text-center py-8 text-gray-500 text-sm">
-                  No orders
+                  مفيش طلبات
                 </div>
               )}
               {data.orders_by_customer.last_page > 1 && (
@@ -540,7 +540,7 @@ export default function Reports() {
             </table>
             {data.payments_history.data.length === 0 && (
               <div className="text-center py-8 text-gray-500 text-sm">
-                No payments found.
+                مفيش دفعات.
               </div>
             )}
             {data.payments_history.last_page > 1 && (

@@ -183,7 +183,7 @@ export default function EditProduct() {
                     </div>
                     <div className="col-span-2">
     <label className="block text-sm text-gray-400 mb-1">
-        Supplier <span className="text-gray-600">(optional)</span>
+        Supplier <span className="text-gray-600">(اختياري)</span>
     </label>
     <SupplierSearchInput
         suppliers={suppliers}
@@ -205,7 +205,7 @@ export default function EditProduct() {
                     </div>
                     <div>
     <label className="block text-sm text-gray-400 mb-1">
-        Cost Price <span className="text-gray-600">(optional)</span>
+        Cost Price <span className="text-gray-600">(اختياري)</span>
     </label>
     <input
         type="number"

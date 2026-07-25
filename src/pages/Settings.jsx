@@ -345,7 +345,7 @@ const handleDeleteUnit = async () => {
                         <Modal open={showCreateStore} onClose={() => setShowCreateStore(false)} title="متجر جديد">
                             <form onSubmit={handleCreateStore} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm text-gray-400 mb-1">Store Name *</label>
+                                    <label className="block text-sm text-gray-400 mb-1">اسم المتجر *</label>
                                     <input value={storeForm.name} onChange={(e) => setStoreForm({ ...storeForm, name: e.target.value })} required className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
                                 </div>
                                 <div>
