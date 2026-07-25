@@ -5,7 +5,14 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import BackButton from '../components/BackButton'
 import ProductSearchInput from '../components/ProductSearchInput'
 import Modal from '../components/Modal'
+import ReverseSupplierPaymentModal from '../components/ReverseSupplierPaymentModal'
 import { useToast } from '../hooks/useToast'
+
+const methodLabel = {
+    cash:          'Cash',
+    bank_transfer: 'Bank Transfer',
+    check:         'Check',
+}
 
 export default function SupplierBalance() {
     const { id } = useParams()
@@ -14,14 +21,16 @@ export default function SupplierBalance() {
     const [data, setData] = useState(null)
     const [loading, setLoading] = useState(true)
     const [allProducts, setAllProducts] = useState([])
-const [attachModal, setAttachModal] = useState(false)
-const [editModal, setEditModal] = useState(false)
-const [selectedProduct, setSelectedProduct] = useState(null)
-const [cart, setCart] = useState([])
-const [pivotForm, setPivotForm] = useState({ cost_price: '', is_preferred: false, notes: '' })
-const [detaching, setDetaching] = useState(null)
+    const [attachModal, setAttachModal] = useState(false)
+    const [editModal, setEditModal] = useState(false)
+    const [selectedProduct, setSelectedProduct] = useState(null)
+    const [cart, setCart] = useState([])
+    const [pivotForm, setPivotForm] = useState({ cost_price: '', is_preferred: false, notes: '' })
+    const [detaching, setDetaching] = useState(null)
     const [purchaseOrders, setPurchaseOrders] = useState([])
     const [attachedProducts, setAttachedProducts] = useState([])
+    const [payments, setPayments] = useState([])
+    const [reverseModal, setReverseModal] = useState(false)
     const [saving, setSaving] = useState(false)
     const [paymentModal, setPaymentModal] = useState(false)
     const [payForm, setPayForm] = useState({ amount: '', method: 'cash', purchase_order_id: '' })
@@ -35,14 +44,15 @@ const [detaching, setDetaching] = useState(null)
             const d = res.data
             setAllProducts(productRes.data.data || [])
             setData({
-    balance: {
-        balance: d.balance,
-        supplier_name: d.supplier_name,
-    },
-    history: d.history,
-})
+                 balance: {
+                    balance: d.balance,
+                    supplier_name: d.supplier_name,
+                 },
+                  history: d.history,
+            })
             setPurchaseOrders(d.purchase_orders)
             setAttachedProducts(d.products)
+            setPayments(d.payments || [])
         } catch (err) {
             showToast(err.response?.data?.message || 'Failed to load supplier data', 'error')
         } finally {
@@ -177,11 +187,16 @@ const handleBulkAttach = async () => {
         PURCHASE_CHARGE: 'bg-red-500/20 text-red-400',
         PURCHASE_REVERSAL: 'bg-yellow-500/20 text-yellow-400',
         SUPPLIER_PAYMENT: 'bg-green-500/20 text-green-400',
+        SUPPLIER_PAYMENT_REVERSAL: 'bg-orange-500/20 text-orange-400',
     }
 
     const unpaidOrders = purchaseOrders.
     filter(o => o.status === 'unpaid')
     .sort((a, b) => a.id - b.id)
+
+    const ordersWithPayments = purchaseOrders.filter(o =>
+        payments.some(p => p.purchase_order_id === o.id)
+    )
 
     return (
         <div className="max-w-4xl">
@@ -203,13 +218,22 @@ const handleBulkAttach = async () => {
                         </p>
                     </div>
                   <div className="flex flex-col items-end gap-1">
-    <button
-        onClick={() => setPaymentModal(true)}
-        disabled={!isOwed}
-        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
-    >
-        💰 Pay Supplier
-    </button>
+    <div className="flex gap-2">
+        <button
+            onClick={() => setReverseModal(true)}
+            disabled={payments.length === 0}
+            className="px-4 py-2 bg-orange-600 hover:bg-orange-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+        >
+            ↩ Reverse Payment
+        </button>
+        <button
+            onClick={() => setPaymentModal(true)}
+            disabled={!isOwed}
+            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+        >
+            💰 Pay Supplier
+        </button>
+    </div>
     {!isOwed && (
         <p className="text-xs text-gray-500">No balance owed</p>
     )}
@@ -356,6 +380,36 @@ const handleBulkAttach = async () => {
                 )}
             </div>
 
+            {/* Payments */}
+            <h3 className="text-white font-semibold mb-3">Payments</h3>
+            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto mb-6">
+                <table className="w-full">
+                    <thead className="bg-gray-800">
+                        <tr>
+                            {['Invoice', 'Amount', 'Method', 'Date'].map(h => (
+                                <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{h}</th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-800">
+                        {payments.map(p => (
+                            <tr key={p.id}
+                                className="hover:bg-gray-800/50 transition-colors">
+                                <td className="px-4 py-3 text-gray-400 text-sm font-mono">{p.invoice_number}</td>
+                                <td className="px-4 py-3 text-white text-sm">{p.amount} EGP</td>
+                                <td className="px-4 py-3 text-gray-400 text-sm">{methodLabel[p.method] ?? p.method}</td>
+                                <td className="px-4 py-3 text-gray-400 text-sm">
+                                    {new Date(p.paid_at).toLocaleDateString('en-GB')}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                {payments.length === 0 && (
+                    <div className="text-center py-16 text-gray-500">No payments yet.</div>
+                )}
+            </div>
+
             {/* Transaction History */}
             <h3 className="text-white font-semibold mb-4">Transaction History</h3>
             <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
@@ -390,6 +444,14 @@ const handleBulkAttach = async () => {
                     <div className="text-center py-16 text-gray-500">No transactions yet.</div>
                 )}
             </div>
+
+            <ReverseSupplierPaymentModal
+                open={reverseModal}
+                onClose={() => setReverseModal(false)}
+                orders={ordersWithPayments}
+                payments={payments}
+                onSuccess={fetchData}
+            />
 
             {/* Payment Modal */}
             <Modal open={paymentModal} onClose={() => setPaymentModal(false)} title="💰 Pay Supplier">
