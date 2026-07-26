@@ -17,11 +17,14 @@ import {
   TableHead,
   TableCell,
 } from '@/components/ui/table'
-import { typeStyles, typeLabels, entityLabels, humanizeField, getInitials, formatDateTime } from '@/lib/auditLog'
+import { useTranslation } from '../i18n/useTranslation'
+import { formatDateTime, formatNumber } from '../lib/format'
+import { typeStyles, humanizeField, getInitials } from '@/lib/auditLog'
 
 export default function AuditLogDrawer({ row, onClose }) {
   const [batchItems, setBatchItems] = useState(null)
   const [loadingBatch, setLoadingBatch] = useState(false)
+  const { t, lang, dir } = useTranslation()
 
   const isBatch = row?.source === 'inventory' && row?.batch_id && row?.item_count > 1
 
@@ -42,19 +45,24 @@ export default function AuditLogDrawer({ row, onClose }) {
 
   return (
     <Sheet open={!!row} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="left" className="w-full sm:max-w-lg overflow-y-auto">
+      {/* Opens on the edge opposite the nav sidebar, so it follows direction. */}
+      <SheetContent side={dir === 'rtl' ? 'left' : 'right'} className="w-full sm:max-w-lg overflow-y-auto">
         {row && (
           <>
             <SheetHeader>
               <div className="flex items-center gap-2">
                 <Badge className={typeStyles[row.type] || 'bg-gray-700 text-gray-300'}>
-                  {typeLabels[row.type] || row.type}
+                  {t(`enums.auditType.${row.type}`)}
                 </Badge>
-                <span className="text-xs text-muted-foreground">{formatDateTime(row.created_at)}</span>
+                <span className="text-xs text-muted-foreground">{formatDateTime(row.created_at, lang)}</span>
               </div>
-              <SheetTitle>{entityLabel || entityLabels[row.auditable_type] || row.auditable_type || 'نشاط'}</SheetTitle>
+              <SheetTitle>
+                {entityLabel
+                  || (row.auditable_type && t(`enums.auditEntity.${row.auditable_type}`))
+                  || t('auditLog.detail.fallbackTitle')}
+              </SheetTitle>
               {row.auditable_type && (
-                <SheetDescription>{entityLabels[row.auditable_type] || row.auditable_type}</SheetDescription>
+                <SheetDescription>{t(`enums.auditEntity.${row.auditable_type}`)}</SheetDescription>
               )}
             </SheetHeader>
 
@@ -62,7 +70,7 @@ export default function AuditLogDrawer({ row, onClose }) {
               <Avatar className="h-7 w-7">
                 <AvatarFallback>{getInitials(row.user_name)}</AvatarFallback>
               </Avatar>
-              <span className="text-sm text-foreground">{row.user_name || 'النظام'}</span>
+              <span className="text-sm text-foreground">{row.user_name || t('auditLog.detail.systemUser')}</span>
             </div>
 
             <div className="mt-6">
@@ -70,9 +78,9 @@ export default function AuditLogDrawer({ row, onClose }) {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>الحقل</TableHead>
-                      <TableHead>القيمة السابقة</TableHead>
-                      <TableHead>القيمة الجديدة</TableHead>
+                      <TableHead>{t('auditLog.detail.field')}</TableHead>
+                      <TableHead>{t('auditLog.detail.oldValue')}</TableHead>
+                      <TableHead>{t('auditLog.detail.newValue')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -88,17 +96,17 @@ export default function AuditLogDrawer({ row, onClose }) {
               ) : isBatch ? (
                 <div className="space-y-3">
                   <p className="text-sm text-muted-foreground">
-                    المنتجات: {row.item_count} — إجمالي الكمية: {row.quantity}
+                    {t('auditLog.detail.batchSummary', { products: row.item_count, quantity: row.quantity })}
                   </p>
                   {loadingBatch ? (
-                    <p className="text-sm text-muted-foreground">جاري التحميل...</p>
+                    <p className="text-sm text-muted-foreground">{t('auditLog.detail.loading')}</p>
                   ) : (
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>المنتج</TableHead>
-                          <TableHead>المخزن</TableHead>
-                          <TableHead>الكمية</TableHead>
+                          <TableHead>{t('common.product')}</TableHead>
+                          <TableHead>{t('common.warehouse')}</TableHead>
+                          <TableHead>{t('common.quantity')}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -115,15 +123,15 @@ export default function AuditLogDrawer({ row, onClose }) {
                 </div>
               ) : (
                 <div className="space-y-2 text-sm">
-                  <p className="text-foreground">{row.description || 'لا يوجد وصف.'}</p>
+                  <p className="text-foreground">{row.description || t('auditLog.detail.noDescription')}</p>
                   {row.amount !== null && (
                     <p className="text-muted-foreground">
-                      المبلغ: <span className="text-foreground">{row.amount} ج.م</span>
+                      {t('common.amount')}: <span className="text-foreground">{formatNumber(row.amount)} {t('common.currency')}</span>
                     </p>
                   )}
                   {row.quantity !== null && (
                     <p className="text-muted-foreground">
-                      الكمية: <span className="text-foreground">{row.quantity}</span>
+                      {t('common.quantity')}: <span className="text-foreground">{row.quantity}</span>
                     </p>
                   )}
                 </div>

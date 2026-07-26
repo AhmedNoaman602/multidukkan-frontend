@@ -7,20 +7,19 @@ import { useToast } from '../hooks/useToast'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { typeStyles, typeLabels, getInitials, formatDateTime, groupByDay } from '@/lib/auditLog'
+import { useTranslation } from '../i18n/useTranslation'
+import { formatDateTime, formatNumber } from '../lib/format'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { typeStyles, getInitials, groupByDay } from '@/lib/auditLog'
 
-const sourcePills = [
-    { value: 'all', label: 'الكل' },
-    { value: 'ledger', label: 'فلوس' },
-    { value: 'inventory', label: 'مخزون' },
-    { value: 'audit', label: 'تعديلات' },
-]
+const SOURCES = ['all', 'ledger', 'inventory', 'audit']
 
 export default function AuditLog() {
     const [source, setSource] = useState('')
     const [page, setPage] = useState(1)
     const [selectedRow, setSelectedRow] = useState(null)
     const { showToast } = useToast()
+    const { t, lang, dir } = useTranslation()
 
     const { data, isLoading, isError, error } = useQuery({
         queryKey: ['audit-log', { source, page }],
@@ -32,13 +31,16 @@ export default function AuditLog() {
 
     useEffect(() => {
         if (isError) {
-            showToast(error?.response?.data?.message || 'حصلت مشكلة في تحميل النشاط', 'error')
+            showToast(error?.response?.data?.message || t('auditLog.loadFailed'), 'error')
         }
-    }, [isError, error, showToast])
+    }, [isError, error, showToast, t])
 
     const rows = data?.data || []
     const lastPage = data?.meta?.last_page || 1
-    const groups = groupByDay(rows)
+    const groups = groupByDay(rows, t, lang)
+
+    const PrevIcon = dir === 'rtl' ? ChevronRight : ChevronLeft
+    const NextIcon = dir === 'rtl' ? ChevronLeft : ChevronRight
 
     const handleSourceChange = (value) => {
         if (!value) return 
@@ -49,7 +51,7 @@ export default function AuditLog() {
     return (
         <div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-                <h2 className="text-2xl font-bold text-white">النشاط</h2>
+                <h2 className="text-2xl font-bold text-white">{t('auditLog.title')}</h2>
 
                 <ToggleGroup
                     type="single"
@@ -58,9 +60,9 @@ export default function AuditLog() {
                     onValueChange={handleSourceChange}
                     className="bg-gray-900 border border-gray-800 rounded-lg p-1"
                 >
-                    {sourcePills.map((pill) => (
-                        <ToggleGroupItem key={pill.value} value={pill.value}>
-                            {pill.label}
+                    {SOURCES.map((value) => (
+                        <ToggleGroupItem key={value} value={value}>
+                            {t(`auditLog.sources.${value}`)}
                         </ToggleGroupItem>
                     ))}
                 </ToggleGroup>
@@ -70,7 +72,7 @@ export default function AuditLog() {
 
             {!isLoading && groups.length === 0 && (
                 <div className="text-center py-16 text-gray-500 bg-gray-900 border border-gray-800 rounded-xl">
-                    مفيش نشاط.
+                    {t('auditLog.empty')}
                 </div>
             )}
 
@@ -93,7 +95,7 @@ export default function AuditLog() {
                                     </Avatar>
 
                                     <Badge className={typeStyles[row.type] || 'bg-gray-700 text-gray-300'}>
-                                        {typeLabels[row.type] || row.type}
+                                        {t(`enums.auditType.${row.type}`)}
                                     </Badge>
 
                                     <span className="flex-1 text-sm text-white truncate">
@@ -105,13 +107,17 @@ export default function AuditLog() {
                                     </span>
 
                                     {row.amount !== null && (
-                                        <span className="text-sm font-medium text-white shrink-0">{row.amount} ج.م</span>
+                                        <span className="text-sm font-medium text-white shrink-0">
+                                            {formatNumber(row.amount)} {t('common.currency')}
+                                        </span>
                                     )}
                                     {row.quantity !== null && (
-                                        <span className="text-sm font-medium text-white shrink-0">الكمية: {row.quantity}</span>
+                                        <span className="text-sm font-medium text-white shrink-0">
+                                            {t('common.quantity')}: {row.quantity}
+                                        </span>
                                     )}
 
-                                    <span className="text-xs text-gray-500 shrink-0">{formatDateTime(row.created_at)}</span>
+                                    <span className="text-xs text-gray-500 shrink-0">{formatDateTime(row.created_at, lang)}</span>
                                 </button>
                             ))}
                         </div>
@@ -125,17 +131,21 @@ export default function AuditLog() {
                     <button
                         onClick={() => setPage((p) => p - 1)}
                         disabled={page === 1}
-                        className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
+                        className="flex items-center gap-1 px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
                     >
-                        → السابق
+                        <PrevIcon size={16} />
+                        {t('common.previous')}
                     </button>
-                    <span className="text-gray-400 text-sm">صفحة {page} من {lastPage}</span>
+                    <span className="text-gray-400 text-sm">
+                        {t('common.pageOf', { page, total: lastPage })}
+                    </span>
                     <button
                         onClick={() => setPage((p) => p + 1)}
                         disabled={page === lastPage}
-                        className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
+                        className="flex items-center gap-1 px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
                     >
-                        التالي ←
+                        {t('common.next')}
+                        <NextIcon size={16} />
                     </button>
                 </div>
             )}

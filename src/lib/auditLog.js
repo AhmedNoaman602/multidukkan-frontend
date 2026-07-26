@@ -1,3 +1,11 @@
+import { formatDate } from './format'
+import arEnums from '../i18n/ar/enums'
+
+// DEPRECATED — compatibility shim for CustomerBalance and SupplierBalance,
+// which haven't moved to useTranslation() yet. Re-exports the Arabic bundle so
+// there is one source of truth. Delete once nothing imports it.
+export const typeLabels = arEnums.auditType
+
 export const typeStyles = {
   // ledger
   ORDER_CHARGE: 'bg-red-500/20 text-red-400',
@@ -24,45 +32,9 @@ export const typeStyles = {
   deleted: 'bg-red-500/20 text-red-400',
 }
 
-// Arabic labels for the `type` field. It is a union across three sources
-// (ledger / inventory / audit), so the keys mirror typeStyles exactly.
-export const typeLabels = {
-  // ledger
-  ORDER_CHARGE: 'قيد طلب',
-  PAYMENT: 'دفعة',
-  REVERSAL: 'عكس قيد',
-  CREDIT_APPLY: 'إضافة رصيد',
-  CREDIT_CONSUMED: 'استخدام رصيد',
-  REFUND: 'مرتجع',
-  PURCHASE_CHARGE: 'قيد شراء',
-  PURCHASE_REVERSAL: 'عكس قيد شراء',
-  SUPPLIER_PAYMENT: 'دفعة لمورد',
-  SUPPLIER_PAYMENT_REVERSAL: 'عكس دفعة مورد',
-  // inventory
-  SALE: 'بيع',
-  RETURN: 'مرتجع مخزون',
-  TRANSFER_IN: 'تحويل وارد',
-  TRANSFER_OUT: 'تحويل صادر',
-  ADJUSTMENT_IN: 'تسوية إضافة',
-  ADJUSTMENT_OUT: 'تسوية خصم',
-  PURCHASE_IN: 'وارد مشتريات',
-  PURCHASE_OUT: 'صادر مشتريات',
-  // audit (record edits)
-  created: 'إنشاء',
-  updated: 'تعديل',
-  deleted: 'حذف',
-}
-
-// The API sends class_basename(), so these are short model names — not FQCNs.
-export const entityLabels = {
-  Product: 'منتج',
-  Customer: 'عميل',
-  Supplier: 'مورد',
-  Store: 'متجر',
-  Order: 'طلب',
-  PurchaseOrder: 'أمر شراء',
-  Expense: 'مصروف',
-}
+// Display labels for `type` and `auditable_type` live in
+// src/i18n/{en,ar}/enums.js under auditType / auditEntity — read them with
+// t(`enums.auditType.${row.type}`).
 
 export function humanizeField(key) {
   return key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
@@ -75,17 +47,9 @@ export function getInitials(name) {
   return initials || 'SY'
 }
 
-export function formatDateTime(value) {
-  return new Date(value).toLocaleString('en-GB', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
-
-export function groupByDay(rows) {
+// Group labels are localized, so the caller passes in `t` and `lang` rather
+// than this module reaching into the i18n context itself.
+export function groupByDay(rows, t, lang) {
   const today = new Date()
   const yesterday = new Date(today)
   yesterday.setDate(today.getDate() - 1)
@@ -99,9 +63,9 @@ export function groupByDay(rows) {
   for (const row of rows) {
     const rowDate = new Date(row.created_at)
     let label
-    if (sameDay(rowDate, today)) label = 'النهاردة'
-    else if (sameDay(rowDate, yesterday)) label = 'إمبارح'
-    else label = rowDate.toLocaleDateString('en-GB')
+    if (sameDay(rowDate, today)) label = t('auditLog.days.today')
+    else if (sameDay(rowDate, yesterday)) label = t('auditLog.days.yesterday')
+    else label = formatDate(rowDate, lang)
 
     const lastGroup = groups[groups.length - 1]
     if (lastGroup && lastGroup.label === label) {
