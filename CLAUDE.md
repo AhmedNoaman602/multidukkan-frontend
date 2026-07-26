@@ -42,17 +42,25 @@ t('common.pageOf', { page: 2, total: 7 })     // {name} interpolation
 t(`enums.expenseCategory.${expense.category}`) // backend enum -> display label
 ```
 
-Strings live in `src/i18n/{en,ar}/<namespace>.js` — `common`, `navigation`, `enums`, `expenses` so far. Register each new namespace in both `en/index.js` and `ar/index.js`. A string used by more than one feature belongs in `common`; never duplicate it into a feature namespace.
+Strings live in `src/i18n/{en,ar}/<namespace>.js` — `common`, `navigation`, `enums`, `auditLog`, `dashboard`, `expenses` so far. Register each new namespace in both `en/index.js` and `ar/index.js`. A string used by more than one feature belongs in `common`; never duplicate it into a feature namespace.
 
 **Direction**: `LanguageProvider` sets `document.documentElement.lang`/`dir` and the title on change; an inline script in [index.html](index.html) applies the stored language before first paint to avoid an RTL flash. The app is already written with logical Tailwind utilities (`ms-*`, `me-*`, `ps-*`, `pe-*`, `text-start`, `text-end`, `border-s/e`, `start-0`) — keep it that way and never introduce `ml-*`/`mr-*`/`text-left`/`text-right`. Physical props that must follow direction (e.g. `<SheetContent side>`, pagination chevrons) read `dir` from the hook. Never bake `←`/`→` into a translated string.
 
 **Never translate**: user-entered data (product/customer/store names, SKUs, notes), or the enum *values* sent to the API. `src/lib/enums.js` holds the canonical ordered value lists; only their display goes through `t()`.
 
-**Formatting**: [src/lib/format.js](src/lib/format.js) — `formatCurrency(value, lang)`, `formatNumber`, `formatDate`. Both languages use Western numerals; only the currency symbol and its side change.
+**Formatting**: [src/lib/format.js](src/lib/format.js) — `formatCurrency(value, lang)`, `formatNumber`, `formatDate(value, lang, options)`, `formatDateTime(value, lang)`. Both languages use Western numerals (`ar-EG-u-nu-latn`); only the currency symbol and month/weekday names change. Where the currency symbol is a separately styled sibling `<span>`, use `formatNumber` + `t('common.currency')` rather than `formatCurrency`, so the markup is preserved.
 
 **Arabic voice**: professional Arabic for labels/navigation, Egyptian-leaning for messages and confirmations (`حصلت مشكلة…`, `مفيش…`), masdar buttons (`حفظ`، `إلغاء`، `تعديل`، `حذف`، `إضافة`).
 
-**Migration status**: migrated so far — `Sidebar`, `Expenses`, `ExpenseModal`, and all enum labels. Every other page still has hardcoded Arabic. [src/lib/labels.js](src/lib/labels.js) is a deprecated shim re-exporting the Arabic enum bundle so unmigrated pages keep working; delete it once nothing imports it. [src/lib/auditLog.js](src/lib/auditLog.js) holds a second set of hardcoded Arabic label maps that still needs the same treatment. When migrating a page, also sweep its inline `ج.م` and `toLocaleDateString` calls onto `format.js`.
+**Migration status**: migrated so far — `Sidebar`, `Expenses`/`ExpenseModal`, `Dashboard`, `AuditLog`/`AuditLogDrawer`, and all enum labels. Every other page still has hardcoded Arabic; next up are Orders, OrderDetail, and CreateOrder.
+
+Two deprecated shims keep unmigrated pages working by re-exporting the Arabic bundle — delete each once nothing imports it:
+- `roleLabels`/`paymentMethodLabels`/`paymentReferenceLabels`/`expenseCategoryLabels` in [src/lib/labels.js](src/lib/labels.js)
+- `typeLabels` in [src/lib/auditLog.js](src/lib/auditLog.js) (used by `CustomerBalance` and `SupplierBalance`)
+
+ESLint does not check cross-module imports, so removing an export from either file passes lint and only fails at `npm run build` — always run the build after touching them.
+
+When migrating a page, also sweep its inline `ج.م` and `toLocaleDateString`/`toLocaleString` calls onto `format.js`, and replace any `'→ السابق'` / `'التالي ←'` pagination with direction-aware chevrons.
 
 ## Lint rules
 
