@@ -206,7 +206,7 @@ export default function Expenses() {
                             {expenses.map(expense => (
                                 <tr key={expense.id} className="hover:bg-gray-800/50 transition-colors">
                                     <td className="px-4 py-3 text-gray-400 text-sm whitespace-nowrap">
-                                        {formatDate(expense.expense_date)}
+                                        {formatDate(expense.expense_date, lang)}
                                     </td>
                                     <td className="px-4 py-3 text-white text-sm font-medium whitespace-nowrap">
                                         {t(`enums.expenseCategory.${expense.category}`)}
