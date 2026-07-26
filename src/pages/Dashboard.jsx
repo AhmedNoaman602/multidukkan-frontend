@@ -5,9 +5,12 @@ import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import QuickSaleModal from '../components/QuickSaleModal'
 import { useToast } from '../hooks/useToast'
+import { useTranslation } from '../i18n/useTranslation'
+import { formatCurrency, formatDate, formatNumber } from '../lib/format'
 import {
     Banknote, ShoppingCart, Clock, Receipt, Users, Package,
     AlertTriangle, CheckCircle2, Plus, BarChart3, Zap, Inbox,
+    ChevronLeft, ChevronRight,
 } from 'lucide-react'
 
 // 2. Constants — small reusable sub-component used only by this file
@@ -55,41 +58,46 @@ export default function Dashboard() {
     const [warehouses, setWarehouses] = useState([])
     const [inventory, setInventory] = useState([])
     const { showToast } = useToast()
+    const { t, lang, dir } = useTranslation()
     const navigate = useNavigate()
 
     // 5. Derived values — computed from state/props, no side effects
     const user = JSON.parse(localStorage.getItem('user') || '{}')
+    // en-CA gives the ISO shape the API expects — not a display value, keep as is.
     const today = new Date().toLocaleDateString('en-CA')
-    const todayFormatted = new Date().toLocaleDateString('ar-EG-u-nu-latn', {
+    const todayFormatted = formatDate(new Date(), lang, {
         weekday: 'long', month: 'long', day: 'numeric'
     })
+
+    // "View all" style links point along the reading direction.
+    const ForwardIcon = dir === 'rtl' ? ChevronLeft : ChevronRight
 
     const getGreeting = () => {
         const hour = new Date().getHours()
         const day = new Date().getDay()
-        if (day === 5) return 'جمعة مباركة،'
-        if (hour < 5) return 'سهران لسه؟'
-        if (hour < 9) return 'صباح الفل،'
-        if (hour < 12) return 'صباح الخير،'
-        if (hour < 14) return 'نهارك سعيد،'
-        if (hour < 21) return 'مساء الخير،'
-        return 'مساء النور،'
+        if (day === 5) return t('dashboard.greetings.friday')
+        if (hour < 5) return t('dashboard.greetings.lateNight')
+        if (hour < 9) return t('dashboard.greetings.earlyMorning')
+        if (hour < 12) return t('dashboard.greetings.morning')
+        if (hour < 14) return t('dashboard.greetings.midday')
+        if (hour < 21) return t('dashboard.greetings.evening')
+        return t('dashboard.greetings.night')
     }
 
     const getSubMessage = () => {
         if (stats?.todayRevenue > 2000) {
-            return `🔥 أداء رائع اليوم! حققت مبيعات بقيمة ${stats.todayRevenue} جنيه حتى الآن`
+            return t('dashboard.sub.greatRevenue', { amount: formatCurrency(stats.todayRevenue, lang) })
         }
         if (stats?.unpaidOrders > 3) {
-            return `⚠️ لديك ${stats.unpaidOrders} طلبات غير مسددة تحتاج إلى المتابعة`
+            return t('dashboard.sub.unpaidOrders', { count: stats.unpaidOrders })
         }
         if (stats?.lowStock > 0) {
-            return `📦 يوجد ${stats.lowStock} منتجات أوشكت على النفاد وتحتاج إلى إعادة التوريد`
+            return t('dashboard.sub.lowStock', { count: stats.lowStock })
         }
         if (stats?.todayOrdersCount === 0) {
-            return ' 🚀 لم يتم تسجيل أي طلبات اليوم بعد، نتمنى لك يوماً ناجحاً'
+            return t('dashboard.sub.noOrders')
         }
-        return ` إليك ملخص نشاط ${user.business_name} اليوم`
+        return t('dashboard.sub.default', { business: user.business_name })
     }
 
     // 6. Event handlers — triggered by user interaction (buttons, clicks)
@@ -147,7 +155,7 @@ export default function Dashboard() {
             setLowStockItems(d.low_stock)
 
         } catch (err) {
-            showToast(err.response?.data?.message || 'حصلت مشكلة في تحميل لوحة التحكم', 'error')
+            showToast(err.response?.data?.message || t('dashboard.loadFailed'), 'error')
         } finally {
             setLoading(false)
         }
@@ -168,31 +176,26 @@ export default function Dashboard() {
                         <p className="text-gray-500 text-sm">{todayFormatted}</p>
                     </div>
                     <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                        {/* {getGreeting()} يا  */}
-                        نهارك سعيد، {user.name}
+                        {/* {getGreeting()} */}
+                        {t('dashboard.greetingWithName', { name: user.name })}
                     </h1>
                     <p className="text-gray-500 text-sm mt-1">
                         {/* {getSubMessage()} */}
-                        أهلاً بيك من تاني! دي نظرة سريعة على أداء متجرك والتحليلات بتاعة النهاردة.
+                        {t('dashboard.intro')}
                     </p>
                 </div>
                 <div className="flex items-center gap-1 bg-gray-900 border border-gray-800 rounded-xl p-1 self-start overflow-x-auto">
-                    {[
-                        { value: 'Today', label: 'اليوم' },
-                        { value: 'Week', label: 'الأسبوع' },
-                        { value: 'Month', label: 'الشهر' },
-                        { value: 'Year', label: 'السنة' },
-                    ].map(period => (
+                    {['Today', 'Week', 'Month', 'Year'].map(period => (
                         <button
-                            key={period.value}
-                            onClick={() => setActivePeriod(period.value)}
+                            key={period}
+                            onClick={() => setActivePeriod(period)}
                             className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150 whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 ${
-                                activePeriod === period.value
+                                activePeriod === period
                                     ? 'bg-blue-600 text-white'
                                     : 'text-gray-400 hover:text-white'
                             }`}
                         >
-                            {period.label}
+                            {t(`dashboard.periods.${period}`)}
                         </button>
                     ))}
                 </div>
@@ -200,42 +203,42 @@ export default function Dashboard() {
 
             {/* PRIMARY — Today's performance */}
             <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">اليوم</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">{t('dashboard.sections.today')}</p>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                     <StatCard
-                        label="الإيرادات المحصلة"
-                        value={stats.todayRevenue > 0 ? stats.todayRevenue.toLocaleString() : '—'}
-                        unit={stats.todayRevenue > 0 ? 'ج.م' : null}
+                        label={t('dashboard.stats.revenue')}
+                        value={stats.todayRevenue > 0 ? formatNumber(stats.todayRevenue) : '—'}
+                        unit={stats.todayRevenue > 0 ? t('common.currency') : null}
                         sub={stats.todayRevenue > 0
-                            ? `الدفعات: ${stats.todayPaymentsCount}`
-                            : 'مفيش مبيعات لحد دلوقتي'}
+                            ? t('dashboard.stats.payments', { count: stats.todayPaymentsCount })
+                            : t('dashboard.stats.noSalesYet')}
                         icon={Banknote}
                         chip="bg-green-500/10 border-green-500/30 text-green-400"
                         onClick={user.role === 'tenant_admin' ? () => navigate('/reports') : undefined}
                     />
                     <StatCard
-                        label="الطلبات الجديدة"
-                        value={stats.todayOrdersCount > 0 ? stats.todayOrdersCount.toLocaleString() : '—'}
+                        label={t('dashboard.stats.newOrders')}
+                        value={stats.todayOrdersCount > 0 ? formatNumber(stats.todayOrdersCount) : '—'}
                         sub={stats.todayOrdersCount > 0
-                            ? `المبيعات: ${stats.todaySales.toLocaleString()} ج.م`
-                            : 'مفيش طلبات لحد دلوقتي'}
+                            ? t('dashboard.stats.sales', { amount: formatCurrency(stats.todaySales, lang) })
+                            : t('dashboard.stats.noOrdersYet')}
                         icon={ShoppingCart}
                         chip="bg-violet-500/10 border-violet-500/30 text-violet-400"
                         onClick={() => navigate('/orders')}
                     />
                     <StatCard
-                        label="الطلبات غير المدفوعة"
-                        value={stats.unpaidOrders.toLocaleString()}
-                        sub={stats.unpaidOrders > 0 ? 'محتاجة متابعة' : 'كله متسدد ✓'}
+                        label={t('dashboard.stats.unpaidOrders')}
+                        value={formatNumber(stats.unpaidOrders)}
+                        sub={stats.unpaidOrders > 0 ? t('dashboard.stats.needsFollowUp') : t('dashboard.stats.allSettled')}
                         icon={stats.unpaidOrders > 0 ? Clock : CheckCircle2}
                         chip={stats.unpaidOrders > 0 ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : 'bg-gray-800/60 border-gray-700 text-gray-400'}
                         onClick={() => navigate('/orders')}
                     />
                     <StatCard
-                        label="إجمالي المستحقات"
-                        value={stats.totalOwed > 0 ? stats.totalOwed.toLocaleString() : '—'}
-                        unit={stats.totalOwed > 0 ? 'ج.م' : null}
-                        sub={stats.totalOwed > 0 ? 'على كل العملاء' : 'مفيش مستحقات 🎉'}
+                        label={t('dashboard.stats.totalOwed')}
+                        value={stats.totalOwed > 0 ? formatNumber(stats.totalOwed) : '—'}
+                        unit={stats.totalOwed > 0 ? t('common.currency') : null}
+                        sub={stats.totalOwed > 0 ? t('dashboard.stats.acrossAllCustomers') : t('dashboard.stats.noDues')}
                         icon={Receipt}
                         chip="bg-red-500/10 border-red-500/30 text-red-400"
                         onClick={() => navigate('/customers')}
@@ -245,28 +248,28 @@ export default function Dashboard() {
 
             {/* SECONDARY — Business overview */}
             <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">نظرة عامة</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">{t('dashboard.sections.overview')}</p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                     <StatCard
-                        label="إجمالي العملاء"
-                        value={stats.totalCustomers > 0 ? stats.totalCustomers.toLocaleString() : '—'}
-                        sub={stats.totalCustomers > 0 ? null : 'أضف أول عميل'}
+                        label={t('dashboard.stats.totalCustomers')}
+                        value={stats.totalCustomers > 0 ? formatNumber(stats.totalCustomers) : '—'}
+                        sub={stats.totalCustomers > 0 ? null : t('dashboard.stats.addFirstCustomer')}
                         icon={Users}
                         chip="bg-purple-500/10 border-purple-500/30 text-purple-400"
                         onClick={() => navigate('/customers')}
                     />
                     <StatCard
-                        label="إجمالي المنتجات"
-                        value={stats.totalProducts > 0 ? stats.totalProducts.toLocaleString() : '—'}
-                        sub={stats.totalProducts > 0 ? null : 'أضف أول منتج'}
+                        label={t('dashboard.stats.totalProducts')}
+                        value={stats.totalProducts > 0 ? formatNumber(stats.totalProducts) : '—'}
+                        sub={stats.totalProducts > 0 ? null : t('dashboard.stats.addFirstProduct')}
                         icon={Package}
                         chip="bg-cyan-500/10 border-cyan-500/30 text-cyan-400"
                         onClick={() => navigate('/products')}
                     />
                     <StatCard
-                        label="تنبيه نقص المخزون"
-                        value={stats.lowStock.toLocaleString()}
-                        sub={stats.lowStock > 0 ? 'اضغط للمراجعة' : 'المخزون كويس ✓'}
+                        label={t('dashboard.stats.lowStockAlert')}
+                        value={formatNumber(stats.lowStock)}
+                        sub={stats.lowStock > 0 ? t('dashboard.stats.tapToReview') : t('dashboard.stats.stockHealthy')}
                         icon={stats.lowStock > 0 ? AlertTriangle : CheckCircle2}
                         chip={stats.lowStock > 0 ? 'bg-orange-500/10 border-orange-500/30 text-orange-400' : 'bg-green-500/10 border-green-500/30 text-green-400'}
                         onClick={() => navigate('/inventory?low_stock=1')}
@@ -276,21 +279,21 @@ export default function Dashboard() {
 
             {/* Quick actions */}
             <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">إجراءات سريعة</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">{t('dashboard.sections.quickActions')}</p>
                 <div className="flex flex-wrap items-center gap-2">
                     <button
                         onClick={() => navigate('/orders/create')}
                         className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors duration-150 shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
                     >
                         <Plus size={15} strokeWidth={2} />
-                        طلب جديد
+                        {t('dashboard.actions.newOrder')}
                     </button>
                     <button
                         onClick={() => navigate('/customers/create')}
                         className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-300 hover:text-white text-sm font-medium rounded-lg transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
                     >
                         <Plus size={15} strokeWidth={2} />
-                        إضافة عميل
+                        {t('dashboard.actions.addCustomer')}
                     </button>
                     {user.role === 'tenant_admin' && (
                         <>
@@ -299,14 +302,14 @@ export default function Dashboard() {
                                 className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-300 hover:text-white text-sm font-medium rounded-lg transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
                             >
                                 <Plus size={15} strokeWidth={2} />
-                                إضافة منتج
+                                {t('dashboard.actions.addProduct')}
                             </button>
                             <button
                                 onClick={() => navigate('/reports')}
                                 className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-300 hover:text-white text-sm font-medium rounded-lg transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
                             >
                                 <BarChart3 size={15} strokeWidth={2} />
-                                عرض التقارير
+                                {t('dashboard.actions.viewReports')}
                             </button>
                         </>
                     )}
@@ -317,9 +320,8 @@ export default function Dashboard() {
                         }}
                         className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 text-green-400 text-sm font-medium rounded-lg transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-green-500/40"
                     >
-                        {/* ⚡ بيع سريع */}
                         <Zap size={15} strokeWidth={2} />
-                        بيع سريع
+                        {t('dashboard.actions.quickSale')}
                     </button>
                 </div>
             </div>
@@ -329,10 +331,10 @@ export default function Dashboard() {
         <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
                 <div className="w-1 h-4 bg-purple-500 rounded-full" />
-                <p className="text-xs text-gray-400 uppercase tracking-widest font-semibold">تحليلات ذكية</p>
-                <span className="text-xs px-2 py-0.5 bg-purple-500/15 text-purple-400 rounded-full">آخر 30 يوم</span>
+                <p className="text-xs text-gray-400 uppercase tracking-widest font-semibold">{t('dashboard.sections.aiInsights')}</p>
+                <span className="text-xs px-2 py-0.5 bg-purple-500/15 text-purple-400 rounded-full">{t('dashboard.ai.last30Days')}</span>
                 {insightsFetched && (
-                    <span className="text-xs px-2 py-0.5 bg-green-500/15 text-green-400 rounded-full">✓ محدّث</span>
+                    <span className="text-xs px-2 py-0.5 bg-green-500/15 text-green-400 rounded-full">{t('dashboard.ai.updated')}</span>
                 )}
             </div>
             <button
@@ -343,12 +345,12 @@ export default function Dashboard() {
                 {loadingInsights ? (
                     <>
                         <span className="w-3 h-3 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
-                        جاري التحليل...
+                        {t('dashboard.ai.analyzing')}
                     </>
                 ) : insightsFetched ? (
-                    <>🔄 تحديث</>
+                    t('dashboard.ai.refresh')
                 ) : (
-                    <>✨ تحليل المبيعات</>
+                    t('dashboard.ai.analyzeSales')
                 )}
             </button>
         </div>
@@ -357,14 +359,14 @@ export default function Dashboard() {
             {!insightsFetched && !loadingInsights && (
                 <div className="text-center py-10">
                     <div className="text-4xl mb-3">🤖</div>
-                    <p className="text-gray-300 text-sm font-medium mb-1">تحليل ذكي لمبيعاتك</p>
-                    <p className="text-gray-600 text-xs mb-4">اضغط على "تحليل المبيعات" للحصول على رؤى مخصصة لمتجرك</p>
+                    <p className="text-gray-300 text-sm font-medium mb-1">{t('dashboard.ai.emptyTitle')}</p>
+                    <p className="text-gray-600 text-xs mb-4">{t('dashboard.ai.emptyBody')}</p>
                     <button
                         onClick={fetchInsights}
                         disabled={loadingInsights}
                         className="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded-lg transition-colors"
                     >
-                        ✨ تحليل المبيعات الآن
+                        {t('dashboard.ai.analyzeNow')}
                     </button>
                 </div>
             )}
@@ -372,8 +374,8 @@ export default function Dashboard() {
             {loadingInsights && (
                 <div className="text-center py-10">
                     <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-                    <p className="text-purple-400 text-sm">جاري تحليل بيانات المبيعات...</p>
-                    <p className="text-gray-600 text-xs mt-1">قد يستغرق هذا بضع ثوانٍ</p>
+                    <p className="text-purple-400 text-sm">{t('dashboard.ai.loading')}</p>
+                    <p className="text-gray-600 text-xs mt-1">{t('dashboard.ai.loadingHint')}</p>
                 </div>
             )}
 
@@ -382,7 +384,7 @@ export default function Dashboard() {
         {insights.no_data ? (
             <div className="text-center py-6">
                 <div className="text-3xl mb-3">📊</div>
-                <p className="text-gray-300 text-sm font-medium mb-1">لا توجد بيانات كافية</p>
+                <p className="text-gray-300 text-sm font-medium mb-1">{t('dashboard.ai.noData')}</p>
                 <p className="text-gray-600 text-xs">{insights.message}</p>
             </div>
         ) : (
@@ -390,7 +392,6 @@ export default function Dashboard() {
             {[
                 {
                     key: 'opportunity',
-                    label: 'فرصة',
                     icon: '💡',
                     color: 'green',
                     border: 'border-green-500/20',
@@ -399,7 +400,6 @@ export default function Dashboard() {
                 },
                 {
                     key: 'urgent',
-                    label: 'عاجل',
                     icon: '⚠️',
                     color: 'red',
                     border: 'border-red-500/20',
@@ -408,7 +408,6 @@ export default function Dashboard() {
                 },
                 {
                     key: 'trend',
-                    label: 'اتجاه',
                     icon: '📈',
                     color: 'blue',
                     border: 'border-blue-500/20',
@@ -420,7 +419,7 @@ export default function Dashboard() {
                     <div key={card.key} className={`rounded-xl border ${card.border} ${card.bg} p-4`}>
                         <div className="flex items-center gap-2 mb-3">
                             <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${card.badge}`}>
-                                {card.icon} {card.label}
+                                {card.icon} {t(`dashboard.ai.cards.${card.key}`)}
                             </span>
                         </div>
                         <p className="text-white text-sm font-semibold mb-2 text-end">
@@ -435,12 +434,12 @@ export default function Dashboard() {
         </div>
         )}
         <div className="mt-4 pt-4 border-t border-gray-800 flex items-center justify-between">
-            <p className="text-gray-600 text-xs">تم التحليل بواسطة الذكاء الاصطناعي</p>
+            <p className="text-gray-600 text-xs">{t('dashboard.ai.footer')}</p>
             <button
                 onClick={() => { setInsightsFetched(false); setInsights(null); fetchInsights() }}
                 className="text-purple-400 hover:text-purple-300 text-xs transition-colors"
             >
-                🔄 تحديث التحليل
+                {t('dashboard.ai.refreshAnalysis')}
             </button>
         </div>
     </div>
@@ -455,16 +454,17 @@ export default function Dashboard() {
                 <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden self-start">
                     <div className="flex items-start justify-between px-4 pt-4">
                         <div>
-                            <p className="text-white text-sm font-semibold">أحدث الطلبات</p>
+                            <p className="text-white text-sm font-semibold">{t('dashboard.recentOrders.title')}</p>
                             <p className="text-gray-500 text-xs mt-0.5">
-                                الطلبات: {recentOrders.length} · النهاردة والأحدث
+                                {t('dashboard.recentOrders.subtitle', { count: recentOrders.length })}
                             </p>
                         </div>
                         <button
                             onClick={() => navigate('/orders')}
-                            className="text-blue-400 hover:text-blue-300 text-xs font-medium transition-colors duration-150"
+                            className="inline-flex items-center gap-1 text-blue-400 hover:text-blue-300 text-xs font-medium transition-colors duration-150"
                         >
-                            عرض الكل ←
+                            {t('common.viewAll')}
+                            <ForwardIcon size={14} />
                         </button>
                     </div>
 
@@ -472,9 +472,9 @@ export default function Dashboard() {
                         <div className="flex items-center px-4 py-3">
                             <div className="flex items-center gap-0.5 bg-gray-950/60 border border-gray-800 rounded-lg p-0.5">
                                 {[
-                                    { label: 'الكل', value: 'all', count: recentOrders.length },
-                                    { label: 'مدفوع', value: 'paid', count: recentOrders.filter(o => o.status === 'paid').length },
-                                    { label: 'غير مدفوع', value: 'unpaid', count: recentOrders.filter(o => o.status === 'unpaid').length },
+                                    { label: t('common.all'), value: 'all', count: recentOrders.length },
+                                    { label: t('enums.orderStatus.paid'), value: 'paid', count: recentOrders.filter(o => o.status === 'paid').length },
+                                    { label: t('enums.orderStatus.unpaid'), value: 'unpaid', count: recentOrders.filter(o => o.status === 'unpaid').length },
                                 ].map(tab => (
                                     <button
                                         key={tab.value}
@@ -502,12 +502,13 @@ export default function Dashboard() {
                                 <span className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-800 text-gray-500 mb-3">
                                     <Inbox size={18} strokeWidth={1.75} />
                                 </span>
-                                <p className="text-gray-500 text-sm mb-2">مفيش طلبات لسه</p>
+                                <p className="text-gray-500 text-sm mb-2">{t('dashboard.recentOrders.empty')}</p>
                                 <button
                                     onClick={() => navigate('/orders/create')}
-                                    className="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors duration-150"
+                                    className="inline-flex items-center gap-1 text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors duration-150"
                                 >
-                                    اعمل أول طلب ←
+                                    {t('dashboard.recentOrders.createFirst')}
+                                    <ForwardIcon size={15} />
                                 </button>
                             </div>
                         ) : (
@@ -525,16 +526,16 @@ export default function Dashboard() {
                                 <thead>
                                     <tr className="border-b border-gray-800">
                                         {[
-                                            { h: 'الفاتورة', align: 'text-start' },
-                                            { h: 'العميل', align: 'text-start' },
-                                            { h: 'الأصناف', align: 'text-end' },
-                                            { h: 'الإجمالي', align: 'text-end' },
-                                            { h: 'المتبقي', align: 'text-end' },
-                                            { h: 'الحالة', align: 'text-start' },
-                                            { h: 'الوقت', align: 'text-end' },
+                                            { key: 'dashboard.recentOrders.columns.invoice', align: 'text-start' },
+                                            { key: 'common.customer', align: 'text-start' },
+                                            { key: 'dashboard.recentOrders.columns.items', align: 'text-end' },
+                                            { key: 'common.total', align: 'text-end' },
+                                            { key: 'common.remaining', align: 'text-end' },
+                                            { key: 'common.status', align: 'text-start' },
+                                            { key: 'common.time', align: 'text-end' },
                                         ].map(col => (
-                                            <th key={col.h} className={`px-2 py-2.5 ${col.align} text-[11px] font-medium text-gray-500 uppercase tracking-wider`}>
-                                                {col.h}
+                                            <th key={col.key} className={`px-2 py-2.5 ${col.align} text-[11px] font-medium text-gray-500 uppercase tracking-wider`}>
+                                                {t(col.key)}
                                             </th>
                                         ))}
                                     </tr>
@@ -565,11 +566,11 @@ export default function Dashboard() {
                                                     {order.items_count}
                                                 </td>
                                                 <td className="px-2 py-3 text-white text-sm font-medium text-end tabular-nums">
-                                                    {Number(order.total).toLocaleString()} <span className="text-gray-500 text-xs font-normal">ج.م</span>
+                                                    {formatNumber(order.total)} <span className="text-gray-500 text-xs font-normal">{t('common.currency')}</span>
                                                 </td>
                                                 <td className="px-2 py-3 text-sm font-medium text-end tabular-nums">
                                                     {order.amount_remaining > 0
-                                                        ? <span className="text-red-400 whitespace-nowrap">-{Number(order.amount_remaining).toLocaleString()}</span>
+                                                        ? <span className="text-red-400 whitespace-nowrap">-{formatNumber(order.amount_remaining)}</span>
                                                         : <span className="text-gray-600">0</span>
                                                     }
                                                 </td>
@@ -582,11 +583,11 @@ export default function Dashboard() {
                                                         <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
                                                             order.status === 'paid' ? 'bg-green-400' : 'bg-amber-400'
                                                         }`} />
-                                                        {order.status === 'paid' ? 'مدفوع' : 'غير مدفوع'}
+                                                        {t(`enums.orderStatus.${order.status}`)}
                                                     </span>
                                                 </td>
                                                 <td className="px-2 py-3 text-gray-500 text-xs text-end whitespace-nowrap">
-                                                    {new Date(order.order_date ?? order.created_at).toLocaleDateString('en-GB', {
+                                                    {formatDate(order.order_date ?? order.created_at, lang, {
                                                         year: 'numeric', month: 'short', day: 'numeric'
                                                     })}
                                                 </td>
@@ -603,13 +604,14 @@ export default function Dashboard() {
                 <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden self-start">
                     <div className="flex items-center justify-between px-4 pt-4 pb-3">
                         <p className="text-white text-sm font-semibold">
-                            {topDebtors.length > 0 ? 'أكبر المديونيات' : 'منتجات قربت تخلص'}
+                            {topDebtors.length > 0 ? t('dashboard.panel.topDebtors') : t('dashboard.panel.lowStock')}
                         </p>
                         <button
                             onClick={() => navigate(topDebtors.length > 0 ? '/customers' : '/inventory')}
-                            className="text-blue-400 hover:text-blue-300 text-xs font-medium transition-colors duration-150"
+                            className="inline-flex items-center gap-1 text-blue-400 hover:text-blue-300 text-xs font-medium transition-colors duration-150"
                         >
-                            عرض الكل ←
+                            {t('common.viewAll')}
+                            <ForwardIcon size={14} />
                         </button>
                     </div>
 
@@ -630,11 +632,11 @@ export default function Dashboard() {
                                             </div>
                                             <div className="min-w-0">
                                                 <p className="text-white text-sm font-medium truncate">{debtor.name}</p>
-                                                <p className="text-gray-500 text-xs">طلبات غير مدفوعة: {debtor.unpaid_orders_count}</p>
+                                                <p className="text-gray-500 text-xs">{t('dashboard.panel.unpaidOrdersCount', { count: debtor.unpaid_orders_count })}</p>
                                             </div>
                                         </div>
                                         <p className="text-red-400 text-sm font-semibold shrink-0 tabular-nums">
-                                            {Math.round(debtor.balance).toLocaleString()} <span className="text-gray-500 text-xs font-normal">ج.م</span>
+                                            {formatNumber(Math.round(debtor.balance))} <span className="text-gray-500 text-xs font-normal">{t('common.currency')}</span>
                                         </p>
                                     </div>
                                 ))}
@@ -652,8 +654,8 @@ export default function Dashboard() {
                                             <p className="text-gray-500 text-xs">{item.warehouse_name}</p>
                                         </div>
                                         <div className="text-end shrink-0">
-                                            <p className="text-orange-400 text-sm font-semibold tabular-nums">{item.quantity} left</p>
-                                            <p className="text-gray-500 text-xs tabular-nums">threshold: {item.threshold}</p>
+                                            <p className="text-orange-400 text-sm font-semibold tabular-nums">{t('dashboard.panel.left', { count: item.quantity })}</p>
+                                            <p className="text-gray-500 text-xs tabular-nums">{t('dashboard.panel.threshold', { count: item.threshold })}</p>
                                         </div>
                                     </div>
                                 ))}
@@ -663,8 +665,8 @@ export default function Dashboard() {
                                 <span className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-800 text-green-400 mb-3">
                                     <CheckCircle2 size={18} strokeWidth={1.75} />
                                 </span>
-                                <p className="text-gray-500 text-sm">كله تمام!</p>
-                                <p className="text-gray-600 text-xs mt-1">مفيش مديونيات ولا نقص مخزون</p>
+                                <p className="text-gray-500 text-sm">{t('dashboard.panel.allGood')}</p>
+                                <p className="text-gray-600 text-xs mt-1">{t('dashboard.panel.allGoodSub')}</p>
                             </div>
                         )}
                     </div>

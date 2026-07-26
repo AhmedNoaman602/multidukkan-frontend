@@ -19,12 +19,22 @@ export default {
     // Table / list states
     actions: 'Actions',
     date: 'Date',
+    time: 'Time',
     store: 'Store',
     amount: 'Amount',
+    total: 'Total',
+    remaining: 'Remaining',
+    status: 'Status',
+    customer: 'Customer',
     createdBy: 'Created by',
     description: 'Description',
     notes: 'Notes',
     optional: 'optional',
+    all: 'All',
+    viewAll: 'View all',
+    quantity: 'Quantity',
+    product: 'Product',
+    warehouse: 'Warehouse',
 
     // Pagination
     previous: 'Previous',

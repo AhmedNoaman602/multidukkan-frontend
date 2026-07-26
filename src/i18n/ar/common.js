@@ -19,12 +19,22 @@ export default {
     // الجداول والقوائم
     actions: 'إجراءات',
     date: 'التاريخ',
+    time: 'الوقت',
     store: 'المتجر',
     amount: 'المبلغ',
+    total: 'الإجمالي',
+    remaining: 'المتبقي',
+    status: 'الحالة',
+    customer: 'العميل',
     createdBy: 'بواسطة',
     description: 'الوصف',
     notes: 'ملاحظات',
     optional: 'اختياري',
+    all: 'الكل',
+    viewAll: 'عرض الكل',
+    quantity: 'الكمية',
+    product: 'المنتج',
+    warehouse: 'المخزن',
 
     // ترقيم الصفحات
     previous: 'السابق',

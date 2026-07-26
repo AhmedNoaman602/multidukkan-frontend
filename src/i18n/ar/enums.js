@@ -27,6 +27,48 @@ export default {
         check: 'رقم الشيك',
     },
 
+    orderStatus: {
+        paid: 'مدفوع',
+        unpaid: 'غير مدفوع',
+    },
+
+    // نوع سجل النشاط بيجمع تلات مصادر (فلوس / مخزون / تعديلات)، فالمفاتيح
+    // مطابقة لـ typeStyles في lib/auditLog.js بالظبط.
+    auditType: {
+        ORDER_CHARGE: 'قيد طلب',
+        PAYMENT: 'دفعة',
+        REVERSAL: 'عكس قيد',
+        CREDIT_APPLY: 'إضافة رصيد',
+        CREDIT_CONSUMED: 'استخدام رصيد',
+        REFUND: 'مرتجع',
+        PURCHASE_CHARGE: 'قيد شراء',
+        PURCHASE_REVERSAL: 'عكس قيد شراء',
+        SUPPLIER_PAYMENT: 'دفعة لمورد',
+        SUPPLIER_PAYMENT_REVERSAL: 'عكس دفعة مورد',
+        SALE: 'بيع',
+        RETURN: 'مرتجع مخزون',
+        TRANSFER_IN: 'تحويل وارد',
+        TRANSFER_OUT: 'تحويل صادر',
+        ADJUSTMENT_IN: 'تسوية إضافة',
+        ADJUSTMENT_OUT: 'تسوية خصم',
+        PURCHASE_IN: 'وارد مشتريات',
+        PURCHASE_OUT: 'صادر مشتريات',
+        created: 'إنشاء',
+        updated: 'تعديل',
+        deleted: 'حذف',
+    },
+
+    // الـ API بيبعت class_basename()، يعني أسماء موديلات مختصرة.
+    auditEntity: {
+        Product: 'منتج',
+        Customer: 'عميل',
+        Supplier: 'مورد',
+        Store: 'متجر',
+        Order: 'طلب',
+        PurchaseOrder: 'أمر شراء',
+        Expense: 'مصروف',
+    },
+
     // المفاتيح مطابقة لـ Expense::CATEGORIES في الباك إند بالظبط.
     expenseCategory: {
         SALARIES: 'رواتب',

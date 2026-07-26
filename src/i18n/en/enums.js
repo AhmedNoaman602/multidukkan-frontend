@@ -27,6 +27,48 @@ export default {
         check: 'Cheque Number',
     },
 
+    orderStatus: {
+        paid: 'Paid',
+        unpaid: 'Unpaid',
+    },
+
+    // Audit-log `type` is a union across three sources (ledger / inventory /
+    // audit), so these keys mirror typeStyles in lib/auditLog.js exactly.
+    auditType: {
+        ORDER_CHARGE: 'Order Charge',
+        PAYMENT: 'Payment',
+        REVERSAL: 'Reversal',
+        CREDIT_APPLY: 'Credit Added',
+        CREDIT_CONSUMED: 'Credit Used',
+        REFUND: 'Refund',
+        PURCHASE_CHARGE: 'Purchase Charge',
+        PURCHASE_REVERSAL: 'Purchase Reversal',
+        SUPPLIER_PAYMENT: 'Supplier Payment',
+        SUPPLIER_PAYMENT_REVERSAL: 'Supplier Payment Reversal',
+        SALE: 'Sale',
+        RETURN: 'Stock Return',
+        TRANSFER_IN: 'Transfer In',
+        TRANSFER_OUT: 'Transfer Out',
+        ADJUSTMENT_IN: 'Adjustment In',
+        ADJUSTMENT_OUT: 'Adjustment Out',
+        PURCHASE_IN: 'Purchase In',
+        PURCHASE_OUT: 'Purchase Out',
+        created: 'Created',
+        updated: 'Updated',
+        deleted: 'Deleted',
+    },
+
+    // The API sends class_basename(), so these are short model names.
+    auditEntity: {
+        Product: 'Product',
+        Customer: 'Customer',
+        Supplier: 'Supplier',
+        Store: 'Store',
+        Order: 'Order',
+        PurchaseOrder: 'Purchase Order',
+        Expense: 'Expense',
+    },
+
     // Keys match Expense::CATEGORIES on the backend exactly.
     expenseCategory: {
         SALARIES: 'Salaries',

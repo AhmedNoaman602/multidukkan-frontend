@@ -7,7 +7,10 @@
 import { translate } from '../i18n/translate'
 
 const NUMBER_LOCALE = 'en-US'
-const DATE_LOCALE = 'en-GB' // dd/mm/yyyy — the shape already used across the app
+
+// en-GB gives dd/mm/yyyy, the shape already used across the app; the -u-nu-latn
+// extension keeps Arabic month/weekday names but Western digits.
+const dateLocale = (lang) => (lang === 'ar' ? 'ar-EG-u-nu-latn' : 'en-GB')
 
 export function formatNumber(value, options = {}) {
     const num = Number(value)
@@ -24,9 +27,22 @@ export function formatCurrency(value, lang) {
     return lang === 'ar' ? `${amount} ${symbol}` : `${symbol} ${amount}`
 }
 
-export function formatDate(value) {
+export function formatDate(value, lang, options) {
     if (!value) return '—'
     const date = new Date(value)
     if (Number.isNaN(date.getTime())) return '—'
-    return date.toLocaleDateString(DATE_LOCALE)
+    return date.toLocaleDateString(dateLocale(lang), options)
+}
+
+export function formatDateTime(value, lang) {
+    if (!value) return '—'
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return '—'
+    return date.toLocaleString(dateLocale(lang), {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+    })
 }
