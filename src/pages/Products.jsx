@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react'
 import api from '../api/axios'
 import { useNavigate } from 'react-router-dom'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import LoadingSpinner from '../components/LoadingSpinner'
 import SearchInput from '../components/SearchInput'
 import {useToast} from '../hooks/useToast'
 import DeleteModal from '../components/DeleteModal'
+import { useTranslation } from '../i18n/useTranslation'
+import { formatCurrency } from '../lib/format'
 
 export default function Products() {
     const navigate = useNavigate()
@@ -16,6 +19,7 @@ export default function Products() {
     const [page , setPage] = useState(1)
     const [lastPage , setLastPage] = useState(1)
     const {showToast} = useToast()
+    const { t, lang, dir } = useTranslation()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
 
     const fetchData = async () => {
@@ -24,7 +28,7 @@ export default function Products() {
             setProducts(res.data.data)
             setLastPage(res.data.meta.last_page)
         } catch (err) {
-            showToast('حصلت مشكلة في تحميل المنتجات', 'error')
+            showToast(t('products.loadFailed'), 'error')
         } finally {
             setLoading(false)
         }
@@ -44,12 +48,17 @@ export default function Products() {
         setDeleteTarget(null)
         fetchData()
     } catch (err) {
-        showToast(err.response?.data?.message || 'حصلت مشكلة في حذف المنتج', 'error')
+        showToast(err.response?.data?.message || t('products.deleteFailed'), 'error')
         setDeleteTarget(null)
     } finally {
         setDeleting(false)
     }
 }
+
+    // Pagination arrows are physical, so they have to follow the reading
+    // direction rather than being baked into the translated label.
+    const PrevIcon = dir === 'rtl' ? ChevronRight : ChevronLeft
+    const NextIcon = dir === 'rtl' ? ChevronLeft : ChevronRight
 
     if (loading) return <LoadingSpinner />
 
@@ -57,19 +66,19 @@ export default function Products() {
         <div>
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-                <h2 className="text-2xl font-bold text-white">المنتجات</h2>
+                <h2 className="text-2xl font-bold text-white">{t('products.title')}</h2>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                     <SearchInput
                         value={search}
                         onChange={(e) => handleSearch(e.target.value)}
-                        placeholder="ابحث بالاسم أو رمز المنتج..."
+                        placeholder={t('search.product.placeholder')}
                     />
                     {user.role === 'tenant_admin' && (
                         <button
                             onClick={() => navigate('/products/create')}
                             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
                         >
-                            + إضافة منتج
+                            {t('products.addProduct')}
                         </button>
                     )}
                 </div>
@@ -79,9 +88,13 @@ export default function Products() {
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>
-                            {['الاسم', 'رمز المنتج', 'السعر الافتراضي', 'سعر أ', 'سعر ب', 'سعر ج', 'سعر د', 'سعر هـ', 'سعر التكلفة', 'هامش الربح', 'الوحدة', 'إجراءات'].map(h => (
-                                <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">
-                                    {h}
+                            {[
+                                'common.name', 'common.code', 'products.defaultPrice',
+                                'enums.priceTier.a', 'enums.priceTier.b', 'enums.priceTier.c', 'enums.priceTier.d', 'enums.priceTier.e',
+                                'products.costPrice', 'products.profitMargin', 'common.warehouse', 'common.actions',
+                            ].map(key => (
+                                <th key={key} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                    {t(key)}
                                 </th>
                             ))}
                         </tr>
@@ -91,7 +104,7 @@ export default function Products() {
                             <tr key={product.id} onClick={() => navigate(`/products/${product.id}`)} className="hover:bg-gray-800/50 transition-colors cursor-pointer">
                                 <td className="px-4 py-3 text-white text-sm">{product.name}</td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">{product.sku}</td>
-                                <td className="px-4 py-3 text-white text-sm">{product.price} ج.م</td>
+                                <td className="px-4 py-3 text-white text-sm">{formatCurrency(product.price, lang)}</td>
                                {['a', 'b', 'c', 'd', 'e'].map(tier => (
     <td key={tier} className="px-4 py-3 text-sm">
         <div className="text-gray-300">
@@ -110,7 +123,7 @@ export default function Products() {
 ))}
                               
     <td className='px-4 py-3 text-white text-sm'>
-    {product.cost_price ? `${product.cost_price} ج.م` : '—'}
+    {product.cost_price ? formatCurrency(product.cost_price, lang) : '—'}
     </td>
 
     <td className={`px-4 py-3 text-sm font-medium ${
@@ -126,14 +139,14 @@ export default function Products() {
     onClick={(e) => { e.stopPropagation(); navigate('/products/create', { state: { duplicate: product } }) }}
     className="px-3 py-1 bg-gray-500/10 border border-gray-500/20 text-gray-400 text-xs font-medium rounded-lg hover:bg-gray-500/20 transition-colors"
 >
-    نسخ
+    {t('products.duplicate')}
 </button>
         {user.role !== 'store_staff' && (
             <button
     onClick={(e) => { e.stopPropagation(); navigate(`/products/${product.id}/edit`) }}
                 className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium rounded-lg hover:bg-blue-500/20 transition-colors"
             >
-                تعديل
+                {t('common.edit')}
             </button>
         )}
         {user.role === 'tenant_admin' && (
@@ -141,7 +154,7 @@ export default function Products() {
     onClick={(e) => { e.stopPropagation(); setDeleteTarget(product) }}
                 className="px-3 py-1 bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium rounded-lg hover:bg-red-500/20 transition-colors"
             >
-                حذف
+                {t('common.delete')}
             </button>
         )}
     </div>
@@ -153,7 +166,7 @@ export default function Products() {
 
                 {products.length === 0 && (
                     <div className="text-center py-16 text-gray-500">
-                        {search ? `No products matching "${search}"` : 'مفيش منتجات لسه. أضف أول منتج.'}
+                        {search ? t('products.noResultsFor', { query: search }) : t('products.empty')}
                     </div>
                 )}
             </div>
@@ -162,17 +175,19 @@ export default function Products() {
         <button
             onClick={() => setPage(p => p - 1)}
             disabled={page === 1}
-            className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
+            className="flex items-center gap-1 px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
         >
-            → السابق
+            <PrevIcon size={16} />
+            {t('common.previous')}
         </button>
-        <span className="text-gray-400 text-sm">صفحة {page} من {lastPage}</span>
+        <span className="text-gray-400 text-sm">{t('common.pageOf', { page, total: lastPage })}</span>
         <button
             onClick={() => setPage(p => p + 1)}
             disabled={page === lastPage}
-            className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
+            className="flex items-center gap-1 px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
         >
-            التالي ←
+            {t('common.next')}
+            <NextIcon size={16} />
         </button>
     </div>
 )}
@@ -181,7 +196,7 @@ export default function Products() {
                 onClose={() => setDeleteTarget(null)}
                 onConfirm={handleDelete}
                 deleting={deleting}
-                title="حذف المنتج"
+                title={t('products.deleteProduct')}
                 name={deleteTarget?.name}
             />
         </div>

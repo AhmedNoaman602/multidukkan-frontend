@@ -4,7 +4,8 @@ import api from '../api/axios'
 import BackButton from '../components/BackButton'
 import SupplierSearchInput from '../components/SupplierSearchInput'
 import {useToast} from '../hooks/useToast'
-
+import { useTranslation } from '../i18n/useTranslation'
+import { formatCurrency } from '../lib/format'
 
 export default function CreateProduct() {
     const [warehouses, setWarehouses] = useState([])
@@ -43,7 +44,8 @@ export default function CreateProduct() {
     const navigate = useNavigate()
     const [units, setUnits] = useState([])
     const { showToast } = useToast()
-    
+    const { t, lang } = useTranslation()
+
 
     useEffect(() => {
         api.get('/warehouses').then(res => setWarehouses(res.data.data))
@@ -79,11 +81,11 @@ export default function CreateProduct() {
             const saved = res.data.data ?? res.data
             setUnits(prev => [...prev, saved])
             setForm(f => ({ ...f, unit: saved.name }))
-            showToast('تم إنشاء الوحدة بنجاح', 'success')
+            showToast(t('products.form.unitCreated'), 'success')
             setNewUnit('')
             setShowNewUnit(false)
         } catch {
-            showToast('حصلت مشكلة في حفظ الوحدة', 'error')
+            showToast(t('products.form.unitCreateFailed'), 'error')
         } finally {
             setSavingUnit(false)
         }
@@ -91,7 +93,7 @@ export default function CreateProduct() {
 
     const handleGenerateDescription = async () => {
         if (!form.name || !form.price || !form.unit) {
-            showToast('من فضلك املا الاسم والسعر والوحدة الأول.', 'error')
+            showToast(t('products.form.aiFieldsRequired'), 'error')
             return
         }
         setGeneratingDesc(true)
@@ -107,7 +109,7 @@ export default function CreateProduct() {
                 description: `${res.data.ar}\n${res.data.en}`,
             }))
         } catch {
-            showToast('حصلت مشكلة في توليد الوصف', 'error')
+            showToast(t('products.form.aiFailed'), 'error')
         } finally {
             setGeneratingDesc(false)
         }
@@ -118,21 +120,21 @@ export default function CreateProduct() {
         setSaving(true)
         const hasEmptyWarehouse = stocks.some(s => !s.warehouse_id)
     if (hasEmptyWarehouse) {
-        showToast('من فضلك اختر المخزن لكل صفوف المخزون، أو امسح الصفوف الفاضية.', 'error')
+        showToast(t('products.create.warehouseRequired'), 'error')
         setSaving(false)
         return
     }
 
-    const hasInvalidQuantity = stocks.some(s => 
+    const hasInvalidQuantity = stocks.some(s =>
         s.warehouse_id && (!s.quantity || parseInt(s.quantity) <= 0)
     )
     if (hasInvalidQuantity) {
-        showToast('اكتب كمية أكبر من 0 لكل صفوف المخازن.', 'error')
+        showToast(t('products.create.quantityInvalid'), 'error')
         setSaving(false)
         return
     }
     if (form.cost_price && !form.opening_quantity && stocks.every(s => !s.quantity || parseInt(s.quantity) <= 0)) {
-    showToast('لازم تضيف كمية افتتاحية أو مخزون لما تحدد سعر التكلفة.', 'error')
+    showToast(t('products.create.openingStockRequired'), 'error')
     setSaving(false)
     return
 }
@@ -153,10 +155,10 @@ export default function CreateProduct() {
                         threshold: parseInt(s.threshold) || 10,
                     }))
             })
-            showToast('تم إنشاء المنتج بنجاح', 'success')
+            showToast(t('products.create.created'), 'success')
             navigate('/products')
         } catch (err) {
-            showToast(err.response?.data?.message || 'حصلت مشكلة في إنشاء المنتج', 'error')
+            showToast(err.response?.data?.message || t('products.create.createFailed'), 'error')
         } finally {
             setSaving(false)
         }
@@ -165,19 +167,19 @@ export default function CreateProduct() {
     return (
         <div>
             <div className="flex items-center gap-4 mb-6">
-                <BackButton label="رجوع للمنتجات" to="/products" />
-                <h2 className="text-2xl font-bold text-white">إضافة منتج جديد</h2>
+                <BackButton label={t('products.create.backToProducts')} to="/products" />
+                <h2 className="text-2xl font-bold text-white">{t('products.create.title')}</h2>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
 
                 {/* Basic Info */}
                 <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-                    <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">البيانات الأساسية</h3>
+                    <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">{t('products.form.basicInfo')}</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                         <div>
-                            <label className="block text-sm text-gray-400 mb-1">اسم المنتج</label>
+                            <label className="block text-sm text-gray-400 mb-1">{t('products.form.productName')}</label>
                             <input
                                 value={form.name}
                                 onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -187,7 +189,7 @@ export default function CreateProduct() {
                         </div>
 
                         <div>
-                            <label className="block text-sm text-gray-400 mb-1">رمز المنتج</label>
+                            <label className="block text-sm text-gray-400 mb-1">{t('products.form.productCode')}</label>
                             <input
                                 value={form.sku}
                                 onChange={(e) => setForm({ ...form, sku: e.target.value })}
@@ -197,18 +199,18 @@ export default function CreateProduct() {
                         </div>
                         <div className="col-span-2">
     <label className="block text-sm text-gray-400 mb-1">
-        Supplier <span className="text-gray-600">(اختياري)</span>
+        {t('products.form.supplier')} <span className="text-gray-600">({t('common.optional')})</span>
     </label>
     <SupplierSearchInput
         suppliers={suppliers}
         value={supplierId}
         onSelect={setSupplierId}
-        placeholder="ابحث عن مورد..."
+        placeholder={t('products.form.supplierSearchPlaceholder')}
     />
 </div>
 
                         <div>
-                            <label className="block text-sm text-gray-400 mb-1">السعر الافتراضي</label>
+                            <label className="block text-sm text-gray-400 mb-1">{t('products.defaultPrice')}</label>
                             <input
                                 type="number"
                                 value={form.price}
@@ -219,37 +221,39 @@ export default function CreateProduct() {
                         </div>
                          <div>
     <label className="block text-sm text-gray-400 mb-1">
-        Cost Price <span className="text-gray-600">(اختياري)</span>
+        {t('products.costPrice')} <span className="text-gray-600">({t('common.optional')})</span>
     </label>
     <input
         type="number"
         value={form.cost_price}
         onChange={(e) => setForm({ ...form, cost_price: e.target.value })}
-        placeholder="اللي دفعته فيه"
+        placeholder={t('products.form.costPricePlaceholder')}
         className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm placeholder-gray-600"
     />
 </div>
 <div>
     <label className="block text-sm text-gray-400 mb-1">
-        Opening Quantity <span className="text-gray-600">(اختياري)</span>
+        {t('products.form.openingQuantity')} <span className="text-gray-600">({t('common.optional')})</span>
     </label>
     <input
         type="number"
         min="0"
         value={form.opening_quantity}
         onChange={(e) => setForm({ ...form, opening_quantity: e.target.value })}
-        placeholder="الكمية الموجودة حالياً"
+        placeholder={t('products.form.openingQuantityPlaceholder')}
         className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm placeholder-gray-600"
     />
     {form.opening_quantity && form.cost_price && (
         <p className="text-xs text-blue-400 mt-1">
-            قيمة المخزون الافتتاحي: {(parseFloat(form.opening_quantity) * parseFloat(form.cost_price)).toFixed(2)} ج.م
+            {t('products.form.openingStockValue', {
+                amount: formatCurrency(parseFloat(form.opening_quantity) * parseFloat(form.cost_price), lang),
+            })}
         </p>
     )}
 </div>
 
                         <div>
-                            <label className="block text-sm text-gray-400 mb-1">الوحدة</label>
+                            <label className="block text-sm text-gray-400 mb-1">{t('products.form.unit')}</label>
                             <div className="flex gap-2">
                                 <select
                                     value={form.unit}
@@ -265,7 +269,7 @@ export default function CreateProduct() {
                                     onClick={() => setShowNewUnit(!showNewUnit)}
                                     className="px-3 py-2 bg-gray-800 border border-gray-700 text-gray-400 hover:text-white rounded-lg text-xs transition-colors"
                                 >
-                                    + جديدة
+                                    {t('products.form.newUnit')}
                                 </button>
                             </div>
                             {showNewUnit && (
@@ -273,7 +277,7 @@ export default function CreateProduct() {
                                     <input
                                         value={newUnit}
                                         onChange={(e) => setNewUnit(e.target.value)}
-                                        placeholder="e.g. كرتونة"
+                                        placeholder={t('products.form.newUnitPlaceholder')}
                                         onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleSaveUnit())}
                                         className="flex-1 px-3 py-2 bg-gray-800 border border-blue-500 text-white rounded-lg focus:outline-none text-sm"
                                         autoFocus
@@ -284,7 +288,7 @@ export default function CreateProduct() {
                                         disabled={savingUnit}
                                         className="px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-xs transition-colors"
                                     >
-                                        {savingUnit ? '...' : 'حفظ'}
+                                        {savingUnit ? '...' : t('common.save')}
                                     </button>
                                 </div>
                             )}
@@ -292,21 +296,21 @@ export default function CreateProduct() {
 
                         <div className="col-span-2">
     <div className="flex items-center justify-between mb-1">
-        <label className="block text-sm text-gray-400">الوصف</label>
+        <label className="block text-sm text-gray-400">{t('products.form.description')}</label>
         <button
             type="button"
             onClick={handleGenerateDescription}
             disabled={generatingDesc || !form.name || !form.price}
             className="px-3 py-1 bg-purple-600/20 border border-purple-500/30 text-purple-400 hover:bg-purple-600/30 disabled:opacity-40 text-xs font-medium rounded-lg transition-colors"
         >
-            {generatingDesc ? 'جاري التوليد...' : '✨ ولّد بالذكاء الاصطناعي'}
+            {generatingDesc ? t('products.form.generating') : t('products.form.generateWithAi')}
         </button>
     </div>
     <textarea
         value={form.description || ''}
         onChange={(e) => setForm({ ...form, description: e.target.value })}
         rows={3}
-        placeholder="وصف المنتج (أو ولّده بالذكاء الاصطناعي فوق)"
+        placeholder={t('products.form.descriptionPlaceholder')}
         className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm resize-none placeholder-gray-600"
     />
 </div>
@@ -315,16 +319,16 @@ export default function CreateProduct() {
 
                 {/* Price Tiers */}
                 <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-                    <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">فئات الأسعار</h3>
+                    <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">{t('products.form.priceTiers')}</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                         {['a', 'b', 'c', 'd', 'e'].map(tier => (
                             <div key={tier}>
-                                <label className="block text-sm text-gray-400 mb-1">سعر {tier.toUpperCase()}</label>
+                                <label className="block text-sm text-gray-400 mb-1">{t(`enums.priceTier.${tier}`)}</label>
                                 <input
                                     type="number"
                                     value={form[`price_${tier}`]}
                                     onChange={(e) => setForm({ ...form, [`price_${tier}`]: e.target.value })}
-                                    placeholder="اختياري"
+                                    placeholder={t('common.optional')}
                                     className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm placeholder-gray-600"
                                 />
                             </div>
@@ -334,29 +338,33 @@ export default function CreateProduct() {
 
                 {/* Secondary Unit */}
                 <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-                    <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">الوحدة الثانوية <span className="text-gray-600 normal-case font-normal">(اختياري)</span></h3>
+                    <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">{t('products.form.secondaryUnit')} <span className="text-gray-600 normal-case font-normal">({t('common.optional')})</span></h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm text-gray-400 mb-1">الوحدة الثانوية</label>
+                            <label className="block text-sm text-gray-400 mb-1">{t('products.form.secondaryUnit')}</label>
                             <input
                                 value={form.secondary_unit}
                                 onChange={(e) => setForm({ ...form, secondary_unit: e.target.value })}
-                                placeholder="e.g. دستة"
+                                placeholder={t('products.form.secondaryUnitPlaceholder')}
                                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm placeholder-gray-600"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm text-gray-400 mb-1">معامل التحويل</label>
+                            <label className="block text-sm text-gray-400 mb-1">{t('products.form.conversionFactor')}</label>
                             <input
                                 type="number"
                                 value={form.conversion_factor}
                                 onChange={(e) => setForm({ ...form, conversion_factor: e.target.value })}
-                                placeholder="e.g. 12"
+                                placeholder={t('products.form.conversionFactorPlaceholder')}
                                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm placeholder-gray-600"
                             />
                             {form.secondary_unit && form.conversion_factor && (
                                 <p className="text-xs text-blue-400 mt-1">
-                                    1 {form.secondary_unit} = {form.conversion_factor} {form.unit}
+                                    {t('products.form.conversionPreview', {
+                                        secondary: form.secondary_unit,
+                                        factor: form.conversion_factor,
+                                        base: form.unit,
+                                    })}
                                 </p>
                             )}
                         </div>
@@ -367,7 +375,7 @@ export default function CreateProduct() {
 <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
     <div className="px-4 py-2.5 border-b border-gray-800 flex items-center justify-between">
         <h3 className="text-white text-sm font-semibold">
-            مخزون المخازن
+            {t('products.form.warehouseStock')}
             {stocks.length > 0 && <span className="ms-1.5 text-gray-500 font-normal">({stocks.length})</span>}
         </h3>
         <button
@@ -375,15 +383,15 @@ export default function CreateProduct() {
             onClick={addStock}
             className="px-3 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors"
         >
-            + إضافة مخزن
+            {t('products.form.addWarehouse')}
         </button>
     </div>
 
     <table className="w-full">
         <thead className="bg-gray-800">
             <tr>
-                {['المخزن', 'الكمية', 'حد التنبيه', ''].map(h => (
-                    <th key={h} className="px-3 py-2 text-start text-[11px] font-medium text-gray-400 uppercase tracking-wider">{h}</th>
+                {['common.warehouse', 'common.quantity', 'products.form.threshold', null].map(key => (
+                    <th key={key ?? 'actions'} className="px-3 py-2 text-start text-[11px] font-medium text-gray-400 uppercase tracking-wider">{key ? t(key) : ''}</th>
                 ))}
             </tr>
         </thead>
@@ -396,7 +404,7 @@ export default function CreateProduct() {
                             onChange={(e) => updateStock(i, 'warehouse_id', e.target.value)}
                             className="w-full px-2 py-1.5 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                         >
-                            <option value="">اختر المخزن</option>
+                            <option value="">{t('products.form.chooseWarehouse')}</option>
                             {warehouses
                                 .filter(w => !usedWarehouseIds.includes(w.id) || w.id === parseInt(stock.warehouse_id))
                                 .map(w => (
@@ -472,7 +480,7 @@ export default function CreateProduct() {
         disabled={saving}
         className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
     >
-        {saving ? 'جاري الحفظ...' : 'حفظ المنتج'}
+        {saving ? t('common.saving') : t('products.create.submit')}
     </button>
 </div>
 

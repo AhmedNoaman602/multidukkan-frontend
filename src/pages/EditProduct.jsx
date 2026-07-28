@@ -5,6 +5,7 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import BackButton from '../components/BackButton'
 import SupplierSearchInput from '../components/SupplierSearchInput'
 import { useToast } from '../hooks/useToast'
+import { useTranslation } from '../i18n/useTranslation'
 
 export default function EditProduct() {
     const { id } = useParams()
@@ -25,7 +26,7 @@ export default function EditProduct() {
         secondary_unit: '', conversion_factor: '',
     })
     const { showToast } = useToast()
-
+    const { t } = useTranslation()
 
     useEffect(() => {
         Promise.all([
@@ -71,7 +72,7 @@ export default function EditProduct() {
             setUnits(unitRes.data.data)
             setSuppliers(supplierRes.data.data)
         })
-        .catch(() => showToast('حصلت مشكلة في تحميل المنتج', 'error'))
+        .catch(() => showToast(t('products.edit.loadFailed'), 'error'))
         .finally(() => setLoading(false))
     }, [id])
 
@@ -96,7 +97,7 @@ export default function EditProduct() {
 
     const handleGenerateDescription = async () => {
         if (!form.name || !form.price || !form.unit) {
-            showToast('من فضلك املا الاسم والسعر والوحدة الأول.', 'error')
+            showToast(t('products.form.aiFieldsRequired'), 'error')
             return
         }
         setGeneratingDesc(true)
@@ -112,7 +113,7 @@ export default function EditProduct() {
                 description: `${res.data.ar}\n${res.data.en}`,
             }))
         } catch {
-            showToast('حصلت مشكلة في توليد الوصف', 'error')
+            showToast(t('products.form.aiFailed'), 'error')
         } finally {
             setGeneratingDesc(false)
         }
@@ -141,10 +142,10 @@ export default function EditProduct() {
                         threshold:    parseInt(s.threshold) || 10,
                     }))
             })
-            showToast('تم تعديل المنتج بنجاح.', 'success')
+            showToast(t('products.edit.updated'), 'success')
             navigate('/products')
         } catch (err) {
-            showToast(err.response?.data?.message || 'حصلت مشكلة في تعديل المنتج', 'error')
+            showToast(err.response?.data?.message || t('products.edit.updateFailed'), 'error')
         } finally {
             setSaving(false)
         }
@@ -155,15 +156,15 @@ export default function EditProduct() {
     return (
         <div className="">
             <div className="flex items-center gap-4 mb-6">
-                <BackButton label="رجوع للمنتجات" to="/products"/>
-                <h2 className="text-2xl font-bold text-white">تعديل المنتج</h2>
+                <BackButton label={t('products.create.backToProducts')} to="/products"/>
+                <h2 className="text-2xl font-bold text-white">{t('products.edit.title')}</h2>
             </div>
 
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                     <div>
-                        <label className="block text-sm text-gray-400 mb-1">اسم المنتج</label>
+                        <label className="block text-sm text-gray-400 mb-1">{t('products.form.productName')}</label>
                         <input
                             value={form.name}
                             onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -173,7 +174,7 @@ export default function EditProduct() {
                     </div>
 
                     <div>
-                        <label className="block text-sm text-gray-400 mb-1">رمز المنتج</label>
+                        <label className="block text-sm text-gray-400 mb-1">{t('products.form.productCode')}</label>
                         <input
                             value={form.sku}
                             onChange={(e) => setForm({ ...form, sku: e.target.value })}
@@ -183,18 +184,18 @@ export default function EditProduct() {
                     </div>
                     <div className="col-span-2">
     <label className="block text-sm text-gray-400 mb-1">
-        Supplier <span className="text-gray-600">(اختياري)</span>
+        {t('products.form.supplier')} <span className="text-gray-600">({t('common.optional')})</span>
     </label>
     <SupplierSearchInput
         suppliers={suppliers}
         value={supplierId}
         onSelect={setSupplierId}
-        placeholder="ابحث عن مورد..."
+        placeholder={t('products.form.supplierSearchPlaceholder')}
     />
 </div>
 
                     <div>
-                        <label className="block text-sm text-gray-400 mb-1">السعر الافتراضي</label>
+                        <label className="block text-sm text-gray-400 mb-1">{t('products.defaultPrice')}</label>
                         <input
                             type="number"
                             value={form.price}
@@ -205,19 +206,19 @@ export default function EditProduct() {
                     </div>
                     <div>
     <label className="block text-sm text-gray-400 mb-1">
-        Cost Price <span className="text-gray-600">(اختياري)</span>
+        {t('products.costPrice')} <span className="text-gray-600">({t('common.optional')})</span>
     </label>
     <input
         type="number"
         value={form.cost_price}
         onChange={(e) => setForm({ ...form, cost_price: e.target.value })}
-        placeholder="اللي دفعته فيه"
+        placeholder={t('products.form.costPricePlaceholder')}
         className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm placeholder-gray-600"
     />
 </div>
 
                     <div>
-                        <label className="block text-sm text-gray-400 mb-1">الوحدة</label>
+                        <label className="block text-sm text-gray-400 mb-1">{t('products.form.unit')}</label>
                         <select
                             value={form.unit}
                             onChange={(e) => setForm({ ...form, unit: e.target.value })}
@@ -231,60 +232,64 @@ export default function EditProduct() {
 
                                             <div className="col-span-2">
     <div className="flex items-center justify-between mb-1">
-        <label className="block text-sm text-gray-400">الوصف</label>
+        <label className="block text-sm text-gray-400">{t('products.form.description')}</label>
         <button
             type="button"
             onClick={handleGenerateDescription}
             disabled={generatingDesc || !form.name || !form.price}
             className="px-3 py-1 bg-purple-600/20 border border-purple-500/30 text-purple-400 hover:bg-purple-600/30 disabled:opacity-40 text-xs font-medium rounded-lg transition-colors"
         >
-            {generatingDesc ? 'جاري التوليد...' : '✨ ولّد بالذكاء الاصطناعي'}
+            {generatingDesc ? t('products.form.generating') : t('products.form.generateWithAi')}
         </button>
     </div>
     <textarea
         value={form.description || ''}
         onChange={(e) => setForm({ ...form, description: e.target.value })}
         rows={3}
-        placeholder="وصف المنتج (أو ولّده بالذكاء الاصطناعي فوق)"
+        placeholder={t('products.form.descriptionPlaceholder')}
         className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm resize-none placeholder-gray-600"
     />
 </div>
 
                     {['a', 'b', 'c', 'd', 'e'].map(tier => (
                         <div key={tier}>
-                            <label className="block text-sm text-gray-400 mb-1">سعر {tier.toUpperCase()}</label>
+                            <label className="block text-sm text-gray-400 mb-1">{t(`enums.priceTier.${tier}`)}</label>
                             <input
                                 type="number"
                                 value={form[`price_${tier}`]}
                                 onChange={(e) => setForm({ ...form, [`price_${tier}`]: e.target.value })}
-                                placeholder="اختياري"
+                                placeholder={t('common.optional')}
                                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm placeholder-gray-600"
                             />
                         </div>
                     ))}
 
                     <div>
-                        <label className="block text-sm text-gray-400 mb-1">الوحدة الثانوية</label>
+                        <label className="block text-sm text-gray-400 mb-1">{t('products.form.secondaryUnit')}</label>
                         <input
                             value={form.secondary_unit}
                             onChange={(e) => setForm({ ...form, secondary_unit: e.target.value })}
-                            placeholder="e.g. دستة"
+                            placeholder={t('products.form.secondaryUnitPlaceholder')}
                             className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm placeholder-gray-600"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm text-gray-400 mb-1">معامل التحويل</label>
+                        <label className="block text-sm text-gray-400 mb-1">{t('products.form.conversionFactor')}</label>
                         <input
                             type="number"
                             value={form.conversion_factor}
                             onChange={(e) => setForm({ ...form, conversion_factor: e.target.value })}
-                            placeholder="e.g. 12"
+                            placeholder={t('products.form.conversionFactorPlaceholder')}
                             className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm placeholder-gray-600"
                         />
                         {form.secondary_unit && form.conversion_factor && (
                             <p className="text-xs text-blue-400 mt-1">
-                                1 {form.secondary_unit} = {form.conversion_factor} {form.unit}
+                                {t('products.form.conversionPreview', {
+                                    secondary: form.secondary_unit,
+                                    factor: form.conversion_factor,
+                                    base: form.unit,
+                                })}
                             </p>
                         )}
                     </div>
@@ -292,13 +297,13 @@ export default function EditProduct() {
                     {/* Warehouse Stock */}
                     <div className="col-span-2">
                         <div className="flex items-center justify-between mb-3">
-                            <label className="text-sm text-gray-400">مخزون المخازن</label>
+                            <label className="text-sm text-gray-400">{t('products.form.warehouseStock')}</label>
                             <button
                                 type="button"
                                 onClick={addStock}
                                 className="px-3 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors"
                             >
-                                + إضافة مخزن
+                                {t('products.form.addWarehouse')}
                             </button>
                         </div>
 
@@ -307,14 +312,14 @@ export default function EditProduct() {
                                 <div key={i} className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 items-end bg-gray-800 p-3 rounded-lg">
 
                                     <div className="col-span-3">
-                                        <label className="block text-xs text-gray-400 mb-1">المخزن</label>
+                                        <label className="block text-xs text-gray-400 mb-1">{t('common.warehouse')}</label>
                                         {stock.isNew ? (
                                             <select
                                                 value={stock.warehouse_id}
                                                 onChange={(e) => updateStock(i, 'warehouse_id', e.target.value)}
                                                 className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                                             >
-                                                <option value="">اختر المخزن</option>
+                                                <option value="">{t('products.form.chooseWarehouse')}</option>
                                                 {warehouses
                                                     .filter(w => !usedWarehouseIds.includes(w.id) || w.id === parseInt(stock.warehouse_id))
                                                     .map(w => (
@@ -330,7 +335,7 @@ export default function EditProduct() {
                                     </div>
 
                                     <div className="col-span-2">
-                                        <label className="block text-xs text-gray-400 mb-1">الكمية</label>
+                                        <label className="block text-xs text-gray-400 mb-1">{t('common.quantity')}</label>
                                         <input
                                             type="number"
                                             min="0"
@@ -341,7 +346,7 @@ export default function EditProduct() {
                                     </div>
 
                                     <div className="col-span-1">
-                                        <label className="block text-xs text-gray-400 mb-1">حد التنبيه</label>
+                                        <label className="block text-xs text-gray-400 mb-1">{t('products.form.threshold')}</label>
                                         <input
                                             type="number"
                                             min="0"
@@ -373,7 +378,7 @@ export default function EditProduct() {
                             disabled={saving}
                             className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
                         >
-                            {saving ? 'جاري الحفظ...' : 'حفظ التعديلات'}
+                            {saving ? t('common.saving') : t('products.edit.submit')}
                         </button>
                     </div>
 
