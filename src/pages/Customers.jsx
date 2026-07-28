@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import SearchInput from '../components/SearchInput'
 import StatBoxes from '../components/StatBoxes'
 import {useToast} from '../hooks/useToast'
 import DeleteModal from '../components/DeleteModal'
+import { useTranslation } from '../i18n/useTranslation'
+import { formatCurrency, formatNumber } from '../lib/format'
 
 export default function Customers() {
     const [customers, setCustomers] = useState([])
@@ -18,6 +21,7 @@ export default function Customers() {
     const [stats, setStats] = useState(null)
     const navigate = useNavigate()
     const {showToast} = useToast()
+    const { t, lang, dir } = useTranslation()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
 
     const fetchCustomers = () => {
@@ -28,7 +32,7 @@ export default function Customers() {
                 setStats(res.data.stats)
             })
             .catch(() => {
-                showToast('حصلت مشكلة في تحميل العملاء', 'error')
+                showToast(t('customers.loadFailed'), 'error')
                 setCustomers([])
                 setStats(null)
             })
@@ -42,11 +46,11 @@ export default function Customers() {
         setDeleting(true)
         try {
             await api.delete(`/customers/${deleteTarget.id}`)
-            showToast('تم حذف العميل بنجاح', 'success')
+            showToast(t('customers.deleted'), 'success')
             setDeleteTarget(null)
             fetchCustomers()
         } catch (err) {
-            showToast(err.response?.data?.message || 'حصلت مشكلة في حذف العميل', 'error')
+            showToast(err.response?.data?.message || t('customers.deleteFailed'), 'error')
             setDeleteTarget(null)
         } finally {
             setDeleting(false)
@@ -58,24 +62,29 @@ export default function Customers() {
         setPage(1)
     }
 
+    // Pagination arrows are physical, so they have to follow the reading
+    // direction rather than being baked into the translated label.
+    const PrevIcon = dir === 'rtl' ? ChevronRight : ChevronLeft
+    const NextIcon = dir === 'rtl' ? ChevronLeft : ChevronRight
+
     if (loading) return <LoadingSpinner />
 
     return (
         <div>
   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-    <h2 className="text-xl sm:text-2xl font-bold text-white">العملاء</h2>
+    <h2 className="text-xl sm:text-2xl font-bold text-white">{t('customers.title')}</h2>
     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         <SearchInput
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
-            placeholder="ابحث بالاسم أو كود العميل أو رقم التليفون..."
+            placeholder={t('search.customer.placeholder')}
         />
         {user.role !== 'store_staff' && (
             <button
                 onClick={() => navigate('/customers/create')}
                 className="px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors whitespace-nowrap"
             >
-                + إضافة عميل
+                {t('customers.addCustomer')}
             </button>
         )}
     </div>
@@ -84,8 +93,8 @@ export default function Customers() {
             {
                 stats && (
                     <StatBoxes stats={[
-                        { label: 'إجمالي العملاء', value: stats.total_customers, color: 'white' },
-                        { label: 'إجمالي المستحقات', value: `${stats.total_outstanding} ج.م`, color: 'red'},
+                        { label: t('customers.totalCustomers'), value: formatNumber(stats.total_customers), color: 'white' },
+                        { label: t('customers.totalOutstanding'), value: formatCurrency(stats.total_outstanding, lang), color: 'red'},
                     ]} />
                 )
             }
@@ -94,9 +103,9 @@ export default function Customers() {
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>
-                            {['الكود', 'الاسم', 'التليفون', 'العنوان', 'المنطقة', 'فئة السعر', 'إجراءات'].map(h => (
-                                <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">
-                                    {h}
+                            {['common.code', 'common.name', 'common.phone', 'common.address', 'common.area', 'customers.priceTier', 'common.actions'].map(key => (
+                                <th key={key} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                    {t(key)}
                                 </th>
                             ))}
                         </tr>
@@ -129,9 +138,7 @@ export default function Customers() {
                                             ? 'bg-gray-700 text-gray-300'
                                             : 'bg-blue-500/20 text-blue-400'
                                     }`}>
-                                        {!customer.price_tier || customer.price_tier === 'default'
-                                            ? 'افتراضي'
-                                            : `سعر ${customer.price_tier.toUpperCase()}`}
+                                        {t(`enums.priceTier.${customer.price_tier || 'default'}`)}
                                     </span>
                                 </td>
                                 <td className="px-4 py-3">
@@ -144,7 +151,7 @@ export default function Customers() {
                                                 }}
                                                 className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium rounded-lg hover:bg-blue-500/20 transition-colors"
                                             >
-                                                تعديل
+                                                {t('common.edit')}
                                             </button>
                                         )}
                                         {user.role === 'tenant_admin' && (
@@ -155,7 +162,7 @@ export default function Customers() {
                                                 }}
                                                 className="px-3 py-1 bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium rounded-lg hover:bg-red-500/20 transition-colors"
                                             >
-                                                حذف
+                                                {t('common.delete')}
                                             </button>
                                         )}
                                     </div>
@@ -167,7 +174,7 @@ export default function Customers() {
 
                 {customers.length === 0 && (
                     <div className="text-center py-16 text-gray-500">
-                        {search ? `No customers matching "${search}"` : 'مفيش عملاء لسه. أضف أول عميل.'}
+                        {search ? t('customers.noResultsFor', { query: search }) : t('customers.empty')}
                     </div>
                 )}
             </div>
@@ -177,17 +184,19 @@ export default function Customers() {
                     <button
                         onClick={() => setPage(p => p - 1)}
                         disabled={page === 1}
-                        className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
+                        className="flex items-center gap-1 px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
                     >
-                        → السابق
+                        <PrevIcon size={16} />
+                        {t('common.previous')}
                     </button>
-                    <span className="text-gray-400 text-sm">صفحة {page} من {lastPage}</span>
+                    <span className="text-gray-400 text-sm">{t('common.pageOf', { page, total: lastPage })}</span>
                     <button
                         onClick={() => setPage(p => p + 1)}
                         disabled={page === lastPage}
-                        className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
+                        className="flex items-center gap-1 px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
                     >
-                        التالي ←
+                        {t('common.next')}
+                        <NextIcon size={16} />
                     </button>
                 </div>
             )}
@@ -197,9 +206,9 @@ export default function Customers() {
             onClose={() => setDeleteTarget(null)}
             onConfirm={handleDelete}
             deleting={deleting}
-            title="حذف العميل"
+            title={t('customers.deleteCustomer')}
             name={deleteTarget?.name}
-            warning="كل سجل الرصيد والمعاملات المرتبطة بالعميل ده هتتأثر."
+            warning={t('customers.deleteWarning')}
            />
         </div>
     )

@@ -4,11 +4,13 @@ import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import BackButton from '../components/BackButton'
 import { useToast } from '../hooks/useToast'
+import { useTranslation } from '../i18n/useTranslation'
 
 export default function EditCustomer() {
     const { id } = useParams()
     const navigate = useNavigate()
     const {showToast} = useToast()
+    const { t } = useTranslation()
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [form, setForm] = useState({
@@ -28,7 +30,7 @@ export default function EditCustomer() {
                     price_tier: c.price_tier === 'default' ? '' : (c.price_tier || ''),
                 })
             })
-            .catch(() => showToast('حصلت مشكلة في تحميل العميل','error'))
+            .catch(() => showToast(t('customers.edit.loadFailed'), 'error'))
             .finally(() => setLoading(false))
     }, [id])
 
@@ -42,7 +44,7 @@ export default function EditCustomer() {
             })
             navigate('/customers')
         } catch (err) {
-            showToast(err.response?.data?.message || 'حصلت مشكلة في تعديل العميل','error')
+            showToast(err.response?.data?.message || t('customers.edit.updateFailed'), 'error')
         } finally {
             setSaving(false)
         }
@@ -53,14 +55,14 @@ export default function EditCustomer() {
     return (
         <div className="">
             <div className="flex items-center gap-4 mb-6">
-                <BackButton label="رجوع للعملاء" to="/customers"/>
-                <h2 className="text-2xl font-bold text-white">تعديل العميل</h2>
+                <BackButton label={t('customers.edit.backToCustomers')} to="/customers"/>
+                <h2 className="text-2xl font-bold text-white">{t('customers.edit.title')}</h2>
             </div>
 
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm text-gray-400 mb-1">الكود</label>
+                        <label className="block text-sm text-gray-400 mb-1">{t('common.code')}</label>
                         <input
                             value={form.code}
                             onChange={(e) => setForm({ ...form, code: e.target.value })}
@@ -68,7 +70,7 @@ export default function EditCustomer() {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm text-gray-400 mb-1">الاسم</label>
+                        <label className="block text-sm text-gray-400 mb-1">{t('common.name')}</label>
                         <input
                             value={form.name}
                             onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -78,7 +80,7 @@ export default function EditCustomer() {
                     </div>
 
                     <div>
-                        <label className="block text-sm text-gray-400 mb-1">التليفون</label>
+                        <label className="block text-sm text-gray-400 mb-1">{t('common.phone')}</label>
                         <input
                             value={form.phone}
                             onChange={(e) => setForm({ ...form, phone: e.target.value })}
@@ -88,7 +90,7 @@ export default function EditCustomer() {
                     </div>
 
                     <div className="col-span-2">
-                        <label className="block text-sm text-gray-400 mb-1">العنوان</label>
+                        <label className="block text-sm text-gray-400 mb-1">{t('common.address')}</label>
                         <input
                             value={form.address}
                             onChange={(e) => setForm({ ...form, address: e.target.value })}
@@ -97,7 +99,7 @@ export default function EditCustomer() {
                     </div>
 
                     <div className='col-span-2'>
-                        <label className="block text-sm text-gray-400 mb-1">المنطقة</label>
+                        <label className="block text-sm text-gray-400 mb-1">{t('common.area')}</label>
                         <input
                             value={form.area}
                             onChange={e => setForm({ ...form, area: e.target.value })}
@@ -106,15 +108,15 @@ export default function EditCustomer() {
                     </div>
 
                     <div className="col-span-2">
-                        <label className="block text-sm text-gray-400 mb-2">فئة السعر</label>
+                        <label className="block text-sm text-gray-400 mb-2">{t('customers.priceTier')}</label>
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
                             {[
-                                { value: '', label: 'افتراضي' },
-                                { value: 'a', label: 'سعر أ' },
-                                { value: 'b', label: 'سعر ب' },
-                                { value: 'c', label: 'سعر ج' },
-                                { value: 'd', label: 'سعر د' },
-                                { value: 'e', label: 'سعر هـ' },
+                                { value: '', key: 'default' },
+                                { value: 'a', key: 'a' },
+                                { value: 'b', key: 'b' },
+                                { value: 'c', key: 'c' },
+                                { value: 'd', key: 'd' },
+                                { value: 'e', key: 'e' },
                             ].map(tier => (
                                 <button
                                     key={tier.value}
@@ -129,7 +131,7 @@ export default function EditCustomer() {
                                             : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
                                     }`}
                                 >
-                                    {tier.label}
+                                    {t(`enums.priceTier.${tier.key}`)}
                                 </button>
                             ))}
                         </div>
@@ -142,7 +144,7 @@ export default function EditCustomer() {
                             disabled={saving}
                             className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
                         >
-                            {saving ? 'جاري الحفظ...' : 'حفظ التعديلات'}
+                            {saving ? t('common.saving') : t('customers.edit.submit')}
                         </button>
                     </div>
                 </form>
