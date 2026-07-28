@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import api from '../api/axios'
+import { useTranslation } from '../i18n/useTranslation'
+import LanguageSwitcher from '../components/LanguageSwitcher'
 
 export default function Register() {
     const [form, setForm] = useState({
@@ -13,6 +15,7 @@ export default function Register() {
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
     const navigate = useNavigate()
+    const { t } = useTranslation()
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -24,7 +27,7 @@ export default function Register() {
             localStorage.setItem('user', JSON.stringify(response.data.user))
             navigate('/')
         } catch (err) {
-            setError(err.response?.data?.message || 'حصلت مشكلة في إنشاء الحساب')
+            setError(err.response?.data?.message || t('auth.register.createFailed'))
         } finally {
             setLoading(false)
         }
@@ -42,12 +45,17 @@ export default function Register() {
 
             <div className="absolute inset-0 vignette pointer-events-none" />
 
+            {/* ─── Language switcher — fixed corner, visible before sign-up ─── */}
+            <div className="fixed top-4 end-4 z-20">
+                <LanguageSwitcher />
+            </div>
+
             <div className="relative z-10 w-full max-w-md">
                 <div className="text-center mb-8">
                     <h1 className="text-4xl font-bold text-white tracking-tight">
                         Multi<span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Dukkan</span>
                     </h1>
-                    <p className="text-slate-400 mt-2 text-sm">أنشئ حساب نشاطك</p>
+                    <p className="text-slate-400 mt-2 text-sm">{t('auth.register.tagline')}</p>
                 </div>
 
                 <div className="glass-card rounded-2xl p-8">
@@ -60,33 +68,33 @@ export default function Register() {
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                                اسم النشاط
+                                {t('auth.register.businessName')}
                             </label>
                             <input
                                 value={form.business_name}
                                 onChange={(e) => setForm({ ...form, business_name: e.target.value })}
                                 required
-                                placeholder="محل أحمد"
+                                placeholder={t('auth.register.businessNamePlaceholder')}
                                 className="w-full px-4 py-2.5 bg-white/[0.04] border border-slate-700/60 text-white rounded-lg focus:outline-none focus:border-blue-500/60 focus:ring-1 focus:ring-blue-500/40 placeholder-slate-500 transition-all duration-200"
                             />
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                                اسمك
+                                {t('auth.register.yourName')}
                             </label>
                             <input
                                 value={form.name}
                                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                                 required
-                                placeholder="أحمد"
+                                placeholder={t('auth.register.yourNamePlaceholder')}
                                 className="w-full px-4 py-2.5 bg-white/[0.04] border border-slate-700/60 text-white rounded-lg focus:outline-none focus:border-blue-500/60 focus:ring-1 focus:ring-blue-500/40 placeholder-slate-500 transition-all duration-200"
                             />
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                                البريد الإلكتروني
+                                {t('auth.email')}
                             </label>
                             <input
                                 type="email"
@@ -100,7 +108,7 @@ export default function Register() {
 
                         <div>
                             <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                                كلمة المرور
+                                {t('auth.password')}
                             </label>
                             <input
                                 type="password"
@@ -114,7 +122,7 @@ export default function Register() {
 
                         <div>
                             <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                                تأكيد كلمة المرور
+                                {t('auth.register.confirmPassword')}
                             </label>
                             <input
                                 type="password"
@@ -131,20 +139,20 @@ export default function Register() {
                             disabled={loading}
                             className="w-full py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 disabled:opacity-50 text-white font-medium rounded-lg transition-all duration-200 shadow-lg shadow-blue-500/20 mt-2"
                         >
-                            {loading ? 'جاري إنشاء الحساب...' : 'إنشاء حساب'}
+                            {loading ? t('auth.register.creating') : t('auth.register.submit')}
                         </button>
                     </form>
 
                     <p className="text-center text-slate-500 text-sm mt-6">
-                        عندك حساب بالفعل؟{' '}
+                        {t('auth.register.haveAccount')}{' '}
                         <Link to="/login" className="text-blue-400 hover:text-blue-300 transition-colors">
-                            تسجيل الدخول
+                            {t('auth.logIn')}
                         </Link>
                     </p>
                 </div>
 
                 <p className="text-center text-slate-500 text-xs mt-6">
-                    &copy; {new Date().getFullYear()} MultiDukkan. All rights reserved.
+                    {t('auth.copyright', { year: new Date().getFullYear() })}
                 </p>
             </div>
         </div>

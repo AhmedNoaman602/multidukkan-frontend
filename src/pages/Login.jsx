@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import api from '../api/axios'
+import { useTranslation } from '../i18n/useTranslation'
+import LanguageSwitcher from '../components/LanguageSwitcher'
 
 export default function Login() {
     const [email, setEmail] = useState('')
@@ -8,6 +10,7 @@ export default function Login() {
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
     const navigate = useNavigate()
+    const { t } = useTranslation()
 
     const handleLogin = async (e) => {
         e.preventDefault()
@@ -19,7 +22,7 @@ export default function Login() {
             localStorage.setItem('user', JSON.stringify(response.data.user))
             navigate('/')
         } catch (err) {
-            setError('البريد الإلكتروني أو كلمة المرور غلط')
+            setError(t('auth.login.invalidCredentials'))
         } finally {
             setLoading(false)
         }
@@ -63,6 +66,11 @@ export default function Login() {
             {/* ─── Noise texture ─── */}
             <div className="absolute inset-0 noise-overlay pointer-events-none" />
 
+            {/* ─── Language switcher — fixed corner, visible before sign-in ─── */}
+            <div className="fixed top-4 end-4 z-20">
+                <LanguageSwitcher />
+            </div>
+
             {/* ─── Login content ─── */}
             <div className="relative z-10 w-full max-w-md">
                 <div className="text-center mb-8">
@@ -70,7 +78,7 @@ export default function Login() {
                         Multi<span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Dukkan</span>
                     </h1>
                     <h3 className="text-slate-400 mt-2 text-sm">
-                        إدارة. <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">متابعة</span>. نمو.
+                        {t('auth.tagline.prefix')} <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">{t('auth.tagline.highlight')}</span>{t('auth.tagline.suffix')}
                     </h3>
                 </div>
 
@@ -84,7 +92,7 @@ export default function Login() {
                     <form onSubmit={handleLogin} autoComplete="off" className="space-y-6">
                         <div>
                             <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                                البريد الإلكتروني
+                                {t('auth.email')}
                             </label>
                             <input
                                 id="login-email"
@@ -99,7 +107,7 @@ export default function Login() {
 
                         <div>
                             <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                                كلمة المرور
+                                {t('auth.password')}
                             </label>
                             <input
                                 id="login-password"
@@ -124,21 +132,21 @@ export default function Login() {
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                                     </svg>
-                                    جاري تسجيل الدخول...
+                                    {t('auth.login.loggingIn')}
                                 </span>
-                            ) : 'تسجيل الدخول'}
+                            ) : t('auth.logIn')}
                         </button>
                         <p className="text-center text-slate-500 text-sm mt-6">
-                            معندكش حساب؟ {' '}
+                            {t('auth.login.noAccount')} {' '}
                             <Link to="/register" className="text-blue-400 hover:text-blue-300 transition-colors">
-                                أنشئ واحد
+                                {t('auth.login.createOne')}
                             </Link>
                         </p>
                     </form>
                 </div>
 
                 <p className="text-center text-slate-500 text-xs mt-6">
-                    &copy; {new Date().getFullYear()} MultiDukkan. All rights reserved.
+                    {t('auth.copyright', { year: new Date().getFullYear() })}
                 </p>
             </div>
         </div>

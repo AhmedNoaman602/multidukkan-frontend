@@ -71,7 +71,7 @@ function UserFooter({ user, onLogout }) {
                     </p>
                 </div>
             </div>
-            <LanguageSwitcher />
+            <LanguageSwitcher className="mb-2" />
             <button
                 onClick={onLogout}
                 className="w-full px-3 py-1.5 text-sm bg-gray-700 hover:bg-red-600 rounded-md transition-colors text-white"

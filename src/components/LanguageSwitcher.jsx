@@ -8,11 +8,11 @@ const options = [
     { lang: 'ar', label: 'العربية', ariaKey: 'navigation.switchToArabic' },
 ]
 
-export default function LanguageSwitcher() {
+export default function LanguageSwitcher({ className = '' }) {
     const { lang, setLang, t } = useTranslation()
 
     return (
-        <div className="flex gap-1 p-0.5 bg-gray-800 rounded-md mb-2">
+        <div className={`flex gap-1 p-0.5 bg-gray-800 rounded-md ${className}`}>
             {options.map(option => (
                 <button
                     key={option.lang}
