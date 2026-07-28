@@ -37,7 +37,6 @@ export default {
 
     stats: {
         revenue: 'Revenue collected',
-        payments: 'Payments: {count}',
         noSalesYet: 'No sales yet',
         newOrders: 'New orders',
         sales: 'Sales: {amount}',
@@ -62,7 +61,6 @@ export default {
         addCustomer: 'Add customer',
         addProduct: 'Add product',
         viewReports: 'View reports',
-        quickSale: 'Quick sale',
     },
 
     ai: {
@@ -91,10 +89,6 @@ export default {
         subtitle: 'Orders: {count} · today and newer',
         empty: 'No orders yet',
         createFirst: 'Create your first order',
-        columns: {
-            invoice: 'Invoice',
-            items: 'Items',
-        },
     },
 
     panel: {

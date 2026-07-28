@@ -32,6 +32,17 @@ export default {
         unpaid: 'Unpaid',
     },
 
+    // Customer pricing tier. Used both as the customer's selected-tier badge
+    // and as the label on the matching price input in the product form.
+    priceTier: {
+        default: 'Default',
+        a: 'Price A',
+        b: 'Price B',
+        c: 'Price C',
+        d: 'Price D',
+        e: 'Price E',
+    },
+
     // Audit-log `type` is a union across three sources (ledger / inventory /
     // audit), so these keys mirror typeStyles in lib/auditLog.js exactly.
     auditType: {

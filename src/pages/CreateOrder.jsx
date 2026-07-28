@@ -1,11 +1,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import BackButton from '../components/BackButton'
 import ProductSearchInput from '../components/ProductSearchInput'
 import CustomerSearchInput from '../components/CustomerSearchInput'
 import { useToast } from '../hooks/useToast'
+import { useTranslation } from '../i18n/useTranslation'
+import { formatNumber } from '../lib/format'
 const STORAGE_KEY = 'createOrderDraft'
 
 export default function CreateOrder() {
@@ -21,6 +24,10 @@ export default function CreateOrder() {
     const user = JSON.parse(localStorage.getItem('user') || '{}')
     const productSearchRef = useRef(null)
     const {showToast} = useToast()
+    const { t, dir } = useTranslation()
+    // The empty-state hint points toward the product-search panel, which
+    // sits at the flex-end side (opposite the reading-start edge).
+    const HintIcon = dir === 'rtl' ? ChevronLeft : ChevronRight
 
     // ---- Form state (restored from draft) ----
     const draft = (() => {
@@ -75,7 +82,7 @@ export default function CreateOrder() {
                 setInventory(inventoryRes.data.data)
                 setStores(storesRes.data.data)
             } catch {
-                showToast('حصلت مشكلة في تحميل البيانات', 'error')
+                showToast(t('orders.create.loadFailed'), 'error')
             } finally {
                 setLoading(false)
             }
@@ -209,9 +216,9 @@ export default function CreateOrder() {
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        if (items.length === 0) { showToast('ضيف صنف واحد على الأقل.', 'error'); return }
-        if (!storeId) { showToast('من فضلك اختر المتجر.', 'error'); return }
-        if (!customerId) { showToast('من فضلك اختر العميل.', 'error'); return }
+        if (items.length === 0) { showToast(t('orders.create.itemRequired'), 'error'); return }
+        if (!storeId) { showToast(t('orders.create.storeRequired'), 'error'); return }
+        if (!customerId) { showToast(t('orders.create.customerRequired'), 'error'); return }
         setSaving(true)
         try {
             await api.post('/orders', {
@@ -227,10 +234,10 @@ export default function CreateOrder() {
                 }))
             })
             sessionStorage.removeItem(STORAGE_KEY)
-            showToast('تم إنشاء الطلب بنجاح.', 'success')
+            showToast(t('orders.create.created'), 'success')
             navigate('/orders')
         } catch (err) {
-            showToast(err.response?.data?.message || 'حصلت مشكلة في إنشاء الطلب', 'error')
+            showToast(err.response?.data?.message || t('orders.create.createFailed'), 'error')
         } finally {
             setSaving(false)
         }
@@ -241,8 +248,8 @@ export default function CreateOrder() {
     return (
         <div>
             <div className="flex items-center gap-4 mb-5">
-                <BackButton label="رجوع للطلبات" to="/orders" />
-                <h2 className="text-2xl font-bold text-white">إنشاء طلب جديد</h2>
+                <BackButton label={t('orders.create.backToOrders')} to="/orders" />
+                <h2 className="text-2xl font-bold text-white">{t('orders.create.title')}</h2>
             </div>
 
             <form onSubmit={handleSubmit}>
@@ -250,20 +257,20 @@ export default function CreateOrder() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                     {!user.store_id && (
                         <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-                            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wider">المتجر</label>
+                            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wider">{t('common.store')}</label>
                             <select
                                 value={storeId}
                                 onChange={e => handleStoreChange(e.target.value)}
                                 required
                                 className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                             >
-                                <option value="">اختر المتجر</option>
+                                <option value="">{t('orders.create.chooseStore')}</option>
                                 {stores.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                             </select>
                         </div>
                     )}
                     <div className={`bg-gray-900 border border-gray-800 rounded-xl p-4 ${user.store_id ? 'col-span-2' : ''}`}>
-                        <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wider">العميل</label>
+                        <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wider">{t('common.customer')}</label>
                         <CustomerSearchInput
                             customers={customers}
                             value={customerId}
@@ -272,7 +279,7 @@ export default function CreateOrder() {
                     </div>
                     <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
     <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wider">
-        تاريخ الطلب
+        {t('orders.create.orderDate')}
     </label>
     <input
         type="date"
@@ -291,17 +298,17 @@ export default function CreateOrder() {
                     <div className="flex-1 bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto min-w-0">
                         <div className="px-4 py-2.5 border-b border-gray-800 flex items-center justify-between">
                             <h3 className="text-white text-sm font-semibold">
-                                الأصناف
-                                {items.length > 0 && <span className="ms-1.5 text-gray-500 font-normal">({items.length})</span>}
+                                {items.length > 0 ? t('orders.create.itemsCount', { count: items.length }) : t('orders.create.items')}
                             </h3>
                             {items.length > 0 && (
-                                <span className="text-xs text-gray-500">Enter = الحقل التالي</span>
+                                <span className="text-xs text-gray-500">{t('orders.create.nextField')}</span>
                             )}
                         </div>
 
                         {items.length === 0 ? (
-                            <div className="text-center py-10 text-gray-500 text-sm">
-                                ابحث أو اتصفح المنتجات عشان تضيف أصناف ←
+                            <div className="flex items-center justify-center gap-1 py-10 text-gray-500 text-sm">
+                                {t('orders.create.addItemsHint')}
+                                <HintIcon size={14} />
                             </div>
                         ) : (
                             <>
@@ -309,8 +316,8 @@ export default function CreateOrder() {
                             <table className="w-full hidden md:table">
                                 <thead className="bg-gray-800">
                                     <tr>
-                                        {['المنتج', 'الكمية', 'السعر', 'المخزن', 'الوحدة', 'الإجمالي', ''].map(h => (
-                                            <th key={h} className="px-2.5 py-1.5 text-start text-[11px] font-medium text-gray-400 uppercase tracking-wider">{h}</th>
+                                        {['common.product', 'common.quantity', 'common.amount', 'common.warehouse', 'orders.create.unit', 'common.total', null].map(key => (
+                                            <th key={key ?? 'actions'} className="px-2.5 py-1.5 text-start text-[11px] font-medium text-gray-400 uppercase tracking-wider">{key ? t(key) : ''}</th>
                                         ))}
                                     </tr>
                                 </thead>
@@ -357,7 +364,7 @@ export default function CreateOrder() {
                                                         required
                                                         className="w-full px-1.5 py-1 bg-gray-800 border border-gray-700 text-white rounded text-xs focus:outline-none focus:border-blue-500"
                                                     >
-                                                        <option value="">اختر</option>
+                                                        <option value="">{t('orders.create.chooseWarehouse')}</option>
                                                         {warehouses
                                                             .filter(w => !storeId || w.store_id === parseInt(storeId))
                                                             .map(w => {
@@ -390,7 +397,7 @@ export default function CreateOrder() {
                                                     )}
                                                 </td>
                                                 <td className="px-2.5 py-1.5 text-white text-sm font-medium whitespace-nowrap">
-                                                    {lineTotal.toFixed(2)} <span className="text-gray-500 text-[10px]">ج.م</span>
+                                                    {formatNumber(lineTotal, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-gray-500 text-[10px]">{t('common.currency')}</span>
                                                 </td>
                                                 <td className="px-2.5 py-1.5">
                                                     <button
@@ -449,7 +456,7 @@ export default function CreateOrder() {
                                                     required
                                                     className="flex-1 min-w-0 px-1.5 py-1.5 bg-gray-800 border border-gray-700 text-white rounded text-xs focus:outline-none focus:border-blue-500"
                                                 >
-                                                    <option value="">اختر المخزن</option>
+                                                    <option value="">{t('orders.create.chooseWarehouse')}</option>
                                                     {warehouses
                                                         .filter(w => !storeId || w.store_id === parseInt(storeId))
                                                         .map(w => {
@@ -481,7 +488,7 @@ export default function CreateOrder() {
                                             </div>
 
                                             <p className="text-end text-white text-sm font-medium">
-                                                {lineTotal.toFixed(2)} <span className="text-gray-500 text-[10px]">ج.م</span>
+                                                {formatNumber(lineTotal, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-gray-500 text-[10px]">{t('common.currency')}</span>
                                             </p>
                                         </div>
                                     )
@@ -496,44 +503,43 @@ export default function CreateOrder() {
 
                         {/* Product search */}
                         <div id="add-product-panel" className="bg-gray-900 border border-gray-800 rounded-xl p-4 scroll-mt-20">
-                            <p className="text-[11px] text-gray-400 mb-2 uppercase tracking-wider font-medium">إضافة منتج</p>
+                            <p className="text-[11px] text-gray-400 mb-2 uppercase tracking-wider font-medium">{t('orders.create.addProduct')}</p>
                             <ProductSearchInput
                                 products={products}
                                 onSelect={handleProductSelect}
-                                placeholder="الاسم أو رمز المنتج..."
                                 inputRef={productSearchRef}
                             />
                         </div>
 
                         {/* Summary */}
                         <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-2.5">
-                            <p className="text-[11px] text-gray-400 uppercase tracking-wider font-medium">الملخص</p>
+                            <p className="text-[11px] text-gray-400 uppercase tracking-wider font-medium">{t('orders.create.summary')}</p>
 
                             <div className="flex justify-between text-sm text-gray-400">
-                                <span>الأصناف</span>
+                                <span>{t('common.items')}</span>
                                 <span className="text-white">{items.length}</span>
                             </div>
 
                             <div className="flex justify-between text-sm text-gray-400">
-                                <span>الإجمالي الفرعي</span>
-                                <span className="text-white">{subtotal.toFixed(2)} ج.م</span>
+                                <span>{t('orders.subtotal')}</span>
+                                <span className="text-white">{formatNumber(subtotal, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {t('common.currency')}</span>
                             </div>
 
                             {/* Discount */}
                             <div className="space-y-1.5">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-sm text-gray-400">الخصم</span>
+                                    <span className="text-sm text-gray-400">{t('orders.discount')}</span>
                                     <div className="flex rounded-lg overflow-hidden border border-gray-700">
-                                        {['amount', 'percent'].map(t => (
+                                        {['amount', 'percent'].map(dType => (
                                             <button
-                                                key={t}
+                                                key={dType}
                                                 type="button"
-                                                onClick={() => setDiscountType(t)}
+                                                onClick={() => setDiscountType(dType)}
                                                 className={`px-2 py-0.5 text-xs font-medium transition-colors ${
-                                                    discountType === t ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                                                    discountType === dType ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
                                                 }`}
                                             >
-                                                {t === 'amount' ? 'ج.م' : '%'}
+                                                {dType === 'amount' ? t('common.currency') : '%'}
                                             </button>
                                         ))}
                                     </div>
@@ -549,17 +555,21 @@ export default function CreateOrder() {
                                         placeholder="0"
                                     />
                                     <span className="absolute end-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs pointer-events-none">
-                                        {discountType === 'percent' ? '%' : 'ج.م'}
+                                        {discountType === 'percent' ? '%' : t('common.currency')}
                                     </span>
                                 </div>
                                 {discountType === 'percent' && discountAmount > 0 && (
-                                    <p className="text-green-400 text-xs">= خصم {discountAmount} ج.م</p>
+                                    <p className="text-green-400 text-xs">
+                                        {t('orders.create.discountAmount', {
+                                            amount: `${formatNumber(discountAmount, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${t('common.currency')}`,
+                                        })}
+                                    </p>
                                 )}
                             </div>
 
                             <div className="flex justify-between text-lg font-bold text-white border-t border-gray-800 pt-3">
-                                <span>الإجمالي</span>
-                                <span>{grandTotal.toFixed(2)} ج.م</span>
+                                <span>{t('common.total')}</span>
+                                <span>{formatNumber(grandTotal, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {t('common.currency')}</span>
                             </div>
 
                             <button
@@ -567,7 +577,7 @@ export default function CreateOrder() {
                                 disabled={saving || items.length === 0 || !customerId}
                                 className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-medium rounded-lg transition-colors text-sm"
                             >
-                                {saving ? 'جاري الإنشاء...' : 'إنشاء الطلب'}
+                                {saving ? t('orders.create.creating') : t('orders.create.submit')}
                             </button>
                         </div>
                     </div>

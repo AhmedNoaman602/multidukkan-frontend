@@ -210,7 +210,7 @@ export default function Dashboard() {
                         value={stats.todayRevenue > 0 ? formatNumber(stats.todayRevenue) : '—'}
                         unit={stats.todayRevenue > 0 ? t('common.currency') : null}
                         sub={stats.todayRevenue > 0
-                            ? t('dashboard.stats.payments', { count: stats.todayPaymentsCount })
+                            ? t('common.paymentsCount', { count: stats.todayPaymentsCount })
                             : t('dashboard.stats.noSalesYet')}
                         icon={Banknote}
                         chip="bg-green-500/10 border-green-500/30 text-green-400"
@@ -321,7 +321,7 @@ export default function Dashboard() {
                         className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 text-green-400 text-sm font-medium rounded-lg transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-green-500/40"
                     >
                         <Zap size={15} strokeWidth={2} />
-                        {t('dashboard.actions.quickSale')}
+                        {t('common.quickSale')}
                     </button>
                 </div>
             </div>
@@ -526,9 +526,9 @@ export default function Dashboard() {
                                 <thead>
                                     <tr className="border-b border-gray-800">
                                         {[
-                                            { key: 'dashboard.recentOrders.columns.invoice', align: 'text-start' },
+                                            { key: 'common.invoice', align: 'text-start' },
                                             { key: 'common.customer', align: 'text-start' },
-                                            { key: 'dashboard.recentOrders.columns.items', align: 'text-end' },
+                                            { key: 'common.items', align: 'text-end' },
                                             { key: 'common.total', align: 'text-end' },
                                             { key: 'common.remaining', align: 'text-end' },
                                             { key: 'common.status', align: 'text-start' },

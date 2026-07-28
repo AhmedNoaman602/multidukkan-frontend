@@ -6,6 +6,8 @@ import BackButton from '../components/BackButton'
 import { useToast } from '../hooks/useToast'
 import AddItemModal from '../components/AddItemModal'
 import DeleteModal from '../components/DeleteModal'
+import { useTranslation } from '../i18n/useTranslation'
+import { formatCurrency, formatDate } from '../lib/format'
 
 export default function OrderDetail() {
     const { id } = useParams()
@@ -22,6 +24,7 @@ export default function OrderDetail() {
     const [saving, setSaving] = useState(false)
     const [discountType, setDiscountType] = useState('amount')
     const { showToast } = useToast()
+    const { t, lang } = useTranslation()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
 
     const canEdit = user.role === 'tenant_admin' || user.role === 'store_manager'
@@ -36,7 +39,7 @@ export default function OrderDetail() {
                     discount:   res.data.discount ?? 0,
                 })
             })
-            .catch(() => showToast('حصلت مشكلة في تحميل الطلب', 'error'))
+            .catch(() => showToast(t('orders.detail.loadFailed'), 'error'))
             .finally(() => setLoading(false))
     }
 
@@ -47,9 +50,9 @@ export default function OrderDetail() {
         try {
             await api.delete(`/orders/${id}`)
             navigate('/orders')
-            showToast('تم إلغاء الطلب بنجاح.', 'success')
+            showToast(t('orders.detail.cancelled'), 'success')
         } catch (err) {
-            showToast(err.response?.data?.message || 'حصلت مشكلة في إلغاء الطلب', 'error')
+            showToast(err.response?.data?.message || t('orders.detail.cancelFailed'), 'error')
             setShowConfirm(false)
         } finally {
             setCancelling(false)
@@ -70,9 +73,9 @@ export default function OrderDetail() {
             })
             setOrder(res.data)
             setEditMode(false)
-            showToast('تم تعديل الطلب بنجاح.', 'success')
+            showToast(t('orders.detail.updated'), 'success')
         } catch (err) {
-            showToast(err.response?.data?.message || 'حصلت مشكلة في تعديل الطلب', 'error')
+            showToast(err.response?.data?.message || t('orders.detail.updateFailed'), 'error')
         } finally {
             setSaving(false)
         }
@@ -85,11 +88,11 @@ export default function OrderDetail() {
                 quantity:itemForm.quantity,
                 unit_price:itemForm.unit_price
             })
-            showToast('تم تعديل الصنف بنجاح.', 'success')
+            showToast(t('orders.detail.itemUpdated'), 'success')
             setEditingItem(null)
             fetchOrder()
         } catch (err) {
-    showToast(err.response?.data?.message || 'حصلت مشكلة في تعديل الصنف', 'error')
+    showToast(err.response?.data?.message || t('orders.detail.itemUpdateFailed'), 'error')
 } finally {
     setSaving(false)
 }
@@ -123,13 +126,13 @@ const displayTotal = editMode
         <div className="max-w-4xl">
             {/* Back + actions */}
             <div className="flex items-center justify-between mb-6">
-                <BackButton label="رجوع" />
+                <BackButton label={t('common.back')} />
                 <div className="flex gap-2">
                     <button
                         onClick={() => window.open(`/orders/${id}/invoice`, '_blank')}
                         className="px-4 py-2 bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-medium rounded-lg hover:bg-green-500/20 transition-colors"
                     >
-                        🖨️ فاتورة
+                        {t('orders.detail.invoiceButton')}
                     </button>
 
                     {canEdit && !editMode && (
@@ -137,7 +140,7 @@ const displayTotal = editMode
                             onClick={() => setEditMode(true)}
                             className="px-4 py-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-medium rounded-lg hover:bg-blue-500/20 transition-colors"
                         >
-                            ✏️ تعديل
+                            ✏️ {t('common.edit')}
                         </button>
                     )}
 
@@ -147,14 +150,14 @@ const displayTotal = editMode
                                 onClick={handleCancelEdit}
                                 className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
                             >
-                                إلغاء
+                                {t('common.cancel')}
                             </button>
                             <button
                                 onClick={handleSave}
                                 disabled={saving}
                                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
                             >
-                                {saving ? 'جاري الحفظ...' : 'حفظ التعديلات'}
+                                {saving ? t('common.saving') : t('orders.detail.saveChanges')}
                             </button>
                         </>
                     )}
@@ -164,7 +167,7 @@ const displayTotal = editMode
                             onClick={() => setShowConfirm(true)}
                             className="px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium rounded-lg hover:bg-red-500/20 transition-colors"
                         >
-                            إلغاء الطلب
+                            {t('orders.detail.cancelOrder')}
                         </button>
                     )}
                 </div>
@@ -174,7 +177,7 @@ const displayTotal = editMode
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
                 <div className="flex items-start justify-between">
                     <div>
-                        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">رقم الفاتورة</p>
+                        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">{t('common.invoice')}</p>
                         <p className="text-white text-2xl font-bold font-mono">{order.invoice_number}</p>
                     </div>
                     <span className={`px-3 py-1 rounded-lg text-sm font-medium ${
@@ -182,24 +185,24 @@ const displayTotal = editMode
                             ? 'bg-green-500/20 text-green-400'
                             : 'bg-red-500/20 text-red-400'
                     }`}>
-                        {order.status === 'paid' ? 'مدفوع' : 'غير مدفوع'}
+                        {t(`enums.orderStatus.${order.status}`)}
                     </span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
                     <div>
-                        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">العميل</p>
+                        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">{t('common.customer')}</p>
                         <p className="text-white text-sm font-medium">{order.customer_name}</p>
                         {order.customer_phone && (
                             <p className="text-gray-400 text-sm">{order.customer_phone}</p>
                         )}
                     </div>
                     <div>
-                        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">المتجر</p>
+                        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">{t('common.store')}</p>
                         <p className="text-white text-sm">{order.store_name || '—'}</p>
                     </div>
                     <div>
-                        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">التاريخ</p>
+                        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">{t('common.date')}</p>
                         {editMode ? (
                             <input
                                 type="date"
@@ -209,7 +212,7 @@ const displayTotal = editMode
                             />
                         ) : (
                             <p className="text-white text-sm">
-                                {new Date(order.order_date).toLocaleDateString('en-GB')}
+                                {formatDate(order.order_date, lang)}
                             </p>
                         )}
                     </div>
@@ -218,14 +221,14 @@ const displayTotal = editMode
 
             {/* Items */}
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-                <h3 className="text-white font-semibold mb-4">أصناف الطلب</h3>
+                <h3 className="text-white font-semibold mb-4">{t('orders.detail.orderItems')}</h3>
                 <div className="overflow-x-auto">
                 <table className="w-full">
                     <thead>
                         <tr className="border-b border-gray-800">
-                            {['المنتج', 'الكمية', 'سعر الوحدة', 'المخازن', 'الإجمالي', 'إجراءات'].map(h => (
-                                <th key={h} className="text-start text-xs text-gray-400 uppercase tracking-wider pb-3">
-                                    {h}
+                            {['common.product', 'common.quantity', 'orders.unitPrice', 'common.warehouse', 'common.total', 'common.actions'].map(key => (
+                                <th key={key} className="text-start text-xs text-gray-400 uppercase tracking-wider pb-3">
+                                    {t(key)}
                                 </th>
                             ))}
                         </tr>
@@ -255,25 +258,25 @@ const displayTotal = editMode
                 ? <input type="number" min="0" step="0.01" value={itemForm.unit_price}
                     onChange={e => setItemForm({...itemForm, unit_price: e.target.value})}
                     className="w-24 px-2 py-1 bg-gray-800 border border-gray-600 text-white rounded-lg text-sm"/>
-                : `${item.unit_price} ج.م`
+                : formatCurrency(item.unit_price, lang)
             }
         </td>
         <td className="px-4 py-3 text-gray-400 text-sm">
     {item.warehouse_name ?? '—'}
 </td>
 
-        <td className="py-3 text-white text-sm font-medium">{item.total} ج.م</td>
+        <td className="py-3 text-white text-sm font-medium">{formatCurrency(item.total, lang)}</td>
 
         <td className="py-3">
             {editingItem === item.id ? (
                 <div className="flex gap-2">
                     <button onClick={() => handleSaveItem(item)}
                         className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-medium rounded-lg hover:bg-blue-500/20 transition-colors">
-                        حفظ
+                        {t('common.save')}
                     </button>
                     <button onClick={() => setEditingItem(null)}
                         className="px-2 py-1 text-gray-400 text-xs">
-                        إلغاء
+                        {t('common.cancel')}
                     </button>
                 </div>
             ) : (
@@ -283,7 +286,7 @@ const displayTotal = editMode
                         setItemForm({ quantity: item.quantity, unit_price: item.unit_price })
                     }}
                         className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-medium rounded-lg hover:bg-blue-500/20 transition-colors">
-                       تعديل
+                       {t('common.edit')}
                     </button>
                 )
             )}
@@ -301,7 +304,7 @@ const displayTotal = editMode
 }}
         className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors"
     >
-        + إضافة صنف
+        {t('orders.detail.addItem')}
     </button>
 )}
 
@@ -309,21 +312,21 @@ const displayTotal = editMode
                 <div className="flex justify-end mt-4">
                     <div className="w-56 space-y-2 border-t border-gray-800 pt-4">
                         <div className="flex justify-between text-sm text-gray-400">
-                            <span>الإجمالي الفرعي</span>
-                            <span>{order.subtotal} ج.م</span>
+                            <span>{t('orders.subtotal')}</span>
+                            <span>{formatCurrency(order.subtotal, lang)}</span>
                         </div>
 {/* Discount row */}
 {editMode ? (
     <div className="flex items-center gap-2">
         <div className="flex rounded-lg overflow-hidden border border-gray-700">
-            {['amount', 'percent'].map(t => (
-                <button key={t} type="button"
-                    onClick={() => setDiscountType(t)}
+            {['amount', 'percent'].map(dType => (
+                <button key={dType} type="button"
+                    onClick={() => setDiscountType(dType)}
                     className={`px-2 py-0.5 text-xs font-medium transition-colors ${
-                        discountType === t ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400'
+                        discountType === dType ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400'
                     }`}
                 >
-                    {t === 'amount' ? 'ج.م' : '%'}
+                    {dType === 'amount' ? t('common.currency') : '%'}
                 </button>
             ))}
         </div>
@@ -339,21 +342,21 @@ const displayTotal = editMode
 ) : (
     order.discount > 0 && (
         <div className="flex justify-between text-sm text-green-400">
-            <span>الخصم</span>
-            <span>- {order.discount} ج.م</span>
+            <span>{t('orders.discount')}</span>
+            <span>- {formatCurrency(order.discount, lang)}</span>
         </div>
     )
 )}
 
 
                         <div className="flex justify-between text-base font-bold text-white border-t border-gray-800 pt-2">
-                            <span>الإجمالي</span>
-                            <span>{displayTotal} ج.م</span>
+                            <span>{t('common.total')}</span>
+                            <span>{formatCurrency(displayTotal, lang)}</span>
                         </div>
                         {order.status === 'unpaid' && order.amount_remaining > 0 && (
                             <div className="flex justify-between text-sm text-red-400">
-                                <span>المبلغ المستحق</span>
-                                <span>{displayAmountDue} ج.م</span>
+                                <span>{t('orders.detail.amountDue')}</span>
+                                <span>{formatCurrency(displayAmountDue, lang)}</span>
                             </div>
                         )}
                     </div>
@@ -362,27 +365,27 @@ const displayTotal = editMode
 {/* Profit */}
 {order.items.some(i => i.cost_price !== null) && (
     <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-        <p className="text-gray-400 text-xs uppercase tracking-wider mb-4">ملخص الربح</p>
+        <p className="text-gray-400 text-xs uppercase tracking-wider mb-4">{t('orders.detail.profitSummary')}</p>
         <div className="flex gap-8">
             <div>
-                <p className="text-gray-500 text-xs mb-1">الإيرادات</p>
-                <p className="text-white font-semibold">{order.total} ج.م</p>
+                <p className="text-gray-500 text-xs mb-1">{t('orders.detail.revenue')}</p>
+                <p className="text-white font-semibold">{formatCurrency(order.total, lang)}</p>
             </div>
             <div>
-                <p className="text-gray-500 text-xs mb-1">التكلفة</p>
+                <p className="text-gray-500 text-xs mb-1">{t('orders.detail.cost')}</p>
                 <p className="text-white font-semibold">
-                    {order.items.reduce((sum, i) => sum + ((i.cost_price ?? 0) * i.quantity), 0).toFixed(2)} ج.م
+                    {formatCurrency(order.items.reduce((sum, i) => sum + ((i.cost_price ?? 0) * i.quantity), 0), lang)}
                 </p>
             </div>
             <div>
-                <p className="text-gray-500 text-xs mb-1">إجمالي الربح</p>
+                <p className="text-gray-500 text-xs mb-1">{t('orders.detail.totalProfit')}</p>
                 {(() => {
                     const cost = order.items.reduce((sum, i) => sum + ((i.cost_price ?? 0) * i.quantity), 0)
                     const profit = order.total - cost
                     const margin = order.total > 0 ? ((profit / order.total) * 100).toFixed(1) : 0
                     return (
                         <p className={`font-semibold ${profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                            {profit.toFixed(2)} ج.م <span className="text-xs text-gray-500">({margin}%)</span>
+                            {formatCurrency(profit, lang)} <span className="text-xs text-gray-500">({margin}%)</span>
                         </p>
                     )
                 })()}
@@ -393,13 +396,13 @@ const displayTotal = editMode
 
             {/* Notes */}
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-                <p className="text-gray-400 text-xs uppercase tracking-wider mb-2">ملاحظات</p>
+                <p className="text-gray-400 text-xs uppercase tracking-wider mb-2">{t('common.notes')}</p>
                 {editMode ? (
                     <textarea
                         value={editForm.notes}
                         onChange={e => setEditForm({ ...editForm, notes: e.target.value })}
                         rows={3}
-                        placeholder="أضف ملاحظات..."
+                        placeholder={t('orders.detail.notesPlaceholder')}
                         className="w-full px-3 py-2 bg-gray-800 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm resize-none"
                     />
                 ) : (
@@ -412,9 +415,9 @@ const displayTotal = editMode
             onClose={() => setShowConfirm(false)}
             onConfirm={handleCancel}
             deleting={cancelling}
-            title="إلغاء الطلب"
-            name={"طلب " + order.invoice_number}
-            warning="ده هيعكس القيد في الحساب ويرجّع المخزون. مش هتقدر ترجع في الخطوة دي."
+            title={t('orders.detail.cancelOrderTitle')}
+            name={t('orders.detail.cancelOrderName', { invoice: order.invoice_number })}
+            warning={t('orders.detail.cancelOrderWarning')}
            />
             
             {showAddItem && (

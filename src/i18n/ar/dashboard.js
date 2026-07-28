@@ -38,7 +38,6 @@ export default {
 
     stats: {
         revenue: 'الإيرادات المحصلة',
-        payments: 'الدفعات: {count}',
         noSalesYet: 'مفيش مبيعات لحد دلوقتي',
         newOrders: 'الطلبات الجديدة',
         sales: 'المبيعات: {amount}',
@@ -63,7 +62,6 @@ export default {
         addCustomer: 'إضافة عميل',
         addProduct: 'إضافة منتج',
         viewReports: 'عرض التقارير',
-        quickSale: 'بيع سريع',
     },
 
     ai: {
@@ -92,10 +90,6 @@ export default {
         subtitle: 'الطلبات: {count} · النهاردة والأحدث',
         empty: 'مفيش طلبات لسه',
         createFirst: 'اعمل أول طلب',
-        columns: {
-            invoice: 'الفاتورة',
-            items: 'الأصناف',
-        },
     },
 
     panel: {
