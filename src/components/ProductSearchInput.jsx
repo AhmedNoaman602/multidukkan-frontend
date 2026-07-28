@@ -1,6 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
+import { useTranslation } from '../i18n/useTranslation'
+import { formatNumber } from '../lib/format'
 
-export default function ProductSearchInput({ products, onSelect, showCostPrice = false, placeholder = 'ابحث بالاسم أو رمز المنتج...', inputRef: externalRef }) {
+export default function ProductSearchInput({ products, onSelect, showCostPrice = false, placeholder, inputRef: externalRef }) {
+    const { t } = useTranslation()
+    const effectivePlaceholder = placeholder ?? t('search.product.placeholder')
     const [query, setQuery] = useState('')
     const [open, setOpen] = useState(false)
     const [highlighted, setHighlighted] = useState(0)
@@ -80,7 +84,7 @@ export default function ProductSearchInput({ products, onSelect, showCostPrice =
                         onChange={e => { setQuery(e.target.value); setOpen(true); setHighlighted(0) }}
                         onKeyDown={handleKeyDown}
                         onFocus={() => query && setOpen(true)}
-                        placeholder={placeholder}
+                        placeholder={effectivePlaceholder}
                         autoComplete="off"
                         className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                     />
@@ -98,16 +102,12 @@ export default function ProductSearchInput({ products, onSelect, showCostPrice =
                                     <div className="flex justify-between items-center">
                                         <span className="font-medium">{product.name}</span>
                                         <span className={`text-xs ${i === highlighted ? 'text-blue-200' : 'text-gray-400'}`}>
-                                           
-{showCostPrice 
-    ? (product.cost_price ?? product.price) 
-    : product.price
-} ج.م
+                                            {formatNumber(showCostPrice ? (product.cost_price ?? product.price) : product.price)} {t('common.currency')}
                                         </span>
                                     </div>
                                     {product.sku && (
                                         <div className={`text-xs mt-0.5 ${i === highlighted ? 'text-blue-200' : 'text-gray-500'}`}>
-                                            رمز المنتج: {product.sku}
+                                            {t('search.product.skuLabel', { sku: product.sku })}
                                         </div>
                                     )}
                                 </div>
@@ -117,7 +117,7 @@ export default function ProductSearchInput({ products, onSelect, showCostPrice =
 
                     {open && query.length > 0 && filtered.length === 0 && (
                         <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl px-3 py-3 text-gray-400 text-sm">
-                            مفيش منتجات بـ "{query}"
+                            {t('search.product.noResults', { query })}
                         </div>
                     )}
                 </div>
@@ -127,7 +127,7 @@ export default function ProductSearchInput({ products, onSelect, showCostPrice =
                     onClick={() => setBrowseOpen(true)}
                     className="px-3 py-2 bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-300 text-sm rounded-lg transition-colors whitespace-nowrap"
                 >
-                    تصفح
+                    {t('search.browse')}
                 </button>
             </div>
 
@@ -142,7 +142,7 @@ export default function ProductSearchInput({ products, onSelect, showCostPrice =
                         onClick={e => e.stopPropagation()}
                     >
                         <div className="flex items-center justify-between p-4 border-b border-gray-800">
-                            <h3 className="text-white font-semibold">تصفح المنتجات</h3>
+                            <h3 className="text-white font-semibold">{t('search.product.browseTitle')}</h3>
                             <button
                                 type="button"
                                 onClick={() => { setBrowseOpen(false); setBrowseQuery('') }}
@@ -157,12 +157,12 @@ export default function ProductSearchInput({ products, onSelect, showCostPrice =
                                 type="text"
                                 value={browseQuery}
                                 onChange={e => setBrowseQuery(e.target.value)}
-                                placeholder="ابحث بالاسم أو رمز المنتج..."
+                                placeholder={t('search.product.placeholder')}
                                 autoFocus
                                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                             />
                             <p className="text-gray-500 text-xs mt-2">
-                                المنتجات: {browseFiltered.length}
+                                {t('search.product.countLabel', { count: browseFiltered.length })}
                             </p>
                         </div>
 
@@ -176,18 +176,18 @@ export default function ProductSearchInput({ products, onSelect, showCostPrice =
                                     <div>
                                         <p className="text-white text-sm font-medium">{product.name}</p>
                                         {product.sku && (
-                                            <p className="text-gray-500 text-xs mt-0.5">رمز المنتج: {product.sku}</p>
+                                            <p className="text-gray-500 text-xs mt-0.5">{t('search.product.skuLabel', { sku: product.sku })}</p>
                                         )}
                                     </div>
                                     <div className="text-end">
 <p className="text-white text-sm font-medium">
-    {showCostPrice ? (product.cost_price ?? product.price) : product.price} ج.م
+    {formatNumber(showCostPrice ? (product.cost_price ?? product.price) : product.price)} {t('common.currency')}
 </p>                                        <p className="text-gray-500 text-xs">{product.unit}</p>
                                     </div>
                                 </div>
                             ))}
                             {browseFiltered.length === 0 && (
-                                <div className="text-center py-12 text-gray-500 text-sm">مفيش منتجات.</div>
+                                <div className="text-center py-12 text-gray-500 text-sm">{t('search.product.noResultsBrowse')}</div>
                             )}
                         </div>
                     </div>

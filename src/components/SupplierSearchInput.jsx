@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
+import { useTranslation } from '../i18n/useTranslation'
 
-export default function SupplierSearchInput({ suppliers, value, onSelect, placeholder = 'ابحث بالاسم أو التليفون أو الكود...' }) {
+export default function SupplierSearchInput({ suppliers, value, onSelect, placeholder }) {
+    const { t } = useTranslation()
+    const effectivePlaceholder = placeholder ?? t('search.supplier.placeholder')
     const [query, setQuery] = useState('')
     const [open, setOpen] = useState(false)
     const [highlighted, setHighlighted] = useState(0)
@@ -107,7 +110,7 @@ export default function SupplierSearchInput({ suppliers, value, onSelect, placeh
                         onChange={e => { setQuery(e.target.value); setOpen(true); setHighlighted(0) }}
                         onKeyDown={handleKeyDown}
                         onFocus={() => query && setOpen(true)}
-                        placeholder={placeholder}
+                        placeholder={effectivePlaceholder}
                         autoComplete="off"
                         className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                     />
@@ -136,7 +139,7 @@ export default function SupplierSearchInput({ suppliers, value, onSelect, placeh
 
                     {open && query.length > 0 && filtered.length === 0 && (
                         <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl px-3 py-3 text-gray-400 text-sm">
-                            مفيش موردين بـ "{query}"
+                            {t('search.supplier.noResults', { query })}
                         </div>
                     )}
                 </div>
@@ -146,7 +149,7 @@ export default function SupplierSearchInput({ suppliers, value, onSelect, placeh
                     onClick={() => setBrowseOpen(true)}
                     className="px-3 py-2 bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-300 text-sm rounded-lg transition-colors whitespace-nowrap"
                 >
-                    تصفح
+                    {t('search.browse')}
                 </button>
             </div>
 
@@ -160,7 +163,7 @@ export default function SupplierSearchInput({ suppliers, value, onSelect, placeh
                         onClick={e => e.stopPropagation()}
                     >
                         <div className="flex items-center justify-between p-4 border-b border-gray-800">
-                            <h3 className="text-white font-semibold">تصفح الموردين</h3>
+                            <h3 className="text-white font-semibold">{t('search.supplier.browseTitle')}</h3>
                             <button
                                 type="button"
                                 onClick={() => { setBrowseOpen(false); setBrowseQuery('') }}
@@ -175,12 +178,12 @@ export default function SupplierSearchInput({ suppliers, value, onSelect, placeh
                                 type="text"
                                 value={browseQuery}
                                 onChange={e => setBrowseQuery(e.target.value)}
-                                placeholder="ابحث بالاسم أو التليفون أو الكود..."
+                                placeholder={t('search.supplier.placeholder')}
                                 autoFocus
                                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                             />
                             <p className="text-gray-500 text-xs mt-2">
-                                {browseFiltered.length} supplier{browseFiltered.length !== 1 ? 's' : ''}
+                                {t('search.supplier.countLabel', { count: browseFiltered.length })}
                             </p>
                         </div>
 
@@ -206,7 +209,7 @@ export default function SupplierSearchInput({ suppliers, value, onSelect, placeh
                                 </div>
                             ))}
                             {browseFiltered.length === 0 && (
-                                <div className="text-center py-12 text-gray-500 text-sm">مفيش موردين.</div>
+                                <div className="text-center py-12 text-gray-500 text-sm">{t('search.supplier.noResultsBrowse')}</div>
                             )}
                         </div>
                     </div>

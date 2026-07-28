@@ -1,22 +1,23 @@
 import Modal from './Modal'
+import { useTranslation } from '../i18n/useTranslation'
 
 export default function DeleteModal({
     open,
     onClose,
     onConfirm,
     deleting = false,
-    title = 'حذف العنصر',
+    title,
     name,
     warning,
 }) {
+    const { t } = useTranslation()
+
     return (
-        <Modal open={open} onClose={onClose} title={title}>
+        <Modal open={open} onClose={onClose} title={title || t('common.deleteItem')}>
             <form onSubmit={(e) => { e.preventDefault(); onConfirm() }}>
                 <div className="space-y-4">
                     <p className="text-gray-300 text-sm">
-                        متأكد إنك عايز تحذف{' '}
-                        <span className="text-white font-semibold">{name}</span>؟
-                        الخطوة دي مش هتقدر ترجع فيها.
+                        {t('common.confirmDelete', { name })}
                     </p>
 
                     {warning && (
@@ -31,14 +32,14 @@ export default function DeleteModal({
                             onClick={onClose}
                             className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
                         >
-                            إلغاء
+                            {t('common.cancel')}
                         </button>
                         <button
                             type="submit"
                             disabled={deleting}
                             className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
                         >
-                            {deleting ? 'جاري الحذف...' : 'أيوة، احذف'}
+                            {deleting ? t('common.deleting') : t('common.yesDelete')}
                         </button>
                     </div>
                 </div>
