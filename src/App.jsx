@@ -93,10 +93,8 @@ function AuthGate({ children }) {
                 const u = res.data
                 localStorage.setItem('user', JSON.stringify(u))
 
-                // Don't redirect if already on an auth/onboarding page — prevents infinite loops
                 const onAuthPage = ['/login', '/register', '/onboarding'].includes(location.pathname)
 
-                // Only tenant_admin without a store needs the wizard
                 if (u.role === 'tenant_admin' && !u.has_store && !onAuthPage) {
                     navigate('/onboarding')
                 }
