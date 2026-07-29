@@ -9,6 +9,8 @@ import search from './search'
 import products from './products'
 import customers from './customers'
 import auth from './auth'
+import inventory from './inventory'
+import suppliers from './suppliers'
 
 // Add a namespace here as each feature is migrated off hardcoded strings.
 export default {
@@ -23,4 +25,6 @@ export default {
     products,
     customers,
     auth,
+    inventory,
+    suppliers,
 }

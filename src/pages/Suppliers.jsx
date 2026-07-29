@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import Modal from '../components/Modal'
@@ -7,6 +8,8 @@ import SearchInput from '../components/SearchInput'
 import StatBoxes from '../components/StatBoxes'
 import {useToast} from '../hooks/useToast'
 import DeleteModal from '../components/DeleteModal'
+import { useTranslation } from '../i18n/useTranslation'
+import { formatCurrency, formatNumber } from '../lib/format'
 
 export default function Suppliers() {
     const [suppliers, setSuppliers] = useState([])
@@ -19,6 +22,7 @@ export default function Suppliers() {
     const [lastPage, setLastPage] = useState(1)
     const [stats, setStats] = useState([])
     const {showToast} = useToast()
+    const { t, lang, dir } = useTranslation()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
 
     const fetchSuppliers = () => {
@@ -28,7 +32,7 @@ export default function Suppliers() {
                 setLastPage(res.data.meta.last_page)
                 setStats(res.data.stats)
             })
-            .catch(() => showToast('حصلت مشكلة في تحميل الموردين', 'error'))
+            .catch(() => showToast(t('suppliers.loadFailed'), 'error'))
             .finally(() => setLoading(false))
     }
 
@@ -41,9 +45,9 @@ export default function Suppliers() {
             await api.delete(`/suppliers/${deleteTarget.id}`)
             setDeleteTarget(null)
             fetchSuppliers()
-            showToast('تم حذف المورد بنجاح.', 'success')
+            showToast(t('suppliers.deleted'), 'success')
         } catch (err) {
-            showToast(err.response?.data?.message || 'حصلت مشكلة في حذف المورد', 'error')
+            showToast(err.response?.data?.message || t('suppliers.deleteFailed'), 'error')
             setDeleteTarget(null)
         } finally {
             setDeleting(false)
@@ -55,24 +59,29 @@ export default function Suppliers() {
         setPage(1)
     }
 
+    // Pagination arrows are physical, so they have to follow the reading
+    // direction rather than being baked into the translated label.
+    const PrevIcon = dir === 'rtl' ? ChevronRight : ChevronLeft
+    const NextIcon = dir === 'rtl' ? ChevronLeft : ChevronRight
+
     if (loading) return <LoadingSpinner />
 
     return (
         <div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-                <h2 className="text-2xl font-bold text-white">الموردين</h2>
+                <h2 className="text-2xl font-bold text-white">{t('suppliers.title')}</h2>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                     <SearchInput
                         value={search}
                         onChange={e => handleSearch(e.target.value)}
-                        placeholder="ابحث بالاسم أو كود المورد أو رقم التليفون..."
+                        placeholder={t('search.supplier.placeholder')}
                     />
                     {user.role !== 'store_staff' && (
                         <button
                             onClick={() => navigate('/suppliers/create')}
                             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
                         >
-                            + إضافة مورد
+                            {t('suppliers.addSupplier')}
                         </button>
                     )}
                 </div>
@@ -81,8 +90,8 @@ export default function Suppliers() {
             {
                 stats && (
                     <StatBoxes stats={[
-                        { label: 'إجمالي الموردين', value: stats.total_suppliers,      color: 'white' },
-                        { label: 'إجمالي المستحق',      value: `${stats.total_owed} ج.م`,  color: 'red'   },
+                        { label: t('suppliers.totalSuppliers'), value: formatNumber(stats.total_suppliers), color: 'white' },
+                        { label: t('suppliers.totalOwed'), value: formatCurrency(stats.total_owed, lang), color: 'red' },
                     ]} />
                 )
             }
@@ -91,9 +100,9 @@ export default function Suppliers() {
                 <table className="w-full">
                     <thead className="bg-gray-800">
                         <tr>
-                            {['الكود', 'الاسم', 'التليفون', 'العنوان', 'المنطقة', 'إجراءات'].map(h => (
-                                <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">
-                                    {h}
+                            {['common.code', 'common.name', 'common.phone', 'common.address', 'common.area', 'common.actions'].map(key => (
+                                <th key={key} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                    {t(key)}
                                 </th>
                             ))}
                         </tr>
@@ -130,7 +139,7 @@ export default function Suppliers() {
                                                 }}
                                                 className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium rounded-lg hover:bg-blue-500/20 transition-colors"
                                             >
-                                                تعديل
+                                                {t('common.edit')}
                                             </button>
                                         )}
                                         {user.role === 'tenant_admin' && (
@@ -142,7 +151,7 @@ export default function Suppliers() {
                                                 }}
                                                 className="px-3 py-1 bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium rounded-lg hover:bg-red-500/20 transition-colors"
                                             >
-                                                حذف
+                                                {t('common.delete')}
                                             </button>
                                         )}
                                     </div>
@@ -154,7 +163,7 @@ export default function Suppliers() {
 
                 {suppliers.length === 0 && (
                     <div className="text-center py-16 text-gray-500">
-                        {search ? `No suppliers matching "${search}"` : 'مفيش موردين لسه. أضف أول مورد.'}
+                        {search ? t('suppliers.noResultsFor', { query: search }) : t('suppliers.empty')}
                     </div>
                 )}
             </div>
@@ -164,17 +173,19 @@ export default function Suppliers() {
                     <button
                         onClick={() => setPage(p => p - 1)}
                         disabled={page === 1}
-                        className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
+                        className="flex items-center gap-1 px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
                     >
-                        → السابق
+                        <PrevIcon size={16} />
+                        {t('common.previous')}
                     </button>
-                    <span className="text-gray-400 text-sm">صفحة {page} من {lastPage}</span>
+                    <span className="text-gray-400 text-sm">{t('common.pageOf', { page, total: lastPage })}</span>
                     <button
                         onClick={() => setPage(p => p + 1)}
                         disabled={page === lastPage}
-                        className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
+                        className="flex items-center gap-1 px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
                     >
-                        التالي ←
+                        {t('common.next')}
+                        <NextIcon size={16} />
                     </button>
                 </div>
             )}
@@ -183,7 +194,7 @@ export default function Suppliers() {
     onClose={() => setDeleteTarget(null)}
     onConfirm={handleDelete}
     deleting={deleting}
-    title="حذف المورد"
+    title={t('suppliers.deleteSupplier')}
     name={deleteTarget?.name}
 />
         </div>

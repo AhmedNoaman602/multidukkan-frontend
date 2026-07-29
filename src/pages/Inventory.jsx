@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import Modal from '../components/Modal'
 import SearchInput from '../components/SearchInput'
 import { useToast } from '../hooks/useToast'
 import { useLocation } from 'react-router-dom'
+import { useTranslation } from '../i18n/useTranslation'
 
 export default function Inventory() {
     const [inventory, setInventory] = useState([]) 
@@ -28,6 +30,7 @@ export default function Inventory() {
 
     const { showToast } = useToast()
     const location = useLocation()
+    const { t, dir } = useTranslation()
 
     const [lowStockOnly , setLowStockOnly] = useState(
         new URLSearchParams(location.search).get('low_stock') === '1'
@@ -47,7 +50,7 @@ export default function Inventory() {
             setStores(storesRes.data.data)
             setWarehousesList(warehousesRes.data.data)
         } catch (err) {
-            showToast(err.response?.data?.message || 'حصلت مشكلة في تحميل المخزون', 'error')
+            showToast(err.response?.data?.message || t('inventory.loadFailed'), 'error')
         } finally {
             setLoading(false)
         }
@@ -71,11 +74,11 @@ export default function Inventory() {
     const submitAdjust = async () => {
         const qty = parseInt(adjustQty, 10)
         if (!qty || qty < 1) {
-            showToast('اكتب كمية 1 أو أكتر.', 'error')
+            showToast(t('inventory.quantityInvalid'), 'error')
             return
         }
         if (!adjustNotes.trim()) {
-            showToast('من فضلك اكتب سبب التعديل ده.', 'error')
+            showToast(t('inventory.reasonRequired'), 'error')
             return
         }
         setAdjustLoading(true)
@@ -89,7 +92,7 @@ export default function Inventory() {
             await fetchInventory()
             closeAdjustModal()
         } catch (err) {
-            showToast(err.response?.data?.message || 'حصلت مشكلة في تعديل المخزون', 'error')
+            showToast(err.response?.data?.message || t('inventory.adjustFailed'), 'error')
         } finally {
             setAdjustLoading(false)
         }
@@ -113,18 +116,23 @@ export default function Inventory() {
     setPage(1)
 }
 
+    // Pagination arrows are physical, so they have to follow the reading
+    // direction rather than being baked into the translated label.
+    const PrevIcon = dir === 'rtl' ? ChevronRight : ChevronLeft
+    const NextIcon = dir === 'rtl' ? ChevronLeft : ChevronRight
+
     if (loading) return <LoadingSpinner />
 
     return (
         <div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-                <h2 className="text-2xl font-bold text-white">المخزون</h2>
+                <h2 className="text-2xl font-bold text-white">{t('inventory.title')}</h2>
 
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                     <SearchInput
                         value={search}
                         onChange={(e) => handleSearch(e.target.value)}
-                        placeholder="ابحث باسم المنتج..."
+                        placeholder={t('search.product.placeholder')}
                     />
                     <button
     onClick={() => { setLowStockOnly(!lowStockOnly); setPage(1) }}
@@ -134,7 +142,7 @@ export default function Inventory() {
             : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-white'
     }`}
 >
-    ⚠️ الناقص بس
+    {t('inventory.lowStockOnly')}
 </button>
                     {isAdmin && stores.length > 0 && (
                         <select
@@ -142,7 +150,7 @@ export default function Inventory() {
                         onChange={(e) => setSelectedStore(e.target.value)}
                         className="px-3 py-1.5 bg-gray-800 border border-gray-700 text-white rounded-lg text-sm focus:outline-none focus:border-blue-500"
                     >
-                        <option value="">كل المتاجر</option>
+                        <option value="">{t('common.allStores')}</option>
                         {stores.map(s => (
                             <option key={s.id} value={s.id}>{s.name}</option>
                         ))}
@@ -153,18 +161,18 @@ export default function Inventory() {
 {/* Low stock toggle */}
     {lowStockOnly && (
         <div className="flex items-center gap-2 mb-4 px-3 py-2 bg-orange-500/10 border border-orange-500/20 rounded-lg">
-           <span className="text-orange-400 text-sm">⚠️ بيعرض الناقص بس</span>
-            <button 
-                onClick={() => setLowStockOnly(false)} 
+           <span className="text-orange-400 text-sm">{t('inventory.showingLowStockOnly')}</span>
+            <button
+                onClick={() => setLowStockOnly(false)}
                 className="text-xs text-gray-500 hover:text-white ms-auto"
             >
-                مسح التصفية ✕
+                {t('inventory.clearFilter')}
             </button>
         </div>
     )}
 
             <div className="flex gap-2 mb-4 border-b border-gray-800 pb-3 overflow-x-auto">
-    {[{ key: '', label: 'كل المخازن' }, ...warehousesList.map(w => ({ key: w.id, label: w.name }))].map(tab => (
+    {[{ key: '', label: t('inventory.allWarehouses') }, ...warehousesList.map(w => ({ key: w.id, label: w.name }))].map(tab => (
         <button
             key={tab.key}
             onClick={() => { setSelectedWarehouse(tab.key) ; setPage(1) }}
@@ -183,16 +191,16 @@ export default function Inventory() {
                     <thead className="bg-gray-800">
                         <tr>
                             {[
-                                'المنتج',
-                                ...(isAdmin ? ['المتجر'] : []),
-                                'المخزن',
-                                'الكمية',
-                                'حد التنبيه',
-                                'الحالة',
-                                'إجراءات'
-                            ].map(h => (
-                                <th key={h} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">
-                                    {h}
+                                'common.product',
+                                ...(isAdmin ? ['common.store'] : []),
+                                'common.warehouse',
+                                'common.quantity',
+                                'products.form.threshold',
+                                'common.status',
+                                'common.actions',
+                            ].map(key => (
+                                <th key={key} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                    {t(key)}
                                 </th>
                             ))}
                         </tr>
@@ -223,11 +231,11 @@ export default function Inventory() {
                                 <td className="px-4 py-3">
                                     {item.low_stock ? (
                                         <span className="px-2 py-1 bg-red-500/20 text-red-400 text-xs font-bold rounded-lg uppercase tracking-wider">
-                                            مخزون منخفض
+                                            {t('inventory.lowStock')}
                                         </span>
                                     ) : (
                                         <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs font-bold rounded-lg uppercase tracking-wider">
-                                            متوفر
+                                            {t('inventory.inStock')}
                                         </span>
                                     )}
                                 </td>
@@ -238,14 +246,14 @@ export default function Inventory() {
                                                 onClick={() => openAdjustModal(item, 'in')}
                                                 className="px-3 py-1 bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-medium rounded-lg hover:bg-green-500/20 transition-colors"
                                             >
-                                                + إضافة
+                                                {t('inventory.addAction')}
                                             </button>
                                             <button
                                                 onClick={() => openAdjustModal(item, 'out')}
                                                 disabled={item.quantity === 0}
                                                 className="px-3 py-1 bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium rounded-lg hover:bg-red-500/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                                             >
-                                                − خصم
+                                                {t('inventory.removeAction')}
                                             </button>
                                         </div>
                                     ) : (
@@ -259,7 +267,7 @@ export default function Inventory() {
 
                 {filteredInventory.length === 0 && (
                     <div className="text-center py-16 text-gray-500">
-                        {selectedStore ? 'مفيش مخزون للمتجر ده.' : 'مفيش سجلات مخزون.'}
+                        {selectedStore ? t('inventory.emptyStore') : t('inventory.empty')}
                     </div>
                 )}
             </div>
@@ -269,17 +277,19 @@ export default function Inventory() {
         <button
             onClick={() => setPage(p => p - 1)}
             disabled={page === 1}
-            className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
+            className="flex items-center gap-1 px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
         >
-            → السابق
+            <PrevIcon size={16} />
+            {t('common.previous')}
         </button>
-        <span className="text-gray-400 text-sm">صفحة {page} من {lastPage}</span>
+        <span className="text-gray-400 text-sm">{t('common.pageOf', { page, total: lastPage })}</span>
         <button
             onClick={() => setPage(p => p + 1)}
             disabled={page === lastPage}
-            className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
+            className="flex items-center gap-1 px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
         >
-            التالي ←
+            {t('common.next')}
+            <NextIcon size={16} />
         </button>
     </div>
 )}
@@ -287,20 +297,20 @@ export default function Inventory() {
             <Modal
                 open={!!adjustingItem}
                 onClose={closeAdjustModal}
-                title={adjustDirection === 'in' ? 'إضافة مخزون' : 'خصم مخزون'}
+                title={adjustDirection === 'in' ? t('inventory.adjust.addTitle') : t('inventory.adjust.removeTitle')}
                 setAdjustUnitType={'base'}
             >
                 {adjustingItem && (
                     <form onSubmit={(e) => { e.preventDefault(); submitAdjust(); }}>
                         <div className="space-y-4">
-                            <div className="text-sm text-gray-400">
-                                <div className="mb-1">المنتج: <span className="text-white font-medium">{adjustingItem.product_name}</span></div>
-                                <div className="mb-1">المخزن: <span className="text-white font-medium">{adjustingItem.warehouse_name}</span></div>
-                                <div>المخزون الحالي: <span className="text-white font-semibold">{adjustingItem.quantity}</span></div>
+                            <div className="text-sm text-gray-400 space-y-1">
+                                <div>{t('inventory.adjust.product', { name: adjustingItem.product_name })}</div>
+                                <div>{t('inventory.adjust.warehouse', { name: adjustingItem.warehouse_name })}</div>
+                                <div>{t('inventory.adjust.currentStock', { qty: adjustingItem.quantity })}</div>
                             </div>
                             <div>
                                 <label className="block text-sm text-gray-400 mb-1">
-                                    Quantity to {adjustDirection === 'in' ? 'add' : 'remove'} *
+                                    {adjustDirection === 'in' ? t('inventory.adjust.quantityToAdd') : t('inventory.adjust.quantityToRemove')}
                                 </label>
                                 <input
                                     type="number"
@@ -313,7 +323,7 @@ export default function Inventory() {
                             </div>
                             {adjustingItem?.secondary_unit && (
     <div>
-        <label className="block text-sm text-gray-400 mb-1">الوحدة</label>
+        <label className="block text-sm text-gray-400 mb-1">{t('products.form.unit')}</label>
         <div className="flex gap-2">
             {['base', 'secondary'].map(u => (
                 <button
@@ -326,36 +336,36 @@ export default function Inventory() {
                             : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
                     }`}
                 >
-                    {u === 'base' 
-                        ? adjustingItem.product_unit 
+                    {u === 'base'
+                        ? adjustingItem.product_unit
                         : adjustingItem.secondary_unit}
                 </button>
             ))}
         </div>
     </div>
 )}
-                            
+
                             {adjustQty && (
                                 <div className="text-sm text-gray-400">
-                                    New stock will be: <span className="text-white font-semibold">{previewNewQty()}</span>
+                                    {t('inventory.adjust.newStockWillBe', { qty: previewNewQty() })}
                                 </div>
                             )}
                             <div>
                                 <label className="block text-sm text-gray-400 mb-1">
-                                    Reason *
+                                    {t('inventory.adjust.reason')}
                                 </label>
                                 <textarea
                                     value={adjustNotes}
                                     onChange={(e) => setAdjustNotes(e.target.value)}
                                     rows={2}
                                     maxLength={500}
-                                    placeholder="مثلاً: بضاعة تالفة، تصحيح جرد..."
+                                    placeholder={t('inventory.adjust.reasonPlaceholder')}
                                     className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm resize-none"
                                 />
                             </div>
                             <div className="flex justify-end gap-2 pt-2">
                                 <button type="button" onClick={closeAdjustModal} className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">
-                                    إلغاء
+                                    {t('common.cancel')}
                                 </button>
                                 <button
                                     type="submit"
@@ -364,7 +374,7 @@ export default function Inventory() {
                                         adjustDirection === 'in' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'
                                     }`}
                                 >
-                                    {adjustLoading ? 'جاري الحفظ...' : adjustDirection === 'in' ? 'إضافة مخزون' : 'خصم مخزون'}
+                                    {adjustLoading ? t('common.saving') : adjustDirection === 'in' ? t('inventory.adjust.addTitle') : t('inventory.adjust.removeTitle')}
                                 </button>
                             </div>
                         </div>
