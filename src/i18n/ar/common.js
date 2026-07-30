@@ -63,6 +63,8 @@ export default {
     reference: 'المرجع',
     closeWindow: '✕ إغلاق',
     printOrSavePdf: '🖨️ طباعة / حفظ PDF',
+    loadingData: 'جاري تحميل البيانات',
+    pleaseWaitMoment: 'استنى لحظة من فضلك',
 
     // ترقيم الصفحات
     previous: 'السابق',

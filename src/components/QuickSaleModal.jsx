@@ -2,8 +2,10 @@ import { useState, useCallback, useRef } from "react";
 import { useToast } from "../hooks/useToast";
 import api from '../api/axios'
 import ProductSearchInput from './ProductSearchInput'
+import { useTranslation } from '../i18n/useTranslation'
+import { formatCurrency } from '../lib/format'
 
-export default function QuickSaleModal({ 
+export default function QuickSaleModal({
     open,
     onClose,
     products,
@@ -17,6 +19,7 @@ export default function QuickSaleModal({
     const [discount, setDiscount] = useState(0)
     const [discountType, setDiscountType] = useState('amount')
     const { showToast } = useToast()
+    const { t, lang } = useTranslation()
     const productSearchRef = useRef(null)
 
 
@@ -85,21 +88,21 @@ export default function QuickSaleModal({
     : grandTotal
 
     const handleSubmit = async () => {
-           const user = JSON.parse(localStorage.getItem('user') || '{}') 
-    
+           const user = JSON.parse(localStorage.getItem('user') || '{}')
+
     if (!user.walk_in_customer_id) {
-        showToast('العميل النقدي مش متظبط. من فضلك اعمل تسجيل خروج ودخول تاني.', 'error')
+        showToast(t('quickSale.walkInCustomerError'), 'error')
         return
     }
         const resolvedStoreId = storeId || user.store_id
 
         if (items.length === 0) {
-            showToast('ضيف صنف واحد على الأقل.', 'error')
+            showToast(t('orders.create.itemRequired'), 'error')
             return
         }
         const missingWarehouse = items.some(i => !i.warehouse_id)
         if (missingWarehouse) {
-            showToast('من فضلك اختر المخزن لكل الأصناف.', 'error')
+            showToast(t('quickSale.warehouseRequiredAll'), 'error')
             return
         }
         // Resolve store_id from the selected warehouse of the first item
@@ -108,7 +111,7 @@ export default function QuickSaleModal({
         const finalStoreId = resolvedStoreId || (selectedWarehouse ? selectedWarehouse.store_id : null)
 
         if (!finalStoreId) {
-            showToast('مش قادر يحدد المتجر للمخزن المختار.', 'error')
+            showToast(t('quickSale.storeResolveFailed'), 'error')
             return
         }
         setSaving(true)
@@ -118,8 +121,8 @@ export default function QuickSaleModal({
                 store_id: finalStoreId,
                 order_date: new Date().toISOString().split('T')[0],
                 discount: discountAmount,
-                pay_immediately: true,       
-                payment_method: 'cash', 
+                pay_immediately: true,
+                payment_method: 'cash',
                 items: items.map(i => ({
                     product_id: parseInt(i.product_id),
                     quantity: parseInt(i.quantity),
@@ -128,16 +131,16 @@ export default function QuickSaleModal({
                     unit_price: parseFloat(i.unit_price),
                 }))
             })
-showToast('تم تسجيل البيع ✅', 'success')
+showToast(t('quickSale.saleRecorded'), 'success')
 setItems([])
 setDiscount(0)
 try {
     onClose()
 } catch(e) {
-    showToast('حصلت مشكلة في قفل النافذة', 'error')
+    showToast(t('quickSale.closeFailed'), 'error')
 }
         } catch (err) {
-            showToast(err.response?.data?.message || 'حصلت مشكلة في إنشاء الطلب', 'error')
+            showToast(err.response?.data?.message || t('orders.create.createFailed'), 'error')
         } finally {
             setSaving(false)
         }
@@ -148,12 +151,12 @@ try {
     return (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
             <div className="bg-gray-900 border border-gray-800 rounded-xl w-full max-w-lg flex flex-col max-h-[90vh]">
-                
+
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-800">
                     <div>
-                        <h3 className="text-white font-bold">⚡ بيع سريع</h3>
-                        <p className="text-gray-500 text-xs">نقدي — بدون فاتورة</p>
+                        <h3 className="text-white font-bold">{t('quickSale.title')}</h3>
+                        <p className="text-gray-500 text-xs">{t('quickSale.subtitle')}</p>
                     </div>
                     <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">✕</button>
                 </div>
@@ -163,11 +166,11 @@ try {
                     <ProductSearchInput
                         products={products}
                         onSelect={handleProductSelect}
-                        placeholder="ابحث عن منتج..."
+                        placeholder={t('quickSale.searchPlaceholder')}
                         inputRef={productSearchRef}
                     />
                     {items.length > 0 && (
-                        <p className="text-gray-600 text-xs mt-1.5">Enter = التالي · اختر المخزن للمتابعة</p>
+                        <p className="text-gray-600 text-xs mt-1.5">{t('quickSale.hint')}</p>
                     )}
                 </div>
 
@@ -175,7 +178,7 @@ try {
                 <div className="flex-1 overflow-y-auto">
                     {items.length === 0 ? (
                         <div className="text-center py-8 text-gray-500 text-sm">
-                            ابحث عن منتج لإضافته
+                            {t('quickSale.emptyState')}
                         </div>
                     ) : (
                         <>
@@ -184,8 +187,8 @@ try {
                         <table className="w-full">
                             <thead className="bg-gray-800 sticky top-0">
                                 <tr>
-                                    {['المنتج', 'الكمية', 'السعر', 'المخزن', 'الإجمالي', ''].map(h => (
-                                        <th key={h} className="px-2 py-1.5 text-start text-[10px] font-medium text-gray-500 uppercase">{h}</th>
+                                    {['common.product', 'common.quantity', 'quickSale.price', 'common.warehouse', 'common.total', ''].map(key => (
+                                        <th key={key || 'actions'} className="px-2 py-1.5 text-start text-[10px] font-medium text-gray-500 uppercase">{key ? t(key) : ''}</th>
                                     ))}
                                 </tr>
                             </thead>
@@ -223,7 +226,7 @@ try {
                                                 onChange={e => handleWhChange(index, e.target.value)}
                                                 className="w-full px-1 py-1 bg-gray-800 border border-gray-700 text-white rounded text-xs focus:outline-none focus:border-blue-500"
                                             >
-                                                <option value="">اختر</option>
+                                                <option value="">{t('orders.create.chooseWarehouse')}</option>
                                                 {warehouses.map(w => {
                                                     const stock = getStock(w.id, item.product_id)
                                                     return (
@@ -235,7 +238,7 @@ try {
                                             </select>
                                         </td>
                                         <td className="px-2 py-1.5 text-white text-xs font-medium whitespace-nowrap">
-                                            {((parseFloat(item.unit_price) || 0) * (parseInt(item.quantity) || 0)).toFixed(2)}
+                                            {formatCurrency((parseFloat(item.unit_price) || 0) * (parseInt(item.quantity) || 0), lang)}
                                         </td>
                                         <td className="px-2 py-1.5">
                                             <button
@@ -284,7 +287,7 @@ try {
                                             onChange={e => handleWhChange(index, e.target.value)}
                                             className="flex-1 min-w-0 px-1 py-1.5 bg-gray-800 border border-gray-700 text-white rounded text-xs focus:outline-none focus:border-blue-500"
                                         >
-                                            <option value="">اختر</option>
+                                            <option value="">{t('orders.create.chooseWarehouse')}</option>
                                             {warehouses.map(w => {
                                                 const stock = getStock(w.id, item.product_id)
                                                 return (
@@ -296,7 +299,7 @@ try {
                                         </select>
                                     </div>
                                     <p className="text-end text-white text-xs font-medium">
-                                        {((parseFloat(item.unit_price) || 0) * (parseInt(item.quantity) || 0)).toFixed(2)}
+                                        {formatCurrency((parseFloat(item.unit_price) || 0) * (parseInt(item.quantity) || 0), lang)}
                                     </p>
                                 </div>
                             ))}
@@ -307,22 +310,22 @@ try {
 
                 {/* Footer */}
                 <div className="px-4 py-3 border-t border-gray-800 space-y-2.5">
-                    
+
                     {/* Discount */}
                     <div className="flex items-center justify-between gap-2">
-                        <span className="text-gray-400 text-xs">خصم</span>
+                        <span className="text-gray-400 text-xs">{t('quickSale.discount')}</span>
                         <div className="flex items-center gap-1.5">
                             <div className="flex rounded-lg overflow-hidden border border-gray-700">
-                                {['amount', 'percent'].map(t => (
+                                {['amount', 'percent'].map(mode => (
                                     <button
-                                        key={t}
+                                        key={mode}
                                         type="button"
-                                        onClick={() => setDiscountType(t)}
+                                        onClick={() => setDiscountType(mode)}
                                         className={`px-2 py-0.5 text-xs font-medium transition-colors ${
-                                            discountType === t ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400'
+                                            discountType === mode ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400'
                                         }`}
                                     >
-                                        {t === 'amount' ? 'ج.م' : '%'}
+                                        {mode === 'amount' ? t('common.currency') : '%'}
                                     </button>
                                 ))}
                             </div>
@@ -337,7 +340,7 @@ try {
                     </div>
 
                <div className="flex justify-between items-center">
-    <span className="text-gray-400 text-sm">الإجمالي</span>
+    <span className="text-gray-400 text-sm">{t('common.total')}</span>
     <div className="text-end">
         <input
             type="number"
@@ -349,7 +352,7 @@ try {
             className="w-24 px-2 py-1 bg-gray-800 border border-gray-700 text-white rounded-lg text-sm text-end focus:outline-none focus:border-blue-500"
         />
         <p className="text-gray-500 text-[10px] mt-0.5">
-            المحسوب تلقائيًا: {grandTotal.toFixed(2)} ج.م
+            {t('quickSale.autoCalculated', { amount: formatCurrency(grandTotal, lang) })}
         </p>
     </div>
 </div>
@@ -359,7 +362,7 @@ try {
                         disabled={saving || items.length === 0}
                         className="w-full py-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-bold rounded-lg transition-colors text-sm"
                     >
-                        {saving ? 'جاري التسجيل...' : '💵 تحصيل النقدية'}
+                        {saving ? t('quickSale.recording') : t('quickSale.collectCash')}
                     </button>
                 </div>
             </div>

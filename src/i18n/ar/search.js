@@ -29,4 +29,22 @@ export default {
         noResults: 'مفيش موردين بـ "{query}"',
         noResultsBrowse: 'مفيش موردين.',
     },
+
+    order: {
+        placeholder: 'ابحث برقم الفاتورة...',
+        browseTitle: 'تصفح الطلبات',
+        countLabel: 'الطلبات: {count}',
+        noResults: 'مفيش طلبات بـ "{query}"',
+        noResultsBrowse: 'مفيش طلبات.',
+    },
+
+    global: {
+        placeholder: 'ابحث في العملاء والمنتجات والطلبات والموردين...',
+        searching: 'جاري البحث...',
+        emptyHint: 'اكتب للبحث في العملاء والمنتجات والطلبات والموردين...',
+        navigateHint: '↑↓ للتنقل',
+        selectHint: 'Enter للاختيار',
+        closeHint: 'Esc للإغلاق',
+        noResultsFor: 'مفيش نتائج بـ "{query}"',
+    },
 }

@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
 import api from '../api/axios'
 import { MessageCircle, X, Send, Trash2, Bot, Sparkles } from 'lucide-react'
+import { useTranslation } from '../i18n/useTranslation'
 
 export default function ChatWidget() {
+    const { t } = useTranslation()
     const [open, setOpen] = useState(false)
     const [message, setMessage] = useState('')
     const [history, setHistory] = useState([])
@@ -38,7 +40,7 @@ export default function ChatWidget() {
             })
             setHistory(res.data.history)
         } catch (err) {
-            setError(err.response?.data?.message || 'حصلت مشكلة في الرد.')
+            setError(err.response?.data?.message || t('chat.replyFailed'))
             setHistory(history)
         } finally {
             setLoading(false)
@@ -74,15 +76,15 @@ export default function ChatWidget() {
                                 <span className="absolute -bottom-0.5 -start-0.5 w-2.5 h-2.5 rounded-full bg-green-400 border-2 border-gray-900" />
                             </span>
                             <div className="leading-tight">
-                                <p className="text-white text-sm font-medium">مساعد المتجر</p>
-                                <p className="text-gray-500 text-[10px]">متصل الآن</p>
+                                <p className="text-white text-sm font-medium">{t('chat.title')}</p>
+                                <p className="text-gray-500 text-[10px]">{t('chat.online')}</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-1">
                             {history.length > 0 && (
                                 <button
                                     onClick={clearChat}
-                                    title="مسح المحادثة"
+                                    title={t('chat.clearChat')}
                                     className="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-gray-300 hover:bg-gray-800 rounded-lg transition-colors"
                                 >
                                     <Trash2 size={14} strokeWidth={1.75} />
@@ -104,8 +106,8 @@ export default function ChatWidget() {
                                 <div className="w-11 h-11 mx-auto mb-3 flex items-center justify-center rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400">
                                     <Sparkles size={18} strokeWidth={1.75} />
                                 </div>
-                                <p className="text-gray-300 text-sm font-medium mb-1">اسأل مساعدك الذكي</p>
-                                <p className="text-gray-600 text-xs">عن المنتجات والأسعار والمخزون</p>
+                                <p className="text-gray-300 text-sm font-medium mb-1">{t('chat.emptyTitle')}</p>
+                                <p className="text-gray-600 text-xs">{t('chat.emptySubtitle')}</p>
                             </div>
                         )}
 
@@ -166,7 +168,7 @@ export default function ChatWidget() {
                                 value={message}
                                 onChange={e => setMessage(e.target.value)}
                                 onKeyDown={handleKeyDown}
-                                placeholder="اكتب سؤالك..."
+                                placeholder={t('chat.inputPlaceholder')}
                                 rows={1}
                                 disabled={loading}
                                 className="flex-1 px-3.5 py-2.5 bg-gray-800 border border-gray-700 text-white rounded-xl text-sm resize-none focus:outline-none focus:border-purple-500/60 focus:ring-1 focus:ring-purple-500/30 placeholder-gray-500 disabled:opacity-50 transition-colors"
@@ -175,13 +177,13 @@ export default function ChatWidget() {
                             <button
                                 onClick={sendMessage}
                                 disabled={!message.trim() || loading}
-                                title="إرسال"
+                                title={t('chat.send')}
                                 className="w-10 h-10 flex items-center justify-center bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:hover:bg-purple-600 text-white rounded-xl transition-colors shrink-0"
                             >
                                 <Send size={16} strokeWidth={1.75} />
                             </button>
                         </div>
-                        <p className="text-gray-600 text-[10px] mt-1.5 text-center">Enter للإرسال</p>
+                        <p className="text-gray-600 text-[10px] mt-1.5 text-center">{t('chat.sendHint')}</p>
                     </div>
                 </div>
             )}

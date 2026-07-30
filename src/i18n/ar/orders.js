@@ -99,4 +99,12 @@ export default {
         billTo: 'فاتورة إلى',
         thankYou: 'شكراً لتعاملك معانا — {business}',
     },
+
+    addItemModal: {
+        title: 'إضافة صنف',
+        adding: 'جاري الإضافة...',
+        submit: 'إضافة الصنف',
+        added: 'تم إضافة الصنف بنجاح.',
+        addFailed: 'حصلت مشكلة في إضافة الصنف',
+    },
 }

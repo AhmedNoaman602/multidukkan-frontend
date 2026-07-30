@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
+import { useTranslation } from '../i18n/useTranslation'
+import { formatCurrency } from '../lib/format'
 
 export default function GlobalSearch({ open, onClose }) {
     const [query, setQuery] = useState('')
@@ -9,6 +11,7 @@ export default function GlobalSearch({ open, onClose }) {
     const [highlighted, setHighlighted] = useState(0)
     const inputRef = useRef(null)
     const navigate = useNavigate()
+    const { t, lang } = useTranslation()
 
     useEffect(() => {
         if (open) {
@@ -50,10 +53,10 @@ export default function GlobalSearch({ open, onClose }) {
     // Flatten all results into one list for keyboard navigation
     const flatResults = [
         ...results.customers.map(c => ({ type: 'customer', item: c, path: `/customers/${c.id}/balance`, label: c.name, sub: `${c.code} · ${c.phone}` })),
-        ...results.products.map(p => ({ type: 'product', item: p, path: `/products/${p.id}`, label: p.name, sub: `رمز المنتج: ${p.sku} · ${p.price} ج.م` })),
-        ...results.orders.map(o => ({ type: 'order', item: o, path: `/orders/${o.id}`, label: o.invoice_number, sub: `${o.customer_name} · ${o.total} ج.م` })),
+        ...results.products.map(p => ({ type: 'product', item: p, path: `/products/${p.id}`, label: p.name, sub: `${t('search.product.skuLabel', { sku: p.sku })} · ${formatCurrency(p.price, lang)}` })),
+        ...results.orders.map(o => ({ type: 'order', item: o, path: `/orders/${o.id}`, label: o.invoice_number, sub: `${o.customer_name} · ${formatCurrency(o.total, lang)}`, status: o.status })),
         ...results.suppliers.map(s => ({ type: 'supplier', item: s, path: `/suppliers/${s.id}/balance`, label: s.name, sub: `${s.code} · ${s.phone}` })),
-        ...results.purchaseOrders.map(po => ({ type: 'purchaseOrder', item: po, path: `/purchase-orders/${po.id}`, label: po.invoice_number, sub: `${po.supplier_name} · ${po.total} ج.م`, status: po.status })),
+        ...results.purchaseOrders.map(po => ({ type: 'purchaseOrder', item: po, path: `/purchase-orders/${po.id}`, label: po.invoice_number, sub: `${po.supplier_name} · ${formatCurrency(po.total, lang)}`, status: po.status })),
     ]
 
     const handleSelect = (path) => {
@@ -78,11 +81,11 @@ export default function GlobalSearch({ open, onClose }) {
     const hasResults = flatResults.length > 0
 
     const sectionLabel = {
-        customer:      'العملاء',
-        product:       'المنتجات',
-        order:         'الطلبات',
-        supplier:      'الموردين',
-        purchaseOrder: 'أوامر الشراء',
+        customer:      t('customers.title'),
+        product:       t('products.title'),
+        order:         t('orders.title'),
+        supplier:      t('suppliers.title'),
+        purchaseOrder: t('purchaseOrders.title'),
     }
 
     const sectionIcon = {
@@ -120,10 +123,10 @@ export default function GlobalSearch({ open, onClose }) {
                         value={query}
                         onChange={e => { setQuery(e.target.value); setHighlighted(0) }}
                         onKeyDown={handleKeyDown}
-                        placeholder="ابحث في العملاء والمنتجات والطلبات والموردين..."
+                        placeholder={t('search.global.placeholder')}
                         className="flex-1 bg-transparent text-white text-sm focus:outline-none placeholder-gray-500"
                     />
-                    {loading && <span className="text-gray-500 text-xs">جاري البحث...</span>}
+                    {loading && <span className="text-gray-500 text-xs">{t('search.global.searching')}</span>}
                     <kbd className="px-2 py-1 bg-gray-800 text-gray-400 text-xs rounded border border-gray-700">Esc</kbd>
                 </div>
 
@@ -132,11 +135,11 @@ export default function GlobalSearch({ open, onClose }) {
                     {/* Empty state */}
                     {!query && (
                         <div className="text-center py-10 text-gray-500 text-sm">
-                            اكتب للبحث في العملاء والمنتجات والطلبات والموردين...
+                            {t('search.global.emptyHint')}
                             <div className="mt-3 flex justify-center gap-4 text-xs text-gray-600">
-                                <span>↑↓ للتنقل</span>
-                                <span>Enter للاختيار</span>
-                                <span>Esc للإغلاق</span>
+                                <span>{t('search.global.navigateHint')}</span>
+                                <span>{t('search.global.selectHint')}</span>
+                                <span>{t('search.global.closeHint')}</span>
                             </div>
                         </div>
                     )}
@@ -144,7 +147,7 @@ export default function GlobalSearch({ open, onClose }) {
                     {/* No results */}
                     {query.length >= 2 && !loading && !hasResults && (
                         <div className="text-center py-10 text-gray-500 text-sm">
-                            مفيش نتائج بـ "{query}"
+                            {t('search.global.noResultsFor', { query })}
                         </div>
                     )}
 
@@ -175,7 +178,7 @@ export default function GlobalSearch({ open, onClose }) {
                                                 ? 'bg-green-500/20 text-green-400'
                                                 : 'bg-red-500/20 text-red-400'
                                         }`}>
-                                            {r.status}
+                                            {t(`enums.orderStatus.${r.status}`)}
                                         </span>
                                     )}
                                 </div>

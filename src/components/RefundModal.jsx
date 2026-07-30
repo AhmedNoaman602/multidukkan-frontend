@@ -3,6 +3,10 @@ import OrderSearchInput from './OrderSearchInput'
 import { useState, useEffect } from 'react'
 import api from '../api/axios'
 import { useToast } from '../hooks/useToast'
+import { useTranslation } from '../i18n/useTranslation'
+import { formatCurrency } from '../lib/format'
+
+const REFUND_METHODS = ['cash', 'bank_transfer', 'check']
 
 export default function RefundModal({
     open,
@@ -15,6 +19,7 @@ export default function RefundModal({
     const [refundForm, setRefundForm] = useState({ amount: '', method: 'cash', order_id: '', payment_id_target: '' })
     const [saving, setSaving] = useState(false)
     const { showToast } = useToast()
+    const { t, lang } = useTranslation()
 
     useEffect(() => {
         if (!open) {
@@ -46,23 +51,23 @@ export default function RefundModal({
                 ...(refundForm.order_id && { order_id: parseInt(refundForm.order_id) }),
                 ...(refundForm.payment_id_target && { payment_id_target: parseInt(refundForm.payment_id_target) }),
             })
-            showToast('تم عمل المرتجع بنجاح.', 'success')
+            showToast(t('customers.balance.refundSuccess'), 'success')
             setRefundForm({ amount: '', method: 'cash', order_id: '', payment_id_target: '' })
             onClose()
             onSuccess()
         } catch (err) {
-            showToast(err.response?.data?.message || 'حصلت مشكلة في عمل المرتجع', 'error')
+            showToast(err.response?.data?.message || t('customers.balance.refundFailed'), 'error')
         } finally {
             setSaving(false)
         }
     }
 
     return (
-        <Modal open={open} onClose={onClose} title="↩ عمل مرتجع">
+        <Modal open={open} onClose={onClose} title={t('customers.balance.makeReturn')}>
             <div className="space-y-4">
                 {orders.length === 0 ? (
                     <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-                        <p className="text-yellow-400 text-sm">مفيش دفعات.</p>
+                        <p className="text-yellow-400 text-sm">{t('suppliers.balance.noPayments')}</p>
                     </div>
                 ) : (
                     <form onSubmit={handleRefund} className="space-y-4">
@@ -71,7 +76,7 @@ export default function RefundModal({
                         {orders.length > 1 && (
                             <div>
                                 <label className="block text-sm text-gray-400 mb-1">
-                                    اختر الطلب
+                                    {t('customers.balance.chooseOrder')}
                                 </label>
                                 <OrderSearchInput
                                     orders={orders}
@@ -85,7 +90,7 @@ export default function RefundModal({
                                             amount: orderId ? String(order?.paid ?? '') : '',
                                         })
                                     }}
-                                    renderMeta={(o) => `${o.paid} ج.م paid (refundable: ${o.refundable} ج.م)`}
+                                    renderMeta={(o) => `${formatCurrency(o.paid, lang)} ${t('orders.list.paidAmount')} (${t('customers.balance.refundable')}: ${formatCurrency(o.refundable, lang)})`}
                                 />
                             </div>
                         )}
@@ -94,8 +99,8 @@ export default function RefundModal({
                         {filteredPayments.length > 0 && (
                             <div>
                                 <label className="block text-sm text-gray-400 mb-1">
-                                    مرتجع لدفعة محددة
-                                    <span className="text-gray-600 ms-1">(اختياري)</span>
+                                    {t('customers.balance.refundSpecificPayment')}
+                                    <span className="text-gray-600 ms-1">{t('customers.balance.optionalParen')}</span>
                                 </label>
                                 <select
                                     value={refundForm.payment_id_target}
@@ -111,10 +116,10 @@ export default function RefundModal({
                                     }}
                                     className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-orange-500 text-sm"
                                 >
-                                    <option value="">مرتجع على كل الدفعات (تلقائي)</option>
+                                    <option value="">{t('customers.balance.refundAllPayments')}</option>
                                     {filteredPayments.map(p => (
                                         <option key={p.id} value={p.id}>
-                                            {p.invoice_number} — {p.amount - (p.refunded_amount ?? 0)} ج.م net
+                                            {p.invoice_number} — {formatCurrency(p.amount - (p.refunded_amount ?? 0), lang)} {t('common.net')}
                                         </option>
                                     ))}
                                 </select>
@@ -126,8 +131,8 @@ export default function RefundModal({
     return selected ? (
         <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
             <p className="text-blue-400 text-sm">
-                Available to refund: <span className="font-bold">{selected.refundable ?? selected.paid} ج.م</span>
-                <span className="text-blue-600 text-xs ms-2">(الدفعات النقدية بس)</span>
+                {t('customers.balance.availableToRefund')} <span className="font-bold">{formatCurrency(selected.refundable ?? selected.paid, lang)}</span>
+                <span className="text-blue-600 text-xs ms-2">{t('customers.balance.cashPaymentsOnly')}</span>
             </p>
         </div>
     ) : null
@@ -136,7 +141,7 @@ export default function RefundModal({
                         {/* Amount + Method */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm text-gray-400 mb-1">المبلغ</label>
+                                <label className="block text-sm text-gray-400 mb-1">{t('common.amount')}</label>
                                 <input
                                     type="number"
                                     value={refundForm.amount}
@@ -147,15 +152,15 @@ export default function RefundModal({
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm text-gray-400 mb-1">طريقة الدفع</label>
+                                <label className="block text-sm text-gray-400 mb-1">{t('orders.payModal.method')}</label>
                                 <select
                                     value={refundForm.method}
                                     onChange={e => setRefundForm({ ...refundForm, method: e.target.value })}
                                     className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-orange-500 text-sm"
                                 >
-                                    <option value="cash">نقدي</option>
-                                    <option value="bank_transfer">تحويل بنكي</option>
-                                    <option value="check">شيك</option>
+                                    {REFUND_METHODS.map(method => (
+                                        <option key={method} value={method}>{t(`enums.paymentMethod.${method}`)}</option>
+                                    ))}
                                 </select>
                             </div>
                         </div>
@@ -163,11 +168,11 @@ export default function RefundModal({
                         <div className="flex justify-end gap-2 pt-2">
                             <button type="button" onClick={onClose}
                                 className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">
-                                إلغاء
+                                {t('common.cancel')}
                             </button>
                             <button type="submit" disabled={saving || !refundForm.amount}
                                 className="px-6 py-2 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
-                                {saving ? 'جاري التنفيذ...' : 'تنفيذ المرتجع'}
+                                {saving ? t('orders.payModal.processing') : t('customers.balance.executeRefund')}
                             </button>
                         </div>
                     </form>

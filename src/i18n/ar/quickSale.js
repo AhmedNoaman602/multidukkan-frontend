@@ -1,0 +1,17 @@
+export default {
+    title: '⚡ بيع سريع',
+    subtitle: 'نقدي — بدون فاتورة',
+    searchPlaceholder: 'ابحث عن منتج...',
+    hint: 'Enter = التالي · اختر المخزن للمتابعة',
+    emptyState: 'ابحث عن منتج لإضافته',
+    price: 'السعر',
+    discount: 'خصم',
+    autoCalculated: 'المحسوب تلقائيًا: {amount}',
+    recording: 'جاري التسجيل...',
+    collectCash: '💵 تحصيل النقدية',
+    walkInCustomerError: 'العميل النقدي مش متظبط. من فضلك اعمل تسجيل خروج ودخول تاني.',
+    warehouseRequiredAll: 'من فضلك اختر المخزن لكل الأصناف.',
+    storeResolveFailed: 'مش قادر يحدد المتجر للمخزن المختار.',
+    saleRecorded: 'تم تسجيل البيع ✅',
+    closeFailed: 'حصلت مشكلة في قفل النافذة',
+}

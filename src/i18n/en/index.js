@@ -15,6 +15,8 @@ import purchaseOrders from './purchaseOrders'
 import reports from './reports'
 import settings from './settings'
 import onboarding from './onboarding'
+import quickSale from './quickSale'
+import chat from './chat'
 
 // Add a namespace here as each feature is migrated off hardcoded strings.
 export default {
@@ -35,4 +37,6 @@ export default {
     reports,
     settings,
     onboarding,
+    quickSale,
+    chat,
 }

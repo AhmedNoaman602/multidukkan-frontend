@@ -63,6 +63,8 @@ export default {
     reference: 'Reference',
     closeWindow: '✕ Close',
     printOrSavePdf: '🖨️ Print / Save PDF',
+    loadingData: 'Loading data',
+    pleaseWaitMoment: 'Please wait a moment',
 
     // Pagination
     previous: 'Previous',

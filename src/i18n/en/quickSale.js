@@ -1,0 +1,17 @@
+export default {
+    title: '⚡ Quick Sale',
+    subtitle: 'Cash — no invoice',
+    searchPlaceholder: 'Search for a product…',
+    hint: 'Enter = next · Choose a warehouse to continue',
+    emptyState: 'Search for a product to add it',
+    price: 'Price',
+    discount: 'Discount',
+    autoCalculated: 'Auto-calculated: {amount}',
+    recording: 'Recording…',
+    collectCash: '💵 Collect Cash',
+    walkInCustomerError: 'Walk-in customer is not set up. Please log out and back in.',
+    warehouseRequiredAll: 'Please choose a warehouse for every item.',
+    storeResolveFailed: "Couldn't determine the store for the selected warehouse.",
+    saleRecorded: 'Sale recorded ✅',
+    closeFailed: 'Something went wrong closing the window.',
+}

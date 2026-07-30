@@ -1,12 +1,17 @@
 import { useState, useRef, useEffect } from 'react'
+import { useTranslation } from '../i18n/useTranslation'
+import { formatCurrency } from '../lib/format'
 
 export default function OrderSearchInput({
     orders,
     value,
     onSelect,
-    placeholder = 'ابحث برقم الفاتورة...',
-    renderMeta = (order) => `${order.total} ج.م`,
+    placeholder,
+    renderMeta,
 }) {
+    const { t, lang } = useTranslation()
+    const effectivePlaceholder = placeholder ?? t('search.order.placeholder')
+    const effectiveRenderMeta = renderMeta ?? ((order) => formatCurrency(order.total, lang))
     const [query, setQuery] = useState('')
     const [open, setOpen] = useState(false)
     const [highlighted, setHighlighted] = useState(0)
@@ -80,7 +85,7 @@ export default function OrderSearchInput({
             <div className="flex items-center justify-between px-3 py-2.5 bg-gray-800 border border-gray-700 rounded-lg">
                 <div className="min-w-0">
                     <span className="text-white text-sm font-medium font-mono">{selectedOrder.invoice_number}</span>
-                    <span className="text-gray-400 text-sm ms-2">{renderMeta(selectedOrder)}</span>
+                    <span className="text-gray-400 text-sm ms-2">{effectiveRenderMeta(selectedOrder)}</span>
                 </div>
                 <button
                     type="button"
@@ -103,7 +108,7 @@ export default function OrderSearchInput({
                         onChange={e => { setQuery(e.target.value); setOpen(true); setHighlighted(0) }}
                         onKeyDown={handleKeyDown}
                         onFocus={() => query && setOpen(true)}
-                        placeholder={placeholder}
+                        placeholder={effectivePlaceholder}
                         autoComplete="off"
                         className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-orange-500 text-sm"
                     />
@@ -121,7 +126,7 @@ export default function OrderSearchInput({
                                     <div className="flex justify-between items-center">
                                         <span className="font-medium font-mono">{order.invoice_number}</span>
                                         <span className={`text-xs ${i === highlighted ? 'text-blue-200' : 'text-gray-400'}`}>
-                                            {renderMeta(order)}
+                                            {effectiveRenderMeta(order)}
                                         </span>
                                     </div>
                                 </div>
@@ -131,7 +136,7 @@ export default function OrderSearchInput({
 
                     {open && query.length > 0 && filtered.length === 0 && (
                         <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl px-3 py-3 text-gray-400 text-sm">
-                            مفيش طلبات بـ "{query}"
+                            {t('search.order.noResults', { query })}
                         </div>
                     )}
                 </div>
@@ -141,11 +146,10 @@ export default function OrderSearchInput({
                     onClick={() => setBrowseOpen(true)}
                     className="px-3 py-2 bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-300 text-sm rounded-lg transition-colors whitespace-nowrap"
                 >
-                    تصفح
+                    {t('search.browse')}
                 </button>
             </div>
 
-            {/* تصفح الطلبات Modal */}
             {browseOpen && (
                 <div
                     className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
@@ -156,7 +160,7 @@ export default function OrderSearchInput({
                         onClick={e => e.stopPropagation()}
                     >
                         <div className="flex items-center justify-between p-4 border-b border-gray-800">
-                            <h3 className="text-white font-semibold">تصفح الطلبات</h3>
+                            <h3 className="text-white font-semibold">{t('search.order.browseTitle')}</h3>
                             <button
                                 type="button"
                                 onClick={() => { setBrowseOpen(false); setBrowseQuery('') }}
@@ -171,12 +175,12 @@ export default function OrderSearchInput({
                                 type="text"
                                 value={browseQuery}
                                 onChange={e => setBrowseQuery(e.target.value)}
-                                placeholder="ابحث برقم الفاتورة..."
+                                placeholder={t('search.order.placeholder')}
                                 autoFocus
                                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-orange-500 text-sm"
                             />
                             <p className="text-gray-500 text-xs mt-2">
-                                الطلبات: {browseFiltered.length}
+                                {t('search.order.countLabel', { count: browseFiltered.length })}
                             </p>
                         </div>
 
@@ -188,11 +192,11 @@ export default function OrderSearchInput({
                                     className="flex items-center justify-between px-4 py-3 hover:bg-gray-800 cursor-pointer transition-colors border-b border-gray-800/50"
                                 >
                                     <span className="text-white text-sm font-medium font-mono">{order.invoice_number}</span>
-                                    <span className="text-gray-400 text-sm">{renderMeta(order)}</span>
+                                    <span className="text-gray-400 text-sm">{effectiveRenderMeta(order)}</span>
                                 </div>
                             ))}
                             {browseFiltered.length === 0 && (
-                                <div className="text-center py-12 text-gray-500 text-sm">مفيش طلبات.</div>
+                                <div className="text-center py-12 text-gray-500 text-sm">{t('search.order.noResultsBrowse')}</div>
                             )}
                         </div>
                     </div>

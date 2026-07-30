@@ -30,4 +30,22 @@ export default {
         noResults: 'No suppliers found for "{query}"',
         noResultsBrowse: 'No suppliers.',
     },
+
+    order: {
+        placeholder: 'Search by invoice number…',
+        browseTitle: 'Browse Orders',
+        countLabel: 'Orders: {count}',
+        noResults: 'No orders found for "{query}"',
+        noResultsBrowse: 'No orders.',
+    },
+
+    global: {
+        placeholder: 'Search customers, products, orders, and suppliers…',
+        searching: 'Searching…',
+        emptyHint: 'Type to search customers, products, orders, and suppliers…',
+        navigateHint: '↑↓ to navigate',
+        selectHint: 'Enter to select',
+        closeHint: 'Esc to close',
+        noResultsFor: 'No results for "{query}"',
+    },
 }

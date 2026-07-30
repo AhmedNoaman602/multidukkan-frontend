@@ -99,4 +99,12 @@ export default {
         billTo: 'Bill to',
         thankYou: 'Thank you for your business — {business}',
     },
+
+    addItemModal: {
+        title: 'Add Item',
+        adding: 'Adding…',
+        submit: 'Add Item',
+        added: 'Item added successfully.',
+        addFailed: 'Something went wrong adding the item.',
+    },
 }
