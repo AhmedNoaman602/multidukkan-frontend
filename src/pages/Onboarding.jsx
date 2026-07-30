@@ -2,21 +2,26 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import { useToast } from '../hooks/useToast'
-
-const STEPS = [
-    { label: 'Welcome' },
-    { label: 'Store' },
-    { label: 'Warehouse' },
-    { label: 'Product' },
-    { label: 'Customer' },
-    { label: 'Team' },
-    { label: 'Done' },
-]
+import { useTranslation } from '../i18n/useTranslation'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 export default function Onboarding() {
     const navigate = useNavigate()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
     const { showToast } = useToast()
+    const { t, dir } = useTranslation()
+    const BackIcon = dir === 'rtl' ? ChevronRight : ChevronLeft
+    const NextIcon = dir === 'rtl' ? ChevronLeft : ChevronRight
+
+    const STEPS = [
+        { label: 'Welcome' },
+        { label: 'Store' },
+        { label: 'Warehouse' },
+        { label: 'Product' },
+        { label: 'Customer' },
+        { label: 'Team' },
+        { label: 'Done' },
+    ]
 
     const [step, setStep] = useState(1)
     const [createdStoreId, setCreatedStoreId] = useState(null)
@@ -52,11 +57,11 @@ export default function Onboarding() {
             const saved = res.data.data ?? res.data
             setUnits(prev => [...prev, saved])
             setProductForm(f => ({ ...f, unit: saved.name }))
-            showToast('تم إضافة الوحدة', 'success')
+            showToast(t('onboarding.product.unitAdded'), 'success')
             setNewUnit('')
             setShowNewUnit(false)
         } catch {
-            showToast('فشل في حفظ الوحدة', 'error')
+            showToast(t('onboarding.product.unitAddFailed'), 'error')
         } finally {
             setSavingUnit(false)
         }
@@ -83,7 +88,7 @@ export default function Onboarding() {
                 if (!productCreated) {
                     const qty = parseInt(productForm.quantity);
                     if (isNaN(qty) || qty < 1) {
-                        showToast('الكمية يجب أن تكون 1 على الأقل', 'error');
+                        showToast(t('onboarding.product.quantityInvalid'), 'error');
                         setLoading(false);
                         return;
                     }
@@ -117,7 +122,7 @@ export default function Onboarding() {
                 return
             }
         } catch (err) {
-            showToast(err.response?.data?.message || 'حدث خطأ، يرجى المحاولة مرة أخرى', 'error')
+            showToast(err.response?.data?.message || t('onboarding.genericError'), 'error')
         } finally {
             setLoading(false)
         }
@@ -137,8 +142,16 @@ export default function Onboarding() {
     }
 
     const getButtonLabel = () => {
-        const labels = { 1: 'ابدأ الآن', 2: 'إنشاء المتجر', 3: 'إنشاء المخزن', 4: 'إضافة المنتج', 5: 'إضافة العميل', 6: 'إضافة الموظف', 7: 'الذهاب للوحة التحكم' }
-        return labels[step] || 'التالي'
+        const labels = {
+            1: t('onboarding.nav.buttons.start'),
+            2: t('onboarding.nav.buttons.createStore'),
+            3: t('onboarding.nav.buttons.createWarehouse'),
+            4: t('onboarding.nav.buttons.addProduct'),
+            5: t('onboarding.nav.buttons.addCustomer'),
+            6: t('onboarding.nav.buttons.addStaff'),
+            7: t('onboarding.nav.buttons.goToDashboard'),
+        }
+        return labels[step] || t('onboarding.nav.buttons.next')
     }
 
     const inp = 'w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-purple-500 text-sm'
@@ -156,29 +169,29 @@ export default function Onboarding() {
                         <p className="text-xs font-semibold tracking-widest text-purple-400 uppercase mb-2" dir='ltr'>MultiDukkan</p>
                         </div>
 <h2 className="text-2xl font-bold text-white mb-2">
-    
+
   <span>
-    👋 أهلاً بك يا
+    {t('onboarding.welcome.greeting')}
   </span>{' '}
   <bdi>{user.name}</bdi>
-</h2>             
+</h2>
 <p className="text-gray-400 text-sm mb-6 leading-relaxed">
-                            سنساعدك في إعداد متجرك في دقيقتين. كل شيء يمكن تعديله لاحقاً.
+                            {t('onboarding.welcome.subtitle')}
                         </p>
                         <div className="space-y-2">
                             {[
-                                { label: 'إنشاء المتجر', optional: false },
-                                { label: 'إنشاء المخزن', optional: false },
-                                { label: 'إضافة منتج', optional: true },
-                                { label: 'إضافة عميل', optional: true },
-                                { label: 'إضافة موظف', optional: true },
+                                { label: t('onboarding.welcome.checklist.createStore'), optional: false },
+                                { label: t('onboarding.welcome.checklist.createWarehouse'), optional: false },
+                                { label: t('onboarding.welcome.checklist.addProduct'), optional: true },
+                                { label: t('onboarding.welcome.checklist.addCustomer'), optional: true },
+                                { label: t('onboarding.welcome.checklist.addStaff'), optional: true },
                             ].map((item, i) => (
                                 <div key={i} className="flex items-center gap-3 px-3 py-2.5 bg-gray-800/60 rounded-lg">
                                     <div className="w-6 h-6 rounded-full bg-purple-500/15 text-purple-400 text-xs font-medium flex items-center justify-center flex-shrink-0">
                                         {i + 1}
                                     </div>
                                     <span className="text-gray-200 text-sm flex-1">{item.label}</span>
-                                    {item.optional && <span className="text-xs text-gray-600">اختياري</span>}
+                                    {item.optional && <span className="text-xs text-gray-600">{t('common.optional')}</span>}
                                 </div>
                             ))}
                         </div>
@@ -188,22 +201,22 @@ export default function Onboarding() {
             case 2:
                 return (
                     <div>
-                        <p className="text-xs font-semibold tracking-widest text-purple-400 uppercase mb-2">الخطوة 1 من 5</p>
-                        <h2 className="text-xl font-bold text-white mb-1">أنشئ متجرك الأول</h2>
-                        <p className="text-gray-400 text-sm mb-6">هذه هي نقطة البيع الرئيسية التي ستُسجَّل منها الطلبات.</p>
+                        <p className="text-xs font-semibold tracking-widest text-purple-400 uppercase mb-2">{t('onboarding.store.stepLabel')}</p>
+                        <h2 className="text-xl font-bold text-white mb-1">{t('onboarding.store.title')}</h2>
+                        <p className="text-gray-400 text-sm mb-6">{t('onboarding.store.subtitle')}</p>
                         <div className="space-y-3">
                             <div>
-                                <label className={lbl}>اسم المتجر *</label>
-                                <input value={storeForm.name} onChange={e => setStoreForm({ ...storeForm, name: e.target.value })} placeholder="مثال: الفرع الرئيسي" className={inp} />
+                                <label className={lbl}>{t('onboarding.store.nameRequired')}</label>
+                                <input value={storeForm.name} onChange={e => setStoreForm({ ...storeForm, name: e.target.value })} placeholder={t('onboarding.store.namePlaceholder')} className={inp} />
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
-                                    <label className={lbl}>العنوان</label>
-                                    <input value={storeForm.address} onChange={e => setStoreForm({ ...storeForm, address: e.target.value })} placeholder="مثال: الإسكندرية" className={inp} />
+                                    <label className={lbl}>{t('common.address')}</label>
+                                    <input value={storeForm.address} onChange={e => setStoreForm({ ...storeForm, address: e.target.value })} placeholder={t('onboarding.store.addressPlaceholder')} className={inp} />
                                 </div>
                                 <div>
-                                    <label className={lbl}>رقم الهاتف</label>
-                                    <input value={storeForm.phone} onChange={e => setStoreForm({ ...storeForm, phone: e.target.value })} placeholder="01xxxxxxxxx" className={inp} />
+                                    <label className={lbl}>{t('onboarding.store.phoneLabel')}</label>
+                                    <input value={storeForm.phone} onChange={e => setStoreForm({ ...storeForm, phone: e.target.value })} placeholder={t('onboarding.store.phonePlaceholder')} className={inp} />
                                 </div>
                             </div>
                         </div>
@@ -213,17 +226,17 @@ export default function Onboarding() {
             case 3:
                 return (
                     <div>
-                        <p className="text-xs font-semibold tracking-widest text-purple-400 uppercase mb-2">الخطوة 2 من 5</p>
-                        <h2 className="text-xl font-bold text-white mb-1">أنشئ مخزنك الأول</h2>
-                        <p className="text-gray-400 text-sm mb-6">المكان الذي ستتابع منه المخزون — يمكنك إضافة مخازن أخرى لاحقاً.</p>
+                        <p className="text-xs font-semibold tracking-widest text-purple-400 uppercase mb-2">{t('onboarding.warehouse.stepLabel')}</p>
+                        <h2 className="text-xl font-bold text-white mb-1">{t('onboarding.warehouse.title')}</h2>
+                        <p className="text-gray-400 text-sm mb-6">{t('onboarding.warehouse.subtitle')}</p>
                         <div className="space-y-3">
                             <div>
-                                <label className={lbl}>اسم المخزن *</label>
-                                <input value={warehouseForm.name} onChange={e => setWarehouseForm({ ...warehouseForm, name: e.target.value })} placeholder="مثال: المخزن الرئيسي" className={inp} />
+                                <label className={lbl}>{t('onboarding.warehouse.nameRequired')}</label>
+                                <input value={warehouseForm.name} onChange={e => setWarehouseForm({ ...warehouseForm, name: e.target.value })} placeholder={t('onboarding.warehouse.namePlaceholder')} className={inp} />
                             </div>
                             <div>
-                                <label className={lbl}>العنوان</label>
-                                <input value={warehouseForm.address} onChange={e => setWarehouseForm({ ...warehouseForm, address: e.target.value })} placeholder="مثال: المخزن الرئيسي - الإسكندرية" className={inp} />
+                                <label className={lbl}>{t('common.address')}</label>
+                                <input value={warehouseForm.address} onChange={e => setWarehouseForm({ ...warehouseForm, address: e.target.value })} placeholder={t('onboarding.warehouse.addressPlaceholder')} className={inp} />
                             </div>
                         </div>
                     </div>
@@ -232,47 +245,47 @@ export default function Onboarding() {
             case 4:
                 return (
                     <div>
-                        <p className="text-xs font-semibold tracking-widest text-purple-400 uppercase mb-2">الخطوة 3 من 5 · اختياري</p>
-                        <h2 className="text-xl font-bold text-white mb-1">أضف أول منتج</h2>
-                        <p className="text-gray-400 text-sm mb-6">يمكنك إضافة المزيد من المنتجات لاحقاً من صفحة المنتجات.</p>
+                        <p className="text-xs font-semibold tracking-widest text-purple-400 uppercase mb-2">{t('onboarding.product.stepLabel')}</p>
+                        <h2 className="text-xl font-bold text-white mb-1">{t('onboarding.product.title')}</h2>
+                        <p className="text-gray-400 text-sm mb-6">{t('onboarding.product.subtitle')}</p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
-                                <label className={lbl}>اسم المنتج *</label>
-                                <input value={productForm.name} onChange={e => setProductForm({ ...productForm, name: e.target.value })} placeholder="مثال: شاكوش كبير" className={inp} />
+                                <label className={lbl}>{t('onboarding.product.nameRequired')}</label>
+                                <input value={productForm.name} onChange={e => setProductForm({ ...productForm, name: e.target.value })} placeholder={t('onboarding.product.namePlaceholder')} className={inp} />
                             </div>
                             <div>
-                                <label className={lbl}>كود المنتج (SKU) *</label>
-                                <input value={productForm.sku} onChange={e => setProductForm({ ...productForm, sku: e.target.value })} placeholder="مثال: HAM-001" className={inp} />
+                                <label className={lbl}>{t('onboarding.product.skuRequired')}</label>
+                                <input value={productForm.sku} onChange={e => setProductForm({ ...productForm, sku: e.target.value })} placeholder={t('onboarding.product.skuPlaceholder')} className={inp} />
                             </div>
                             <div>
-                                <label className={lbl}>سعر البيع *</label>
+                                <label className={lbl}>{t('onboarding.product.priceRequired')}</label>
                                 <input type="number" value={productForm.price} onChange={e => setProductForm({ ...productForm, price: e.target.value })} placeholder="0.00" className={inp} />
                             </div>
                             <div>
-                                <label className={lbl}>سعر التكلفة <span className="text-gray-600">(اختياري)</span></label>
-                                <input type="number" value={productForm.cost_price} onChange={e => setProductForm({ ...productForm, cost_price: e.target.value })} placeholder="ما دفعته للمورد" className={inp} />
+                                <label className={lbl}>{t('onboarding.product.costPriceOptional')} <span className="text-gray-600">({t('common.optional')})</span></label>
+                                <input type="number" value={productForm.cost_price} onChange={e => setProductForm({ ...productForm, cost_price: e.target.value })} placeholder={t('onboarding.product.costPricePlaceholder')} className={inp} />
                             </div>
                             <div>
-                                <label className={lbl}>الوحدة *</label>
+                                <label className={lbl}>{t('onboarding.product.unitRequired')}</label>
                                 <div className="flex gap-2">
                                     <select value={productForm.unit} onChange={e => setProductForm({ ...productForm, unit: e.target.value })} className={`${inp} flex-1`}>
                                         {units.map(u => <option key={u.id} value={u.name}>{u.name}</option>)}
                                     </select>
                                     <button type="button" onClick={() => setShowNewUnit(!showNewUnit)} className="px-3 py-2 bg-gray-800 border border-gray-700 text-gray-400 hover:text-white rounded-lg text-xs transition-colors">
-                                        + جديد
+                                        {t('onboarding.product.newUnitButton')}
                                     </button>
                                 </div>
                                 {showNewUnit && (
                                     <div className="flex gap-2 mt-2">
-                                        <input value={newUnit} onChange={e => setNewUnit(e.target.value)} placeholder="مثال: كرتونة" onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleSaveUnit())} className={`${inp} flex-1 border-purple-500`} autoFocus />
+                                        <input value={newUnit} onChange={e => setNewUnit(e.target.value)} placeholder={t('onboarding.product.newUnitPlaceholder')} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleSaveUnit())} className={`${inp} flex-1 border-purple-500`} autoFocus />
                                         <button type="button" onClick={handleSaveUnit} disabled={savingUnit} className="px-3 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-lg text-xs">
-                                            {savingUnit ? '...' : 'حفظ'}
+                                            {savingUnit ? '...' : t('common.save')}
                                         </button>
                                     </div>
                                 )}
                             </div>
                             <div>
-                                <label className={lbl}>الكمية الأولية</label>
+                                <label className={lbl}>{t('onboarding.product.quantityLabel')}</label>
                                 <input type="number" min="1" value={productForm.quantity} onChange={e => setProductForm({ ...productForm, quantity: e.target.value })} placeholder="0" className={inp} />
                             </div>
                         </div>
@@ -282,28 +295,26 @@ export default function Onboarding() {
             case 5:
                 return (
                     <div>
-                        <p className="text-xs font-semibold tracking-widest text-purple-400 uppercase mb-2">الخطوة 4 من 5 · اختياري</p>
-                        <h2 className="text-xl font-bold text-white mb-1">أضف أول عميل</h2>
-                        <p className="text-gray-400 text-sm mb-6">سجّل أول عملائك — يمكنك إضافة المزيد لاحقاً.</p>
+                        <p className="text-xs font-semibold tracking-widest text-purple-400 uppercase mb-2">{t('onboarding.customer.stepLabel')}</p>
+                        <h2 className="text-xl font-bold text-white mb-1">{t('onboarding.customer.title')}</h2>
+                        <p className="text-gray-400 text-sm mb-6">{t('onboarding.customer.subtitle')}</p>
                         <div className="space-y-3">
                             <div>
-                                <label className={lbl}>الاسم *</label>
-                                <input value={customerForm.name} onChange={e => setCustomerForm({ ...customerForm, name: e.target.value })} placeholder="مثال: محمد أحمد" className={inp} />
+                                <label className={lbl}>{t('onboarding.customer.nameRequired')}</label>
+                                <input value={customerForm.name} onChange={e => setCustomerForm({ ...customerForm, name: e.target.value })} placeholder={t('onboarding.customer.namePlaceholder')} className={inp} />
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
-                                    <label className={lbl}>رقم الهاتف *</label>
-                                    <input value={customerForm.phone} onChange={e => setCustomerForm({ ...customerForm, phone: e.target.value })} placeholder="01xxxxxxxxx" className={inp} />
+                                    <label className={lbl}>{t('onboarding.customer.phoneRequired')}</label>
+                                    <input value={customerForm.phone} onChange={e => setCustomerForm({ ...customerForm, phone: e.target.value })} placeholder={t('onboarding.customer.phonePlaceholder')} className={inp} />
                                 </div>
                                 <div>
-                                    <label className={lbl}>فئة السعر</label>
+                                    <label className={lbl}>{t('onboarding.customer.priceTierLabel')}</label>
                                     <select value={customerForm.price_tier} onChange={e => setCustomerForm({ ...customerForm, price_tier: e.target.value })} className={inp}>
-                                        <option value="">افتراضي</option>
-                                        <option value="a">أ</option>
-                                        <option value="b">ب</option>
-                                        <option value="c">ج</option>
-                                        <option value="d">د</option>
-                                        <option value="e">هـ</option>
+                                        <option value="">{t('enums.priceTier.default')}</option>
+                                        {['a', 'b', 'c', 'd', 'e'].map(tier => (
+                                            <option key={tier} value={tier}>{t(`enums.priceTier.${tier}`)}</option>
+                                        ))}
                                     </select>
                                 </div>
                             </div>
@@ -314,27 +325,27 @@ export default function Onboarding() {
             case 6:
                 return (
                     <div>
-                        <p className="text-xs font-semibold tracking-widest text-purple-400 uppercase mb-2">الخطوة 5 من 5 · اختياري</p>
-                        <h2 className="text-xl font-bold text-white mb-1">أضف موظفاً</h2>
-                        <p className="text-gray-400 text-sm mb-6">امنح أحد موظفيك صلاحية الدخول لإدارة المتجر معك.</p>
+                        <p className="text-xs font-semibold tracking-widest text-purple-400 uppercase mb-2">{t('onboarding.team.stepLabel')}</p>
+                        <h2 className="text-xl font-bold text-white mb-1">{t('onboarding.team.title')}</h2>
+                        <p className="text-gray-400 text-sm mb-6">{t('onboarding.team.subtitle')}</p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
-                                <label className={lbl}>الاسم *</label>
-                                <input value={teamForm.name} onChange={e => setTeamForm({ ...teamForm, name: e.target.value })} placeholder="مثال: أحمد محمد" className={inp} />
+                                <label className={lbl}>{t('onboarding.team.nameRequired')}</label>
+                                <input value={teamForm.name} onChange={e => setTeamForm({ ...teamForm, name: e.target.value })} placeholder={t('onboarding.team.namePlaceholder')} className={inp} />
                             </div>
                             <div>
-                                <label className={lbl}>البريد الإلكتروني *</label>
-                                <input type="email" value={teamForm.email} onChange={e => setTeamForm({ ...teamForm, email: e.target.value })} placeholder="ahmed@example.com" className={inp} />
+                                <label className={lbl}>{t('onboarding.team.emailRequired')}</label>
+                                <input type="email" value={teamForm.email} onChange={e => setTeamForm({ ...teamForm, email: e.target.value })} placeholder={t('onboarding.team.emailPlaceholder')} className={inp} />
                             </div>
                             <div>
-                                <label className={lbl}>كلمة المرور *</label>
-                                <input type="password" value={teamForm.password} onChange={e => setTeamForm({ ...teamForm, password: e.target.value })} placeholder="8 أحرف على الأقل" className={inp} />
+                                <label className={lbl}>{t('onboarding.team.passwordRequired')}</label>
+                                <input type="password" value={teamForm.password} onChange={e => setTeamForm({ ...teamForm, password: e.target.value })} placeholder={t('onboarding.team.passwordPlaceholder')} className={inp} />
                             </div>
                             <div>
-                                <label className={lbl}>الدور الوظيفي</label>
+                                <label className={lbl}>{t('onboarding.team.roleLabel')}</label>
                                 <select value={teamForm.role} onChange={e => setTeamForm({ ...teamForm, role: e.target.value })} className={inp}>
-                                    <option value="store_manager">مدير المتجر</option>
-                                    <option value="store_staff">موظف</option>
+                                    <option value="store_manager">{t('enums.role.store_manager')}</option>
+                                    <option value="store_staff">{t('enums.role.store_staff')}</option>
                                 </select>
                             </div>
                         </div>
@@ -347,9 +358,9 @@ export default function Onboarding() {
                         <div className="w-16 h-16 rounded-full bg-green-500/15 flex items-center justify-center mx-auto mb-4">
                             <span className="text-3xl">✅</span>
                         </div>
-                        <h2 className="text-2xl font-bold text-white mb-2">جاهز للانطلاق! 🎉</h2>
+                        <h2 className="text-2xl font-bold text-white mb-2">{t('onboarding.done.title')}</h2>
                         <p className="text-gray-400 text-sm max-w-xs mx-auto leading-relaxed">
-                            متجرك جاهز الآن. ابدأ بتسجيل أول طلب وتتبع مبيعاتك من لوحة التحكم.
+                            {t('onboarding.done.subtitle')}
                         </p>
                     </div>
                 )
@@ -397,16 +408,15 @@ export default function Onboarding() {
                         <button
                             onClick={handleBack}
                             disabled={step === 1 || step === 7}
-                            className="text-sm text-gray-500 hover:text-white transition-colors disabled:opacity-0"
+                            className="flex items-center text-sm text-gray-500 hover:text-white transition-colors disabled:opacity-0"
                         >
-                            
-{!loading && <span>→</span> }رجوع
+                            {!loading && <BackIcon size={16} />}{t('common.back')}
                         </button>
 
                         <div className="flex items-center gap-3">
                             {[4, 5, 6].includes(step) && (
                                 <button onClick={handleSkip} className="text-sm text-gray-500 hover:text-gray-300 transition-colors">
-                                    تخطي
+                                    {t('onboarding.nav.skip')}
                                 </button>
                             )}
                             <button
@@ -418,8 +428,8 @@ export default function Onboarding() {
                                         : 'bg-purple-600 hover:bg-purple-700'
                                 }`}
                             >
-                                {loading ? 'يرجى الانتظار...' : getButtonLabel()}
-                                {!loading && <span>←</span>}
+                                {loading ? t('onboarding.nav.pleaseWait') : getButtonLabel()}
+                                {!loading && <NextIcon size={16} />}
                             </button>
                         </div>
                     </div>

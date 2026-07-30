@@ -14,6 +14,7 @@ import suppliers from './suppliers'
 import purchaseOrders from './purchaseOrders'
 import reports from './reports'
 import settings from './settings'
+import onboarding from './onboarding'
 
 // Add a namespace here as each feature is migrated off hardcoded strings.
 export default {
@@ -33,4 +34,5 @@ export default {
     purchaseOrders,
     reports,
     settings,
+    onboarding,
 }
