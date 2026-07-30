@@ -61,6 +61,8 @@ export default {
     refunded: 'المسترد',
     net: 'الصافي',
     reference: 'المرجع',
+    closeWindow: '✕ إغلاق',
+    printOrSavePdf: '🖨️ طباعة / حفظ PDF',
 
     // ترقيم الصفحات
     previous: 'السابق',

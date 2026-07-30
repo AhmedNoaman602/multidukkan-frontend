@@ -34,4 +34,10 @@ export default {
         cancelling: 'جاري الإلغاء...',
         yesCancel: 'أيوة، الغِ',
     },
+
+    invoice: {
+        loadFailed: 'حصلت مشكلة في تحميل أمر الشراء',
+        notFound: 'أمر الشراء غير موجود',
+        heading: 'أمر شراء',
+    },
 }

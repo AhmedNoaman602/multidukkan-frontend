@@ -92,4 +92,11 @@ export default {
         itemUpdateFailed: 'حصلت مشكلة في تعديل الصنف',
         loadFailed: 'حصلت مشكلة في تحميل الطلب',
     },
+
+    invoice: {
+        loadFailed: 'حصلت مشكلة في تحميل الفاتورة',
+        notFound: 'الطلب غير موجود',
+        billTo: 'فاتورة إلى',
+        thankYou: 'شكراً لتعاملك معانا — {business}',
+    },
 }

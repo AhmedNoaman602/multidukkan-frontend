@@ -12,6 +12,7 @@ import auth from './auth'
 import inventory from './inventory'
 import suppliers from './suppliers'
 import purchaseOrders from './purchaseOrders'
+import reports from './reports'
 
 // Add a namespace here as each feature is migrated off hardcoded strings.
 export default {
@@ -29,4 +30,5 @@ export default {
     inventory,
     suppliers,
     purchaseOrders,
+    reports,
 }

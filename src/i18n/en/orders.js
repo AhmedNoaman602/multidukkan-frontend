@@ -92,4 +92,11 @@ export default {
         itemUpdateFailed: 'Something went wrong updating the item.',
         loadFailed: 'Something went wrong loading the order.',
     },
+
+    invoice: {
+        loadFailed: 'Something went wrong loading the invoice.',
+        notFound: 'Order not found',
+        billTo: 'Bill to',
+        thankYou: 'Thank you for your business — {business}',
+    },
 }

@@ -34,4 +34,10 @@ export default {
         cancelling: 'Cancelling…',
         yesCancel: 'Yes, cancel',
     },
+
+    invoice: {
+        loadFailed: 'Something went wrong loading the purchase order.',
+        notFound: 'Purchase order not found',
+        heading: 'Purchase Order',
+    },
 }

@@ -61,6 +61,8 @@ export default {
     refunded: 'Refunded',
     net: 'Net',
     reference: 'Reference',
+    closeWindow: '✕ Close',
+    printOrSavePdf: '🖨️ Print / Save PDF',
 
     // Pagination
     previous: 'Previous',

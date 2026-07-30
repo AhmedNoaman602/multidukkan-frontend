@@ -3,12 +3,15 @@ import { useParams } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import { useToast } from '../hooks/useToast'
+import { useTranslation } from '../i18n/useTranslation'
+import { formatCurrency, formatDate } from '../lib/format'
 
 export default function OrderInvoice() {
     const { id } = useParams()
     const [order, setOrder] = useState(null)
     const [loading, setLoading] = useState(true)
     const {showToast} = useToast()
+    const { t, lang } = useTranslation()
    let user = {}
 
 try {
@@ -20,7 +23,7 @@ try {
     useEffect(() => {
         api.get(`/orders/${id}`)
             .then(res => setOrder(res.data))
-            .catch(() => showToast('حصلت مشكلة في تحميل الفاتورة', 'error'))
+            .catch(() => showToast(t('orders.invoice.loadFailed'), 'error'))
             .finally(() => setLoading(false))
     }, [id])
 
@@ -32,7 +35,7 @@ try {
 
     if (!order) return (
         <div className="flex items-center justify-center min-h-screen bg-white">
-            <p className="text-red-500">الطلب غير موجود</p>
+            <p className="text-red-500">{t('orders.invoice.notFound')}</p>
         </div>
     )
 
@@ -40,8 +43,8 @@ try {
 
     // Merge items with same product_name and unit_price
 const mergedItems = order.items?.reduce((acc, item) => {
-    const existing = acc.find(i => 
-        i.product_name === item.product_name && 
+    const existing = acc.find(i =>
+        i.product_name === item.product_name &&
         i.unit_price === item.unit_price
     )
     if (existing) {
@@ -62,8 +65,8 @@ const mergedItems = order.items?.reduce((acc, item) => {
         body { background: white !important; }
         .invoice-wrapper { box-shadow: none !important; }
     }
-    body { 
-        background: #d7dbe4ff !important; 
+    body {
+        background: #d7dbe4ff !important;
         color: #111827 !important;
     }
 `}</style>
@@ -74,13 +77,13 @@ const mergedItems = order.items?.reduce((acc, item) => {
         onClick={() => window.close()}
         className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-medium rounded-lg transition-colors"
     >
-        ✕ إغلاق
+        {t('common.closeWindow')}
     </button>
     <button
         onClick={() => window.print()}
         className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
     >
-        🖨️ طباعة / حفظ PDF
+        {t('common.printOrSavePdf')}
     </button>
 </div>
 
@@ -95,7 +98,7 @@ const mergedItems = order.items?.reduce((acc, item) => {
                         )}
                     </div>
                     <div className="text-end">
-                        <p className="text-2xl font-bold text-gray-900">فاتورة</p>
+                        <p className="text-2xl font-bold text-gray-900">{t('common.invoice')}</p>
                         <p className="text-gray-500 text-sm mt-1">#{order.invoice_number}</p>
                     </div>
                 </div>
@@ -106,16 +109,16 @@ const mergedItems = order.items?.reduce((acc, item) => {
                 {/* Customer + Date */}
                 <div className="flex justify-between mb-8">
                     <div>
-                        <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">فاتورة إلى</p>
+                        <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">{t('orders.invoice.billTo')}</p>
                         <p className="text-gray-900 font-semibold">{order.customer_name}</p>
                         {order.customer_phone && (
                             <p className="text-gray-500 text-sm">{order.customer_phone}</p>
                         )}
                     </div>
                     <div className="text-end">
-                        <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">التاريخ</p>
+                        <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">{t('common.date')}</p>
                         <p className="text-gray-900 text-sm">
-                            {new Date(order.order_date || order.created_at).toLocaleDateString('en-GB')}
+                            {formatDate(order.order_date || order.created_at, lang)}
                         </p>
                         <div className="mt-2">
                             <span className={`px-2 py-1 rounded text-xs font-medium ${
@@ -123,7 +126,7 @@ const mergedItems = order.items?.reduce((acc, item) => {
                                     ? 'bg-green-100 text-green-700'
                                     : 'bg-red-100 text-red-700'
                             }`}>
-                                {order.status === 'paid' ? 'مدفوع' : 'غير مدفوع'}
+                                {t(`enums.orderStatus.${order.status}`)}
                             </span>
                         </div>
                     </div>
@@ -133,10 +136,10 @@ const mergedItems = order.items?.reduce((acc, item) => {
                 <table className="w-full mb-6">
                     <thead>
                         <tr className="border-b-2 border-gray-200">
-                            <th className="text-start text-xs text-gray-400 uppercase tracking-wider pb-2">المنتج</th>
-                            <th className="text-center text-xs text-gray-400 uppercase tracking-wider pb-2">الكمية</th>
-                            <th className="text-end text-xs text-gray-400 uppercase tracking-wider pb-2">سعر الوحدة</th>
-                            <th className="text-end text-xs text-gray-400 uppercase tracking-wider pb-2">الإجمالي</th>
+                            <th className="text-start text-xs text-gray-400 uppercase tracking-wider pb-2">{t('common.product')}</th>
+                            <th className="text-center text-xs text-gray-400 uppercase tracking-wider pb-2">{t('common.quantity')}</th>
+                            <th className="text-end text-xs text-gray-400 uppercase tracking-wider pb-2">{t('orders.unitPrice')}</th>
+                            <th className="text-end text-xs text-gray-400 uppercase tracking-wider pb-2">{t('common.total')}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -144,8 +147,8 @@ const mergedItems = order.items?.reduce((acc, item) => {
                             <tr key={index} className="border-b border-gray-100">
                                 <td className="py-3 text-gray-900 text-sm">{item.product_name}</td>
                                 <td className="py-3 text-center text-gray-600 text-sm">{item.quantity}</td>
-                                <td className="py-3 text-end text-gray-600 text-sm">{item.unit_price} ج.م</td>
-                                <td className="py-3 text-end text-gray-900 text-sm font-medium">{item.total} ج.م</td>
+                                <td className="py-3 text-end text-gray-600 text-sm">{formatCurrency(item.unit_price, lang)}</td>
+                                <td className="py-3 text-end text-gray-900 text-sm font-medium">{formatCurrency(item.total, lang)}</td>
                             </tr>
                         ))}
                     </tbody>
@@ -155,23 +158,23 @@ const mergedItems = order.items?.reduce((acc, item) => {
                 <div className="flex justify-end mb-6">
                     <div className="w-56 space-y-2">
                         <div className="flex justify-between text-sm text-gray-600">
-                            <span>الإجمالي الفرعي</span>
-                            <span>{order.subtotal} ج.م</span>
+                            <span>{t('orders.subtotal')}</span>
+                            <span>{formatCurrency(order.subtotal, lang)}</span>
                         </div>
                         {hasDiscount && (
                             <div className="flex justify-between text-sm text-green-600">
-                                <span>الخصم</span>
-                                <span>- {order.discount} ج.م</span>
+                                <span>{t('orders.discount')}</span>
+                                <span>- {formatCurrency(order.discount, lang)}</span>
                             </div>
                         )}
                         <div className="flex justify-between text-base font-bold text-gray-900 border-t border-gray-200 pt-2">
-                            <span>الإجمالي</span>
-                            <span>{order.total} ج.م</span>
+                            <span>{t('common.total')}</span>
+                            <span>{formatCurrency(order.total, lang)}</span>
                         </div>
                         {order.status === 'unpaid' && order.amount_remaining > 0 && (
                             <div className="flex justify-between text-sm text-red-600">
-                                <span>المبلغ المستحق</span>
-                                <span>{order.amount_remaining} ج.م</span>
+                                <span>{t('orders.detail.amountDue')}</span>
+                                <span>{formatCurrency(order.amount_remaining, lang)}</span>
                             </div>
                         )}
                     </div>
@@ -180,14 +183,14 @@ const mergedItems = order.items?.reduce((acc, item) => {
                 {/* Notes */}
                 {order.notes && (
                     <div className="border-t border-gray-200 pt-4">
-                        <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">ملاحظات</p>
+                        <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">{t('common.notes')}</p>
                         <p className="text-gray-600 text-sm">{order.notes}</p>
                     </div>
                 )}
 
                 {/* Footer */}
                 <div className="border-t border-gray-200 mt-8 pt-4 text-center">
-                    <p className="text-gray-400 text-xs">شكراً لتعاملك معانا — {user.business_name}</p>
+                    <p className="text-gray-400 text-xs">{t('orders.invoice.thankYou', { business: user.business_name })}</p>
                 </div>
 
             </div>
