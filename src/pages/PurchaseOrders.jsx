@@ -1,12 +1,17 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import api from "../api/axios";
 import LoadingSpinner from "../components/LoadingSpinner";
 import SearchInput from "../components/SearchInput";
 import Modal from "../components/Modal";
 import StatBoxes from "../components/StatBoxes";
 import { useToast } from "../hooks/useToast";
+import { useTranslation } from "../i18n/useTranslation";
+import { formatCurrency, formatDate, formatNumber } from "../lib/format";
+
+const PAY_METHODS = ["cash", "bank_transfer", "check"];
 
 export default function PurchaseOrders() {
   const [purchaseOrders, setPurchaseOrders] = useState([]);
@@ -29,6 +34,7 @@ export default function PurchaseOrders() {
   const [tooltipPos, setTooltipPos] = useState(null);
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { t, lang, dir } = useTranslation();
 
   const hasActiveFilters =
     yearFilter || monthFilter || dateFrom || dateTo || dateExact || search || filterMode !== 'all';
@@ -64,7 +70,7 @@ export default function PurchaseOrders() {
         setYears(res.data.years);
         setStats(res.data.stats || null);
       })
-      .catch(() => showToast("حصلت مشكلة في تحميل أوامر الشراء", "error"))
+      .catch(() => showToast(t("purchaseOrders.loadFailed"), "error"))
       .finally(() => {
         setLoading(false)
       });
@@ -93,7 +99,7 @@ export default function PurchaseOrders() {
         amount: parseFloat(payForm.amount),
         method: payForm.method,
       });
-      showToast("تم تسجيل الدفع بنجاح!", "success");
+      showToast(t("orders.payModal.success"), "success");
       setTimeout(() => {
         setPayTarget(null);
         setPayForm({ amount: "", method: "cash" });
@@ -101,7 +107,7 @@ export default function PurchaseOrders() {
       }, 1500);
     } catch (err) {
       showToast(
-        err.response?.data?.message || "حصلت مشكلة في تنفيذ الدفع",
+        err.response?.data?.message || t("orders.payModal.failed"),
         "error",
       );
     } finally {
@@ -121,6 +127,11 @@ export default function PurchaseOrders() {
     return Math.max(total - remaining, 0);
   };
 
+  // Pagination arrows are physical, so they have to follow the reading
+  // direction rather than being baked into the translated label.
+  const PrevIcon = dir === "rtl" ? ChevronRight : ChevronLeft;
+  const NextIcon = dir === "rtl" ? ChevronLeft : ChevronRight;
+
   if (loading) return <LoadingSpinner />;
 
   return (
@@ -128,12 +139,12 @@ export default function PurchaseOrders() {
       <div className="mb-6 space-y-4">
         {/* Top row */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <h2 className="text-2xl font-bold text-white">أوامر الشراء</h2>
+          <h2 className="text-2xl font-bold text-white">{t("purchaseOrders.title")}</h2>
           <button
             onClick={() => navigate("/purchase-orders/create")}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
           >
-            + أمر شراء جديد
+            {t("purchaseOrders.newOrder")}
           </button>
         </div>
 
@@ -143,27 +154,20 @@ export default function PurchaseOrders() {
             <SearchInput
               value={search}
               onChange={(e) => handleSearch(e.target.value)}
-              placeholder="ابحث بالمورد أو رقم الفاتورة..."
+              placeholder={t("search.supplier.placeholder")}
             />
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-gray-500 text-xs uppercase tracking-wider">
-              تصفية:
+              {t("orders.list.filterLabel")}
             </span>
-            {[
-              { label: "كل الفترات", value: "all" },
-              { label: "اليوم", value: "today" },
-              { label: "الشهر", value: "month" },
-              { label: "السنة", value: "year" },
-              { label: "فترة", value: "range" },
-              { label: "تاريخ محدد", value: "exact" },
-            ].map((mode) => (
+            {["all", "today", "month", "year", "range", "exact"].map((mode) => (
               <button
-                key={mode.value}
+                key={mode}
                 type="button"
                 onClick={() => {
-                  setFilterMode(mode.value);
+                  setFilterMode(mode);
                   setYearFilter("");
                   setMonthFilter("");
                   setDateFrom("");
@@ -172,12 +176,12 @@ export default function PurchaseOrders() {
                   setPage(1);
                 }}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                  filterMode === mode.value
+                  filterMode === mode
                     ? "bg-blue-600 text-white"
                     : "bg-gray-800 text-gray-400 hover:text-white border border-gray-700"
                 }`}
               >
-                {mode.label}
+                {t(`orders.list.filterModes.${mode}`)}
               </button>
             ))}
           </div>
@@ -191,7 +195,7 @@ export default function PurchaseOrders() {
               }}
               className="px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg text-sm focus:outline-none focus:border-blue-500"
             >
-              <option value="">اختر السنة</option>
+              <option value="">{t("orders.list.chooseYear")}</option>
               {years.map((y) => (
                 <option key={y} value={y}>
                   {y}
@@ -210,7 +214,7 @@ export default function PurchaseOrders() {
                 }}
                 className="px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg text-sm focus:outline-none focus:border-blue-500"
               >
-                <option value="">اختر السنة</option>
+                <option value="">{t("orders.list.chooseYear")}</option>
                 {years.map((y) => (
                   <option key={y} value={y}>
                     {y}
@@ -225,23 +229,10 @@ export default function PurchaseOrders() {
                 }}
                 className="px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg text-sm focus:outline-none focus:border-blue-500"
               >
-                <option value="">اختر الشهر</option>
-                {[
-                  "يناير",
-                  "فبراير",
-                  "مارس",
-                  "أبريل",
-                  "مايو",
-                  "يونيو",
-                  "يوليو",
-                  "أغسطس",
-                  "سبتمبر",
-                  "أكتوبر",
-                  "نوفمبر",
-                  "ديسمبر",
-                ].map((name, i) => (
+                <option value="">{t("orders.list.chooseMonth")}</option>
+                {Array.from({ length: 12 }, (_, i) => (
                   <option key={i + 1} value={i + 1}>
-                    {name}
+                    {t(`common.months.${i}`)}
                   </option>
                 ))}
               </select>
@@ -251,7 +242,7 @@ export default function PurchaseOrders() {
           {filterMode === "range" && (
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
-                <span className="text-gray-500 text-sm">من</span>
+                <span className="text-gray-500 text-sm">{t("common.from")}</span>
                 <input
                   type="date"
                   value={dateFrom}
@@ -264,7 +255,7 @@ export default function PurchaseOrders() {
                 />
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-gray-500 text-sm">إلى</span>
+                <span className="text-gray-500 text-sm">{t("common.to")}</span>
                 <input
                   type="date"
                   value={dateTo}
@@ -297,7 +288,7 @@ export default function PurchaseOrders() {
               onClick={clearFilters}
               className="px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-400 hover:text-red-300 rounded-lg text-xs transition-colors"
             >
-              Clear ✕
+              {t("common.clearFilters")}
             </button>
           )}
         </div>
@@ -306,23 +297,23 @@ export default function PurchaseOrders() {
         <StatBoxes
           stats={[
             {
-              label: "إجمالي الأوامر",
-              value: stats.total_orders,
+              label: t("purchaseOrders.totalOrders"),
+              value: formatNumber(stats.total_orders),
               color: "white",
             },
             {
-              label: "إجمالي المصروف",
-              value: `${stats.total_spent} ج.م`,
+              label: t("purchaseOrders.totalSpent"),
+              value: formatCurrency(stats.total_spent, lang),
               color: "white",
             },
             {
-              label: "المدفوع",
-              value: `${stats.paid_amount} ج.م`,
+              label: t("orders.list.paidAmount"),
+              value: formatCurrency(stats.paid_amount, lang),
               color: "green",
             },
             {
-              label: "غير المدفوع",
-              value: `${stats.unpaid_amount} ج.م`,
+              label: t("orders.list.unpaidAmount"),
+              value: formatCurrency(stats.unpaid_amount, lang),
               color: "red",
             },
           ]}
@@ -334,19 +325,19 @@ export default function PurchaseOrders() {
           <thead className="bg-gray-800">
             <tr>
               {[
-                "الفاتورة",
-                "المورد",
-                "الأصناف",
-                "الإجمالي",
-                "الحالة",
-                "التاريخ",
-                "إجراءات",
-              ].map((h) => (
+                "common.invoice",
+                "common.supplier",
+                "common.items",
+                "common.total",
+                "common.status",
+                "common.date",
+                "common.actions",
+              ].map((key) => (
                 <th
-                  key={h}
+                  key={key}
                   className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider"
                 >
-                  {h}
+                  {t(key)}
                 </th>
               ))}
             </tr>
@@ -376,10 +367,10 @@ export default function PurchaseOrders() {
                   {order.supplier_name}
                 </td>
                 <td className="px-4 py-3 text-gray-400 text-sm">
-                  الأصناف: {order.items_count}
+                  {t("purchaseOrders.itemsCount", { count: order.items_count })}
                 </td>
                 <td className="px-4 py-3 text-white text-sm">
-                  {order.total} ج.م
+                  {formatCurrency(order.total, lang)}
                 </td>
                 <td className="px-4 py-3">
                   <span
@@ -389,11 +380,11 @@ export default function PurchaseOrders() {
                         : "bg-red-500/20 text-red-400"
                     }`}
                   >
-                    {order.status}
+                    {t(`enums.orderStatus.${order.status}`)}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-gray-400 text-sm">
-                  {new Date(order.created_at).toLocaleDateString()}
+                  {formatDate(order.created_at, lang)}
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <div className="flex items-center gap-2">
@@ -407,7 +398,7 @@ export default function PurchaseOrders() {
                       }}
                       className="px-3 py-1 bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-medium rounded-lg hover:bg-green-500/20 transition-colors"
                     >
-                      فاتورة
+                      {t("common.invoice")}
                     </button>
                     {order.status === "unpaid" && (
                       <button
@@ -421,7 +412,7 @@ export default function PurchaseOrders() {
                         }}
                         className="px-3 py-1 bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-medium rounded-lg hover:bg-purple-500/20 transition-colors"
                       >
-                        دفع
+                        {t("orders.list.pay")}
                       </button>
                     )}
                   </div>
@@ -434,8 +425,8 @@ export default function PurchaseOrders() {
         {purchaseOrders.length === 0 && (
           <div className="text-center py-16 text-gray-500">
             {hasActiveFilters
-              ? "مفيش أوامر مطابقة للتصفية."
-              : "مفيش أوامر شراء لسه."}
+              ? t("purchaseOrders.emptyFiltered")
+              : t("purchaseOrders.empty")}
           </div>
         )}
       </div>
@@ -445,19 +436,21 @@ export default function PurchaseOrders() {
           <button
             onClick={() => setPage((p) => p - 1)}
             disabled={page === 1}
-            className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
+            className="flex items-center gap-1 px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
           >
-            → السابق
+            <PrevIcon size={16} />
+            {t("common.previous")}
           </button>
           <span className="text-gray-400 text-sm">
-            صفحة {page} من {lastPage}
+            {t("common.pageOf", { page, total: lastPage })}
           </span>
           <button
             onClick={() => setPage((p) => p + 1)}
             disabled={page === lastPage}
-            className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
+            className="flex items-center gap-1 px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
           >
-            التالي ←
+            {t("common.next")}
+            <NextIcon size={16} />
           </button>
         </div>
       )}
@@ -468,12 +461,12 @@ export default function PurchaseOrders() {
           setPayTarget(null);
           setPayForm({ amount: "", method: "cash" });
         }}
-        title={`Pay — ${payTarget?.invoice_number}`}
+        title={t("orders.payModal.title", { invoice: payTarget?.invoice_number })}
       >
         {payTarget && (
           <form onSubmit={handlePay} className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-400 mb-1">المبلغ</label>
+              <label className="block text-sm text-gray-400 mb-1">{t("common.amount")}</label>
               <input
                 type="number"
                 min="0.01"
@@ -487,7 +480,7 @@ export default function PurchaseOrders() {
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-400 mb-1">طريقة الدفع</label>
+              <label className="block text-sm text-gray-400 mb-1">{t("orders.payModal.method")}</label>
               <select
                 value={payForm.method}
                 onChange={(e) =>
@@ -495,9 +488,9 @@ export default function PurchaseOrders() {
                 }
                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-purple-500 text-sm"
               >
-                <option value="cash">نقدي</option>
-                <option value="bank_transfer">تحويل بنكي</option>
-                <option value="check">شيك</option>
+                {PAY_METHODS.map((method) => (
+                  <option key={method} value={method}>{t(`enums.paymentMethod.${method}`)}</option>
+                ))}
               </select>
             </div>
             <div className="flex justify-end gap-2 pt-2">
@@ -506,14 +499,14 @@ export default function PurchaseOrders() {
                 onClick={() => setPayTarget(null)}
                 className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
               >
-                إلغاء
+                {t("common.cancel")}
               </button>
               <button
                 type="submit"
                 disabled={paying || !payForm.amount}
                 className="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
               >
-                {paying ? "جاري التنفيذ..." : "تأكيد الدفع"}
+                {paying ? t("orders.payModal.processing") : t("orders.payModal.confirm")}
               </button>
             </div>
           </form>
@@ -538,26 +531,26 @@ export default function PurchaseOrders() {
                 <div className="relative bg-gray-800 border border-gray-700 rounded-lg shadow-2xl px-4 py-3 w-60">
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-400">الإجمالي:</span>
+                      <span className="text-gray-400">{t("common.total")}:</span>
                       <span className="text-white font-medium">
-                        {order.total} ج.م
+                        {formatCurrency(order.total, lang)}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-400">المدفوع:</span>
+                      <span className="text-gray-400">{t("orders.list.tooltipPaid")}</span>
                       <span className="text-green-400 font-medium">
-                        {getPaidAmount(order)} ج.م
+                        {formatCurrency(getPaidAmount(order), lang)}
                       </span>
                     </div>
                     <div className="flex justify-between items-center border-t border-gray-700 pt-2">
-                      <span className="text-gray-400">المتبقي:</span>
+                      <span className="text-gray-400">{t("orders.list.tooltipRemaining")}</span>
                       <span className="text-red-400 font-medium">
-                        {order.amount_remaining || 0} ج.م
+                        {formatCurrency(order.amount_remaining || 0, lang)}
                       </span>
                     </div>
                     {order.payments_count > 0 && (
                       <div className="text-xs text-gray-500 text-center pt-1">
-                        الدفعات: {order.payments_count}
+                        {t("common.paymentsCount", { count: order.payments_count })}
                       </div>
                     )}
                   </div>

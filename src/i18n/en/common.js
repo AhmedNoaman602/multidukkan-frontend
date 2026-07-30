@@ -40,6 +40,7 @@ export default {
     remaining: 'Remaining',
     status: 'Status',
     customer: 'Customer',
+    supplier: 'Supplier',
     createdBy: 'Created by',
     description: 'Description',
     notes: 'Notes',

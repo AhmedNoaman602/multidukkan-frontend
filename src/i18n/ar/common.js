@@ -40,6 +40,7 @@ export default {
     remaining: 'المتبقي',
     status: 'الحالة',
     customer: 'العميل',
+    supplier: 'المورد',
     createdBy: 'بواسطة',
     description: 'الوصف',
     notes: 'ملاحظات',

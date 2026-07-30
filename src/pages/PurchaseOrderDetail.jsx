@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import BackButton from '../components/BackButton'
+import { useTranslation } from '../i18n/useTranslation'
+import { formatCurrency, formatDate } from '../lib/format'
 
 export default function PurchaseOrderDetail() {
     const { id } = useParams()
@@ -13,11 +15,12 @@ export default function PurchaseOrderDetail() {
     const [cancelling, setCancelling] = useState(false)
     const [showConfirm, setShowConfirm] = useState(false)
     const user = JSON.parse(localStorage.getItem('user') || '{}')
+    const { t, lang } = useTranslation()
 
     useEffect(() => {
         api.get(`/purchase-orders/${id}`)
             .then(res => setOrder(res.data.data))
-            .catch(() => setError('حصلت مشكلة في تحميل أمر الشراء'))
+            .catch(() => setError(t('purchaseOrders.detail.loadFailed')))
             .finally(() => setLoading(false))
     }, [id])
 
@@ -27,7 +30,7 @@ export default function PurchaseOrderDetail() {
             await api.delete(`/purchase-orders/${id}`)
             navigate('/purchase-orders')
         } catch (err) {
-            setError(err.response?.data?.message || 'حصلت مشكلة في إلغاء أمر الشراء')
+            setError(err.response?.data?.message || t('purchaseOrders.detail.cancelFailed'))
             setShowConfirm(false)
         } finally {
             setCancelling(false)
@@ -41,20 +44,20 @@ export default function PurchaseOrderDetail() {
         <div className="max-w-4xl">
             {/* Back + actions */}
             <div className="flex items-center justify-between mb-6">
-                <BackButton label="رجوع"/>
+                <BackButton label={t('common.back')}/>
                 <div className="flex gap-2">
                     <button
                         onClick={() => window.open(`/purchase-orders/${id}/invoice`, '_blank')}
                         className="px-4 py-2 bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-medium rounded-lg hover:bg-green-500/20 transition-colors"
                     >
-                        🖨️ فاتورة
+                        🖨️ {t('common.invoice')}
                     </button>
                     {user.role === 'tenant_admin' && (
                         <button
                             onClick={() => setShowConfirm(true)}
                             className="px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium rounded-lg hover:bg-red-500/20 transition-colors"
                         >
-                            إلغاء الأمر
+                            {t('purchaseOrders.detail.cancelOrder')}
                         </button>
                     )}
                 </div>
@@ -70,7 +73,7 @@ export default function PurchaseOrderDetail() {
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
                 <div className="flex items-start justify-between">
                     <div>
-                        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">رقم الفاتورة</p>
+                        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">{t('common.invoice')}</p>
                         <p className="text-white text-2xl font-bold font-mono">{order.invoice_number}</p>
                     </div>
                     <span className={`px-3 py-1 rounded-lg text-sm font-medium ${
@@ -78,22 +81,22 @@ export default function PurchaseOrderDetail() {
                             ? 'bg-green-500/20 text-green-400'
                             : 'bg-red-500/20 text-red-400'
                     }`}>
-                        {order.status === 'paid' ? 'مدفوع' : 'غير مدفوع'}
+                        {t(`enums.orderStatus.${order.status}`)}
                     </span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
                     <div>
-                        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">المورد</p>
+                        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">{t('common.supplier')}</p>
                         <p className="text-white text-sm font-medium">{order.supplier_name}</p>
                         {order.supplier_phone && (
                             <p className="text-gray-400 text-sm">{order.supplier_phone}</p>
                         )}
                     </div>
                     <div>
-                        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">التاريخ</p>
+                        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">{t('common.date')}</p>
                         <p className="text-white text-sm">
-                            {new Date(order.created_at).toLocaleDateString('en-GB')}
+                            {formatDate(order.created_at, lang)}
                         </p>
                     </div>
                 </div>
@@ -101,14 +104,14 @@ export default function PurchaseOrderDetail() {
 
             {/* Items */}
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-                <h3 className="text-white font-semibold mb-4">أصناف الأمر</h3>
+                <h3 className="text-white font-semibold mb-4">{t('purchaseOrders.detail.orderItems')}</h3>
                 <div className="overflow-x-auto">
                 <table className="w-full">
                     <thead>
                         <tr className="border-b border-gray-800">
-                            {['المنتج', 'الكمية', 'سعر الوحدة', 'الإجمالي'].map(h => (
-                                <th key={h} className="text-start text-xs text-gray-400 uppercase tracking-wider pb-3">
-                                    {h}
+                            {['common.product', 'common.quantity', 'orders.unitPrice', 'common.total'].map(key => (
+                                <th key={key} className="text-start text-xs text-gray-400 uppercase tracking-wider pb-3">
+                                    {t(key)}
                                 </th>
                             ))}
                         </tr>
@@ -118,8 +121,8 @@ export default function PurchaseOrderDetail() {
                             <tr key={index}>
                                 <td className="py-3 text-white text-sm">{item.product_name}</td>
                                 <td className="py-3 text-gray-400 text-sm">{item.quantity}</td>
-                                <td className="py-3 text-gray-400 text-sm">{item.unit_price} ج.م</td>
-                                <td className="py-3 text-white text-sm font-medium">{item.total} ج.م</td>
+                                <td className="py-3 text-gray-400 text-sm">{formatCurrency(item.unit_price, lang)}</td>
+                                <td className="py-3 text-white text-sm font-medium">{formatCurrency(item.total, lang)}</td>
                             </tr>
                         ))}
                     </tbody>
@@ -130,17 +133,17 @@ export default function PurchaseOrderDetail() {
                 <div className="flex justify-end mt-4">
                     <div className="w-56 space-y-2 border-t border-gray-800 pt-4">
                         <div className="flex justify-between text-sm text-gray-400">
-                            <span>الإجمالي الفرعي</span>
-                            <span>{order.subtotal} ج.م</span>
+                            <span>{t('orders.subtotal')}</span>
+                            <span>{formatCurrency(order.subtotal, lang)}</span>
                         </div>
                         <div className="flex justify-between text-base font-bold text-white border-t border-gray-800 pt-2">
-                            <span>الإجمالي</span>
-                            <span>{order.total} ج.م</span>
+                            <span>{t('common.total')}</span>
+                            <span>{formatCurrency(order.total, lang)}</span>
                         </div>
                         {order.status === 'unpaid' && order.amount_remaining > 0 && (
                             <div className="flex justify-between text-sm text-red-400">
-                                <span>المبلغ المستحق</span>
-                                <span>{order.amount_remaining} ج.م</span>
+                                <span>{t('orders.detail.amountDue')}</span>
+                                <span>{formatCurrency(order.amount_remaining, lang)}</span>
                             </div>
                         )}
                     </div>
@@ -150,7 +153,7 @@ export default function PurchaseOrderDetail() {
             {/* Notes */}
             {order.notes && (
                 <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-                    <p className="text-gray-400 text-xs uppercase tracking-wider mb-2">ملاحظات</p>
+                    <p className="text-gray-400 text-xs uppercase tracking-wider mb-2">{t('common.notes')}</p>
                     <p className="text-white text-sm">{order.notes}</p>
                 </div>
             )}
@@ -159,23 +162,23 @@ export default function PurchaseOrderDetail() {
             {showConfirm && (
                 <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
                     <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 max-w-sm w-full mx-4">
-                        <h3 className="text-white font-semibold mb-2">إلغاء أمر الشراء؟</h3>
+                        <h3 className="text-white font-semibold mb-2">{t('purchaseOrders.detail.cancelConfirmTitle')}</h3>
                         <p className="text-gray-400 text-sm mb-6">
-                            ده هيعكس القيد في حساب المورد ويخصم من المخزون. مش هتقدر ترجع في الخطوة دي.
+                            {t('purchaseOrders.detail.cancelConfirmWarning')}
                         </p>
                         <div className="flex justify-end gap-2">
                             <button
                                 onClick={() => setShowConfirm(false)}
                                 className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
                             >
-                                سيب الأمر
+                                {t('purchaseOrders.detail.keepOrder')}
                             </button>
                             <button
                                 onClick={handleCancel}
                                 disabled={cancelling}
                                 className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
                             >
-                                {cancelling ? 'جاري الإلغاء...' : 'أيوة، الغِ'}
+                                {cancelling ? t('purchaseOrders.detail.cancelling') : t('purchaseOrders.detail.yesCancel')}
                             </button>
                         </div>
                     </div>
