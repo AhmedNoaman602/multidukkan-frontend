@@ -3,9 +3,8 @@ import OrderSearchInput from './OrderSearchInput'
 import { useState, useEffect } from 'react'
 import api from '../api/axios'
 import { useToast } from '../hooks/useToast'
-import { paymentMethodLabels } from '../lib/labels'
-
-const methodLabel = paymentMethodLabels
+import { useTranslation } from '../i18n/useTranslation'
+import { formatCurrency } from '../lib/format'
 
 export default function ReverseSupplierPaymentModal({
     open,
@@ -17,6 +16,7 @@ export default function ReverseSupplierPaymentModal({
     const [reverseForm, setReverseForm] = useState({ order_id: '', payment_id: '' })
     const [saving, setSaving] = useState(false)
     const { showToast } = useToast()
+    const { t, lang } = useTranslation()
 
     useEffect(() => {
         if (!open) {
@@ -40,23 +40,23 @@ export default function ReverseSupplierPaymentModal({
         setSaving(true)
         try {
             await api.delete(`/supplier-payments/${reverseForm.payment_id}`)
-            showToast('تم عكس الدفعة بنجاح.', 'success')
+            showToast(t('suppliers.balance.reversePaymentSuccess'), 'success')
             setReverseForm({ order_id: '', payment_id: '' })
             onClose()
             onSuccess()
         } catch (err) {
-            showToast(err.response?.data?.message || 'حصلت مشكلة في عكس الدفعة', 'error')
+            showToast(err.response?.data?.message || t('suppliers.balance.reversePaymentFailed'), 'error')
         } finally {
             setSaving(false)
         }
     }
 
     return (
-        <Modal open={open} onClose={onClose} title="↩ عكس دفعة">
+        <Modal open={open} onClose={onClose} title={t('suppliers.balance.reversePayment')}>
             <div className="space-y-4">
                 {payments.length === 0 ? (
                     <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-                        <p className="text-yellow-400 text-sm">مفيش دفعات.</p>
+                        <p className="text-yellow-400 text-sm">{t('suppliers.balance.noPayments')}</p>
                     </div>
                 ) : (
                     <form onSubmit={handleReverse} className="space-y-4">
@@ -65,7 +65,7 @@ export default function ReverseSupplierPaymentModal({
                         {orders.length > 1 && (
                             <div>
                                 <label className="block text-sm text-gray-400 mb-1">
-                                    اختر الأمر
+                                    {t('suppliers.balance.chooseOrder')}
                                 </label>
                                 <OrderSearchInput
                                     orders={orders}
@@ -75,7 +75,7 @@ export default function ReverseSupplierPaymentModal({
                                         order_id: orderId,
                                         payment_id: '',
                                     })}
-                                    renderMeta={(o) => `${o.total} ج.م`}
+                                    renderMeta={(o) => formatCurrency(o.total, lang)}
                                 />
                             </div>
                         )}
@@ -85,24 +85,24 @@ export default function ReverseSupplierPaymentModal({
                             filteredPayments.length > 0 ? (
                                 <div>
                                     <label className="block text-sm text-gray-400 mb-1">
-                                        اختر الدفعة
+                                        {t('suppliers.balance.choosePayment')}
                                     </label>
                                     <select
                                         value={reverseForm.payment_id}
                                         onChange={e => setReverseForm({ ...reverseForm, payment_id: e.target.value })}
                                         className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-orange-500 text-sm"
                                     >
-                                        <option value="">اختر الدفعة</option>
+                                        <option value="">{t('suppliers.balance.choosePayment')}</option>
                                         {filteredPayments.map(p => (
                                             <option key={p.id} value={p.id}>
-                                                {p.amount} ج.م — {methodLabel[p.method] ?? p.method}
+                                                {formatCurrency(p.amount, lang)} — {t(`enums.paymentMethod.${p.method}`)}
                                             </option>
                                         ))}
                                     </select>
                                 </div>
                             ) : (
                                 <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-                                    <p className="text-yellow-400 text-sm">مفيش دفعات على الأمر ده.</p>
+                                    <p className="text-yellow-400 text-sm">{t('suppliers.balance.noPaymentsForOrder')}</p>
                                 </div>
                             )
                         )}
@@ -110,9 +110,9 @@ export default function ReverseSupplierPaymentModal({
                         {selected && (
                             <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                                 <p className="text-blue-400 text-sm">
-                                    ده هيعكس بالكامل <span className="font-bold">{selected.amount} ج.م</span> المدفوعة
-                                    على {selected.invoice_number}.
-                                    <span className="text-blue-600 text-xs ms-1">دفعات الموردين بتتعكس بالكامل بس — ومش هتقدر ترجع في الخطوة دي.</span>
+                                    {t('suppliers.balance.reverseConfirmPrefix')} <span className="font-bold">{formatCurrency(selected.amount, lang)}</span>{' '}
+                                    {t('suppliers.balance.reverseConfirmSuffix', { invoice: selected.invoice_number })}
+                                    <span className="text-blue-600 text-xs ms-1">{t('suppliers.balance.reverseNote')}</span>
                                 </p>
                             </div>
                         )}
@@ -120,11 +120,11 @@ export default function ReverseSupplierPaymentModal({
                         <div className="flex justify-end gap-2 pt-2">
                             <button type="button" onClick={onClose}
                                 className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">
-                                إلغاء
+                                {t('common.cancel')}
                             </button>
                             <button type="submit" disabled={saving || !reverseForm.payment_id}
                                 className="px-6 py-2 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
-                                {saving ? 'جاري التنفيذ...' : 'عكس الدفعة'}
+                                {saving ? t('orders.payModal.processing') : t('suppliers.balance.reverseSubmit')}
                             </button>
                         </div>
                     </form>

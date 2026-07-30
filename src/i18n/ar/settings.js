@@ -1,0 +1,68 @@
+export default {
+    title: 'الإعدادات',
+    loadFailed: 'حصلت مشكلة في تحميل البيانات',
+
+    tabs: {
+        stores: 'المتاجر',
+        users: 'المستخدمين والصلاحيات',
+        warehouses: 'المخازن',
+        units: 'الوحدات',
+    },
+
+    users: {
+        teamMembers: 'أعضاء الفريق',
+        addUser: '+ إضافة مستخدم',
+        newTeamMember: 'عضو فريق جديد',
+        role: 'الصلاحية',
+        createUser: 'إنشاء المستخدم',
+        empty: 'مفيش أعضاء فريق لسه.',
+        deleteUser: 'حذف المستخدم',
+        deleteWarning: 'المستخدم ده هيفقد الدخول للنظام على طول.',
+        created: 'تم إنشاء المستخدم بنجاح',
+        createFailed: 'حصلت مشكلة في إنشاء المستخدم',
+        deleted: 'تم حذف المستخدم بنجاح',
+        deleteFailed: 'حصلت مشكلة في حذف المستخدم',
+    },
+
+    stores: {
+        addStore: '+ إضافة متجر',
+        newStore: 'متجر جديد',
+        storeNameRequired: 'اسم المتجر *',
+        createStore: 'إنشاء المتجر',
+        empty: 'مفيش متاجر لسه.',
+        deleteStore: 'حذف المتجر',
+        deleteWarning: 'كل المخازن والمعاملات المرتبطة بالمتجر ده هتتأثر.',
+        created: 'تم إنشاء المتجر بنجاح.',
+        createFailed: 'حصلت مشكلة في إنشاء المتجر',
+        deleted: 'تم حذف المتجر بنجاح.',
+        deleteFailed: 'حصلت مشكلة في حذف المتجر',
+    },
+
+    warehouses: {
+        addWarehouse: '+ إضافة مخزن',
+        newWarehouse: 'مخزن جديد',
+        warehouseName: 'اسم المخزن',
+        yourStore: 'متجرك',
+        createWarehouse: 'إنشاء المخزن',
+        empty: 'مفيش مخازن لسه.',
+        deleteWarehouse: 'حذف المخزن',
+        deleteWarning: 'كل المخزون في المخزن ده هيتأثر.',
+        created: 'تم إنشاء المخزن بنجاح',
+        createFailed: 'حصلت مشكلة في إنشاء المخزن',
+        deleted: 'تم حذف المخزن بنجاح',
+        deleteFailed: 'حصلت مشكلة في حذف المخزن',
+    },
+
+    units: {
+        addUnit: '+ إضافة وحدة',
+        newUnit: 'وحدة جديدة',
+        unitName: 'اسم الوحدة',
+        unitNamePlaceholder: 'مثال: متر، كيلو، علبة',
+        addUnitSubmit: 'إضافة الوحدة',
+        empty: 'مفيش وحدات لسه.',
+        deleteUnit: 'حذف الوحدة',
+        createFailed: 'حصلت مشكلة في إنشاء الوحدة',
+        deleted: 'تم حذف الوحدة بنجاح',
+        deleteFailed: 'حصلت مشكلة في حذف الوحدة',
+    },
+}

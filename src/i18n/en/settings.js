@@ -1,0 +1,68 @@
+export default {
+    title: 'Settings',
+    loadFailed: 'Something went wrong loading the data.',
+
+    tabs: {
+        stores: 'Stores',
+        users: 'Users & Permissions',
+        warehouses: 'Warehouses',
+        units: 'Units',
+    },
+
+    users: {
+        teamMembers: 'Team Members',
+        addUser: '+ Add User',
+        newTeamMember: 'New Team Member',
+        role: 'Role',
+        createUser: 'Create User',
+        empty: 'No team members yet.',
+        deleteUser: 'Delete User',
+        deleteWarning: 'This user will permanently lose access to the system.',
+        created: 'User created successfully.',
+        createFailed: 'Something went wrong creating the user.',
+        deleted: 'User deleted successfully.',
+        deleteFailed: 'Something went wrong deleting the user.',
+    },
+
+    stores: {
+        addStore: '+ Add Store',
+        newStore: 'New Store',
+        storeNameRequired: 'Store name *',
+        createStore: 'Create Store',
+        empty: 'No stores yet.',
+        deleteStore: 'Delete Store',
+        deleteWarning: 'All warehouses and transactions linked to this store will be affected.',
+        created: 'Store created successfully.',
+        createFailed: 'Something went wrong creating the store.',
+        deleted: 'Store deleted successfully.',
+        deleteFailed: 'Something went wrong deleting the store.',
+    },
+
+    warehouses: {
+        addWarehouse: '+ Add Warehouse',
+        newWarehouse: 'New Warehouse',
+        warehouseName: 'Warehouse name',
+        yourStore: 'Your store',
+        createWarehouse: 'Create Warehouse',
+        empty: 'No warehouses yet.',
+        deleteWarehouse: 'Delete Warehouse',
+        deleteWarning: 'All stock in this warehouse will be affected.',
+        created: 'Warehouse created successfully.',
+        createFailed: 'Something went wrong creating the warehouse.',
+        deleted: 'Warehouse deleted successfully.',
+        deleteFailed: 'Something went wrong deleting the warehouse.',
+    },
+
+    units: {
+        addUnit: '+ Add Unit',
+        newUnit: 'New Unit',
+        unitName: 'Unit name',
+        unitNamePlaceholder: 'e.g. meter, kilo, box',
+        addUnitSubmit: 'Add Unit',
+        empty: 'No units yet.',
+        deleteUnit: 'Delete Unit',
+        createFailed: 'Something went wrong creating the unit.',
+        deleted: 'Unit deleted successfully.',
+        deleteFailed: 'Something went wrong deleting the unit.',
+    },
+}
