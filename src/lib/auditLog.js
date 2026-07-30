@@ -1,10 +1,4 @@
 import { formatDate } from './format'
-import arEnums from '../i18n/ar/enums'
-
-// DEPRECATED — compatibility shim for CustomerBalance and SupplierBalance,
-// which haven't moved to useTranslation() yet. Re-exports the Arabic bundle so
-// there is one source of truth. Delete once nothing imports it.
-export const typeLabels = arEnums.auditType
 
 export const typeStyles = {
   // ledger

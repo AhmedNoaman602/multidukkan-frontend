@@ -55,6 +55,12 @@ export default {
     phone: 'التليفون',
     address: 'العنوان',
     area: 'المنطقة',
+    type: 'النوع',
+    payments: 'الدفعات',
+    transactionHistory: 'سجل المعاملات',
+    refunded: 'المسترد',
+    net: 'الصافي',
+    reference: 'المرجع',
 
     // ترقيم الصفحات
     previous: 'السابق',

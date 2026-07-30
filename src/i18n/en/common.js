@@ -55,6 +55,12 @@ export default {
     phone: 'Phone',
     address: 'Address',
     area: 'Area',
+    type: 'Type',
+    payments: 'Payments',
+    transactionHistory: 'Transaction History',
+    refunded: 'Refunded',
+    net: 'Net',
+    reference: 'Reference',
 
     // Pagination
     previous: 'Previous',

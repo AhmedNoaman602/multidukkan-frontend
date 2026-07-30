@@ -65,4 +65,15 @@ export default {
         updated: 'تم تعديل المنتج بنجاح.',
         updateFailed: 'حصلت مشكلة في تعديل المنتج',
     },
+
+    detail: {
+        notFound: 'المنتج غير موجود',
+        inStock: '{count} في المخزن',
+        outOfStock: 'خلص من المخزن',
+        noStockData: 'مفيش بيانات مخزون',
+        lastPurchasePrice: 'آخر سعر شراء',
+        lastPurchase: 'آخر شراء',
+        preferred: 'المفضل',
+        noSuppliersLinked: 'مفيش موردين مرتبطين',
+    },
 }

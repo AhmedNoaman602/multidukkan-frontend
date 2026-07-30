@@ -63,4 +63,15 @@ export default {
         updated: 'Product updated successfully.',
         updateFailed: 'Something went wrong updating the product.',
     },
+
+    detail: {
+        notFound: 'Product not found',
+        inStock: '{count} in stock',
+        outOfStock: 'Out of stock',
+        noStockData: 'No stock data.',
+        lastPurchasePrice: 'Last purchase price',
+        lastPurchase: 'Last purchase',
+        preferred: 'Preferred',
+        noSuppliersLinked: 'No suppliers linked.',
+    },
 }
