@@ -1,4 +1,15 @@
 export default {
+    title: 'Reports',
+    printButton: '🖨️ Print',
+    viewReport: 'View report',
+    last7Days: 'Last 7 days',
+    thisMonth: 'This month',
+    revenueByDay: 'Revenue by Day',
+    topProductsSold: 'Top Products by Units Sold',
+    unitsSold: 'Units Sold',
+    noOrders: 'No orders.',
+    noPayments: 'No payments.',
+
     print: {
         loadFailed: 'Something went wrong loading the report.',
         salesReport: 'Sales Report',

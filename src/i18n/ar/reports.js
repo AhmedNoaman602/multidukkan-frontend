@@ -1,4 +1,15 @@
 export default {
+    title: 'التقارير',
+    printButton: '🖨️ طباعة',
+    viewReport: 'عرض التقرير',
+    last7Days: 'آخر 7 أيام',
+    thisMonth: 'الشهر ده',
+    revenueByDay: 'الإيرادات باليوم',
+    topProductsSold: 'أكتر المنتجات مبيعاً',
+    unitsSold: 'الكمية المُباعة',
+    noOrders: 'مفيش طلبات',
+    noPayments: 'مفيش دفعات.',
+
     print: {
         loadFailed: 'حصلت مشكلة في تحميل التقرير',
         salesReport: 'تقرير المبيعات',
