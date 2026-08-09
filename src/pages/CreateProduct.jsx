@@ -12,7 +12,6 @@ export default function CreateProduct() {
     const [suppliers, setSuppliers] = useState([])
     const [supplierId, setSupplierId] = useState(null)
     const [saving, setSaving] = useState(false)
-    const [generatingDesc, setGeneratingDesc] = useState(false)
     const [newUnit, setNewUnit] = useState('')
     const [showNewUnit, setShowNewUnit] = useState(false)
     const [savingUnit, setSavingUnit] = useState(false)
@@ -88,30 +87,6 @@ export default function CreateProduct() {
             showToast(t('products.form.unitCreateFailed'), 'error')
         } finally {
             setSavingUnit(false)
-        }
-    }
-
-    const handleGenerateDescription = async () => {
-        if (!form.name || !form.price || !form.unit) {
-            showToast(t('products.form.aiFieldsRequired'), 'error')
-            return
-        }
-        setGeneratingDesc(true)
-        try {
-            const res = await api.post('/ai/describe-product', {
-                name: form.name,
-                price: parseFloat(form.price),
-            })
-            setForm(f => ({
-                ...f,
-                description_ar: res.data.ar,
-                description_en: res.data.en,
-                description: `${res.data.ar}\n${res.data.en}`,
-            }))
-        } catch {
-            showToast(t('products.form.aiFailed'), 'error')
-        } finally {
-            setGeneratingDesc(false)
         }
     }
 
@@ -297,14 +272,6 @@ export default function CreateProduct() {
                         <div className="col-span-2">
     <div className="flex items-center justify-between mb-1">
         <label className="block text-sm text-gray-400">{t('products.form.description')}</label>
-        <button
-            type="button"
-            onClick={handleGenerateDescription}
-            disabled={generatingDesc || !form.name || !form.price}
-            className="px-3 py-1 bg-purple-600/20 border border-purple-500/30 text-purple-400 hover:bg-purple-600/30 disabled:opacity-40 text-xs font-medium rounded-lg transition-colors"
-        >
-            {generatingDesc ? t('products.form.generating') : t('products.form.generateWithAi')}
-        </button>
     </div>
     <textarea
         value={form.description || ''}
