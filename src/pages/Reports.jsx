@@ -172,7 +172,7 @@ export default function Reports() {
       {!loading && data && (
         <>
           {/* Summary Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4 mb-6">
             {[
               {
                 label: t('orders.list.totalRevenue'),
@@ -198,6 +198,16 @@ export default function Reports() {
                 label: t('reports.print.ordersCount'),
                 value: data.summary.order_count,
                 color: "text-white",
+              },
+              {
+                label: t('reports.print.totalExpenses'),
+                value: formatCurrency(data.summary.total_expenses, lang),
+                color: "text-yellow-400",
+              },
+              {
+                label: t('reports.print.netProfit'),
+                value: formatCurrency(data.summary.net_profit, lang),
+                color: data.summary.net_profit < 0 ? "text-red-400" : "text-green-400",
               },
             ].map((stat) => (
               <div
@@ -289,6 +299,47 @@ export default function Reports() {
               </div>
             </div>
           )}
+
+          {/* Expenses by Category */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto mb-6">
+            <div className="px-4 py-3 border-b border-gray-800">
+              <h3 className="text-white font-semibold text-sm">
+                {t('reports.print.expensesByCategory')}
+              </h3>
+            </div>
+            {data.expenses_by_category.length > 0 ? (
+              <table className="w-full">
+                <thead className="bg-gray-800">
+                  <tr>
+                    {['reports.print.category', 'common.amount'].map((key) => (
+                      <th
+                        key={key}
+                        className="px-4 py-2 text-start text-xs font-medium text-gray-400 uppercase tracking-wider"
+                      >
+                        {t(key)}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-800">
+                  {data.expenses_by_category.map((item) => (
+                    <tr key={item.category} className="hover:bg-gray-800/50 transition-colors">
+                      <td className="px-4 py-2 text-white text-sm">
+                        {t(`enums.expenseCategory.${item.category}`)}
+                      </td>
+                      <td className="px-4 py-2 text-white text-sm">
+                        {formatCurrency(item.total, lang)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="text-center py-8 text-gray-500 text-sm">
+                {t('reports.noExpenses')}
+              </div>
+            )}
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
             {/* Profit by Order */}

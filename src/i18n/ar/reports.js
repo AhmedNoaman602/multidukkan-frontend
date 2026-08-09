@@ -9,6 +9,7 @@ export default {
     unitsSold: 'الكمية المُباعة',
     noOrders: 'مفيش طلبات',
     noPayments: 'مفيش دفعات.',
+    noExpenses: 'مفيش مصروفات.',
 
     print: {
         loadFailed: 'حصلت مشكلة في تحميل التقرير',
@@ -25,6 +26,10 @@ export default {
         profit: 'الربح',
         margin: 'الهامش',
         paymentsHistory: 'سجل الدفعات',
+        totalExpenses: 'إجمالي المصروفات',
+        netProfit: 'صافي الربح',
+        expensesByCategory: 'المصروفات حسب الفئة',
+        category: 'الفئة',
         generatedBy: '{business} — تم إنشاؤه بواسطة ملتي دكان',
     },
 }

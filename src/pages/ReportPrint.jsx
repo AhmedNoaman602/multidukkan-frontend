@@ -5,6 +5,12 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatCurrency, formatDate } from '../lib/format'
 
+function formatNetProfitPrint(netProfit, lang) {
+    const v = netProfit ?? 0
+    const formatted = formatCurrency(Math.abs(v), lang)
+    return v < 0 ? `(${formatted})` : formatted
+}
+
 export default function ReportPrint() {
     const [searchParams] = useSearchParams()
     const from = searchParams.get('from')
@@ -82,12 +88,14 @@ export default function ReportPrint() {
                 <hr className="border-gray-200 mb-6" />
 
                 {/* Summary Stats */}
-                <div className="grid grid-cols-4 gap-4 mb-8">
+                <div className="grid grid-cols-3 gap-4 mb-8">
                     {[
                         { label: t('orders.list.totalRevenue'),      value: formatCurrency(data.summary.total_revenue, lang) },
                         { label: t('reports.print.totalCollected'),  value: formatCurrency(data.summary.total_collected, lang) },
                         { label: t('reports.print.outstanding'),     value: formatCurrency(data.summary.outstanding, lang) },
                         { label: t('orders.detail.totalProfit'),     value: formatCurrency(data.summary.gross_profit, lang) },
+                        { label: t('reports.print.totalExpenses'),   value: formatCurrency(data.summary.total_expenses ?? 0, lang) },
+                        { label: t('reports.print.netProfit'),       value: formatNetProfitPrint(data.summary.net_profit, lang) },
                     ].map(stat => (
                         <div key={stat.label} className="border border-gray-200 rounded-lg p-3">
                             <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">{stat.label}</p>
@@ -177,6 +185,31 @@ export default function ReportPrint() {
         ))}
     </tbody>
 </table>
+
+{/* Expenses by Category */}
+<h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3">
+    {t('reports.print.expensesByCategory')}
+</h3>
+{data.expenses_by_category?.length > 0 ? (
+    <table className="w-full mb-8">
+        <thead>
+            <tr className="border-b-2 border-gray-200">
+                <th className="text-start text-xs text-gray-400 uppercase pb-2">{t('reports.print.category')}</th>
+                <th className="text-end text-xs text-gray-400 uppercase pb-2">{t('common.amount')}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {data.expenses_by_category.map((item) => (
+                <tr key={item.category} className="border-b border-gray-100">
+                    <td className="py-2 text-gray-900 text-sm">{t(`enums.expenseCategory.${item.category}`)}</td>
+                    <td className="py-2 text-end text-gray-900 text-sm font-medium">{formatCurrency(item.total, lang)}</td>
+                </tr>
+            ))}
+        </tbody>
+    </table>
+) : (
+    <p className="text-sm text-gray-400 mb-8">{t('reports.noExpenses')}</p>
+)}
 
 {/* Payments History */}
 <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3">
