@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -14,22 +15,17 @@ import { formatCurrency, formatDate, formatNumber } from "../lib/format";
 const PAY_METHODS = ["cash", "bank_transfer", "check"];
 
 export default function PurchaseOrders() {
-  const [purchaseOrders, setPurchaseOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [yearFilter, setYearFilter] = useState("");
   const [payTarget, setPayTarget] = useState(null);
   const [payForm, setPayForm] = useState({ amount: "", method: "cash" });
   const [paying, setPaying] = useState(false);
   const [page, setPage] = useState(1);
-  const [lastPage, setLastPage] = useState(1);
-  const [years, setYears] = useState([]);
   const [monthFilter, setMonthFilter] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [dateExact, setDateExact] = useState("");
   const [filterMode, setFilterMode] = useState("all");
-  const [stats, setStats] = useState(null);
   const [hoveredOrder, setHoveredOrder] = useState(null);
   const [tooltipPos, setTooltipPos] = useState(null);
   const navigate = useNavigate();
@@ -50,10 +46,13 @@ export default function PurchaseOrders() {
     setPage(1);
   };
 
-  const fetchPurchaseOrders = () => {
-    const today = new Date().toISOString().split("T")[0];
+  const queryClient = useQueryClient();
 
-    api.get("/purchase-orders", {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["purchase-orders", { page, search, yearFilter, monthFilter, dateFrom, dateTo, dateExact, filterMode }],
+    queryFn: () => {
+      const today = new Date().toISOString().split("T")[0];
+      return api.get("/purchase-orders", {
         params: {
           page,
           search,
@@ -63,31 +62,18 @@ export default function PurchaseOrders() {
           date_to: dateTo,
           date_exact: filterMode === "today" ? today : dateExact,
         },
-      })
-      .then((res) => {
-        setPurchaseOrders(res.data.data);
-        setLastPage(res.data.meta.last_page);
-        setYears(res.data.years);
-        setStats(res.data.stats || null);
-      })
-      .catch(() => showToast(t("purchaseOrders.loadFailed"), "error"))
-      .finally(() => {
-        setLoading(false)
-      });
-  };
+      }).then((res) => res.data);
+    },
+  });
 
   useEffect(() => {
-    fetchPurchaseOrders();
-  }, [
-    page,
-    search,
-    yearFilter,
-    monthFilter,
-    dateFrom,
-    dateTo,
-    dateExact,
-    filterMode,
-  ]);
+    if (isError) showToast(t("purchaseOrders.loadFailed"), "error");
+  }, [isError, showToast, t]);
+
+  const purchaseOrders = data?.data || [];
+  const lastPage = data?.meta?.last_page || 1;
+  const years = data?.years || [];
+  const stats = data?.stats || null;
 
   const handlePay = async (e) => {
     e.preventDefault();
@@ -103,7 +89,7 @@ export default function PurchaseOrders() {
       setTimeout(() => {
         setPayTarget(null);
         setPayForm({ amount: "", method: "cash" });
-        fetchPurchaseOrders();
+        queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
       }, 1500);
     } catch (err) {
       showToast(
@@ -132,7 +118,7 @@ export default function PurchaseOrders() {
   const PrevIcon = dir === "rtl" ? ChevronRight : ChevronLeft;
   const NextIcon = dir === "rtl" ? ChevronLeft : ChevronRight;
 
-  if (loading) return <LoadingSpinner />;
+  if (isLoading) return <LoadingSpinner />;
 
   return (
     <div>

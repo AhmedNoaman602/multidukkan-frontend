@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -11,13 +12,7 @@ import { EXPENSE_CATEGORIES } from '../lib/enums'
 import { formatCurrency, formatDate } from '../lib/format'
 
 export default function Expenses() {
-    const [expenses, setExpenses] = useState([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState(false)
     const [page, setPage] = useState(1)
-    const [lastPage, setLastPage] = useState(1)
-    const [totalAmount, setTotalAmount] = useState(0)
-    const [stores, setStores] = useState([])
 
     const [category, setCategory] = useState('')
     const [dateFrom, setDateFrom] = useState('')
@@ -34,11 +29,11 @@ export default function Expenses() {
     const user = JSON.parse(localStorage.getItem('user') || '{}')
     const isAdmin = user.role === 'tenant_admin'
     const canManage = user.role === 'tenant_admin' || user.role === 'store_manager'
+    const queryClient = useQueryClient()
 
-    const fetchExpenses = () => {
-        setLoading(true)
-        setError(false)
-        api.get('/expenses', {
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['expenses', { page, category, dateFrom, dateTo, storeId }],
+        queryFn: () => api.get('/expenses', {
             params: {
                 page,
                 category: category || undefined,
@@ -46,25 +41,23 @@ export default function Expenses() {
                 date_to: dateTo || undefined,
                 store_id: isAdmin ? (storeId || undefined) : undefined,
             },
-        })
-            .then(res => {
-                setExpenses(res.data.data)
-                setLastPage(res.data.meta.last_page)
-                setTotalAmount(res.data.stats?.total_amount ?? 0)
-            })
-            .catch(() => {
-                setError(true)
-                showToast(t('expenses.loadFailed'), 'error')
-            })
-            .finally(() => setLoading(false))
-    }
+        }).then(res => res.data),
+    })
 
-    useEffect(() => { fetchExpenses() }, [page, category, dateFrom, dateTo, storeId])
+    const { data: storesData } = useQuery({
+        queryKey: ['stores'],
+        queryFn: () => api.get('/stores').then(res => res.data.data),
+        enabled: isAdmin,
+    })
 
     useEffect(() => {
-        if (!isAdmin) return
-        api.get('/stores').then(res => setStores(res.data.data)).catch(() => {})
-    }, [])
+        if (isError) showToast(t('expenses.loadFailed'), 'error')
+    }, [isError, showToast, t])
+
+    const expenses = data?.data || []
+    const lastPage = data?.meta?.last_page || 1
+    const totalAmount = data?.stats?.total_amount ?? 0
+    const stores = storesData || []
 
     const canManageExpense = (expense) =>
         user.role === 'tenant_admin' ||
@@ -86,7 +79,7 @@ export default function Expenses() {
         try {
             await api.delete(`/expenses/${deleteTarget.id}`)
             setDeleteTarget(null)
-            fetchExpenses()
+            queryClient.invalidateQueries({ queryKey: ['expenses'] })
             showToast(t('expenses.deleted'), 'success')
         } catch (err) {
             showToast(err.response?.data?.message || t('expenses.deleteFailed'), 'error')
@@ -109,7 +102,7 @@ export default function Expenses() {
     const PrevIcon = dir === 'rtl' ? ChevronRight : ChevronLeft
     const NextIcon = dir === 'rtl' ? ChevronLeft : ChevronRight
 
-    if (loading && expenses.length === 0) return <LoadingSpinner />
+    if (isLoading) return <LoadingSpinner />
 
     return (
         <div>
@@ -178,7 +171,7 @@ export default function Expenses() {
                 )}
             </div>
 
-            {error ? (
+            {isError ? (
                 <div className="bg-gray-900 border border-gray-800 rounded-xl text-center py-16 text-gray-500">
                     {t('expenses.loadFailedRetry')}
                 </div>
@@ -286,7 +279,7 @@ export default function Expenses() {
                     stores={stores}
                     isAdmin={isAdmin}
                     onClose={() => setModalOpen(false)}
-                    onSuccess={fetchExpenses}
+                    onSuccess={() => queryClient.invalidateQueries({ queryKey: ['expenses'] })}
                 />
             )}
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -9,12 +10,8 @@ import { useLocation } from 'react-router-dom'
 import { useTranslation } from '../i18n/useTranslation'
 
 export default function Inventory() {
-    const [inventory, setInventory] = useState([]) 
-    const [stores, setStores] = useState([])
     const [selectedStore, setSelectedStore] = useState('')
     const [page, setPage] = useState(1)
-    const [lastPage, setLastPage] = useState(1)
-    const [loading, setLoading] = useState(true)
     const [adjustingItem, setAdjustingItem] = useState(null)
     const [adjustQty, setAdjustQty] = useState('')
     const [adjustNotes, setAdjustNotes] = useState('')
@@ -22,7 +19,6 @@ export default function Inventory() {
     const [adjustLoading, setAdjustLoading] = useState(false)
     const [search, setSearch] = useState('')
     const [selectedWarehouse, setSelectedWarehouse] = useState('')
-    const [warehousesList, setWarehousesList] = useState([])
     const [adjustUnitType, setAdjustUnitType] = useState('base')
     const user = JSON.parse(localStorage.getItem('user') || '{}')
     const canAdjust = user.role !== 'store_staff'
@@ -31,32 +27,38 @@ export default function Inventory() {
     const { showToast } = useToast()
     const location = useLocation()
     const { t, dir } = useTranslation()
+    const queryClient = useQueryClient()
 
     const [lowStockOnly , setLowStockOnly] = useState(
         new URLSearchParams(location.search).get('low_stock') === '1'
     )
 
-    const fetchInventory = async () => {
-        try {
-            const [inventoryRes, storesRes, warehousesRes] = await Promise.all([
-                api.get('/inventory', { 
-                    params: { page, search, warehouse_id: selectedWarehouse, low_stock: lowStockOnly ? 1 : undefined } 
-                }),               
-                 api.get('/stores'),
-                 api.get('/warehouses'),
-            ])
-            setInventory(inventoryRes.data.data)
-            setLastPage(inventoryRes.data.meta.last_page)
-            setStores(storesRes.data.data)
-            setWarehousesList(warehousesRes.data.data)
-        } catch (err) {
-            showToast(err.response?.data?.message || t('inventory.loadFailed'), 'error')
-        } finally {
-            setLoading(false)
-        }
-    }
+    const { data: inventoryData, isLoading: inventoryLoading, isError } = useQuery({
+        queryKey: ['inventory', { page, search, selectedWarehouse, lowStockOnly }],
+        queryFn: () => api.get('/inventory', {
+            params: { page, search, warehouse_id: selectedWarehouse, low_stock: lowStockOnly ? 1 : undefined },
+        }).then(res => res.data),
+    })
 
-    useEffect(() => { fetchInventory() }, [page, search, selectedWarehouse , lowStockOnly])
+    const { data: storesData, isLoading: storesLoading } = useQuery({
+        queryKey: ['stores'],
+        queryFn: () => api.get('/stores').then(res => res.data.data),
+    })
+
+    const { data: warehousesData, isLoading: warehousesLoading } = useQuery({
+        queryKey: ['warehouses'],
+        queryFn: () => api.get('/warehouses').then(res => res.data.data),
+    })
+
+    useEffect(() => {
+        if (isError) showToast(t('inventory.loadFailed'), 'error')
+    }, [isError, showToast, t])
+
+    const inventory = inventoryData?.data || []
+    const lastPage = inventoryData?.meta?.last_page || 1
+    const stores = storesData || []
+    const warehousesList = warehousesData || []
+    const loading = inventoryLoading || storesLoading || warehousesLoading
 
     const openAdjustModal = (item, direction) => {
         setAdjustingItem(item)
@@ -89,7 +91,7 @@ export default function Inventory() {
                 unit_type: adjustUnitType,
                 notes: adjustNotes.trim(),
             })
-            await fetchInventory()
+            queryClient.invalidateQueries({ queryKey: ['inventory'] })
             closeAdjustModal()
         } catch (err) {
             showToast(err.response?.data?.message || t('inventory.adjustFailed'), 'error')

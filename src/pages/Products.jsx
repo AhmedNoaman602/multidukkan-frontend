@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import api from '../api/axios'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -11,34 +12,31 @@ import { formatCurrency } from '../lib/format'
 
 export default function Products() {
     const navigate = useNavigate()
-    const [products, setProducts] = useState([])
-    const [loading, setLoading] = useState(true)
     const [search, setSearch] = useState('')
     const [deleteTarget , setDeleteTarget] = useState(null)
     const [deleting, setDeleting] = useState(false)
     const [page , setPage] = useState(1)
-    const [lastPage , setLastPage] = useState(1)
     const {showToast} = useToast()
     const { t, lang, dir } = useTranslation()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
+    const queryClient = useQueryClient()
 
-    const fetchData = async () => {
-        try {
-            const res = await api.get('/products' ,{params: {page , search}})
-            setProducts(res.data.data)
-            setLastPage(res.data.meta.last_page)
-        } catch (err) {
-            showToast(t('products.loadFailed'), 'error')
-        } finally {
-            setLoading(false)
-        }
-    }
-    
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['products', { page, search }],
+        queryFn: () => api.get('/products', { params: { page, search } }).then(res => res.data),
+    })
+
+    useEffect(() => {
+        if (isError) showToast(t('products.loadFailed'), 'error')
+    }, [isError, showToast, t])
+
+    const products = data?.data || []
+    const lastPage = data?.meta?.last_page || 1
+
     const handleSearch = (value) => {
         setSearch(value)
         setPage(1)
     }
-    useEffect(() => { fetchData() }, [page , search])
 
     const handleDelete = async () => {
     if (!deleteTarget) return
@@ -46,7 +44,7 @@ export default function Products() {
     try {
         await api.delete(`/products/${deleteTarget.id}`)
         setDeleteTarget(null)
-        fetchData()
+        queryClient.invalidateQueries({ queryKey: ['products'] })
     } catch (err) {
         showToast(err.response?.data?.message || t('products.deleteFailed'), 'error')
         setDeleteTarget(null)
@@ -60,7 +58,7 @@ export default function Products() {
     const PrevIcon = dir === 'rtl' ? ChevronRight : ChevronLeft
     const NextIcon = dir === 'rtl' ? ChevronLeft : ChevronRight
 
-    if (loading) return <LoadingSpinner />
+    if (isLoading) return <LoadingSpinner />
 
     return (
         <div>

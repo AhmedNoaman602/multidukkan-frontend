@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import api from '../api/axios'
@@ -12,31 +13,28 @@ import { useTranslation } from '../i18n/useTranslation'
 import { formatCurrency, formatNumber } from '../lib/format'
 
 export default function Suppliers() {
-    const [suppliers, setSuppliers] = useState([])
-    const [loading, setLoading] = useState(true)
     const [search, setSearch] = useState('')
     const [deleteTarget, setDeleteTarget] = useState(null)
     const [deleting, setDeleting] = useState(false)
     const navigate = useNavigate()
     const [page, setPage] = useState(1)
-    const [lastPage, setLastPage] = useState(1)
-    const [stats, setStats] = useState([])
     const {showToast} = useToast()
     const { t, lang, dir } = useTranslation()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
+    const queryClient = useQueryClient()
 
-    const fetchSuppliers = () => {
-        api.get('/suppliers', { params: { page, search } })
-            .then(res => {
-                setSuppliers(res.data.data)
-                setLastPage(res.data.meta.last_page)
-                setStats(res.data.stats)
-            })
-            .catch(() => showToast(t('suppliers.loadFailed'), 'error'))
-            .finally(() => setLoading(false))
-    }
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['suppliers', { page, search }],
+        queryFn: () => api.get('/suppliers', { params: { page, search } }).then(res => res.data),
+    })
 
-    useEffect(() => { fetchSuppliers() }, [page, search])
+    useEffect(() => {
+        if (isError) showToast(t('suppliers.loadFailed'), 'error')
+    }, [isError, showToast, t])
+
+    const suppliers = data?.data || []
+    const lastPage = data?.meta?.last_page || 1
+    const stats = data?.stats || []
 
     const handleDelete = async () => {
         if (!deleteTarget) return
@@ -44,7 +42,7 @@ export default function Suppliers() {
         try {
             await api.delete(`/suppliers/${deleteTarget.id}`)
             setDeleteTarget(null)
-            fetchSuppliers()
+            queryClient.invalidateQueries({ queryKey: ['suppliers'] })
             showToast(t('suppliers.deleted'), 'success')
         } catch (err) {
             showToast(err.response?.data?.message || t('suppliers.deleteFailed'), 'error')
@@ -64,7 +62,7 @@ export default function Suppliers() {
     const PrevIcon = dir === 'rtl' ? ChevronRight : ChevronLeft
     const NextIcon = dir === 'rtl' ? ChevronLeft : ChevronRight
 
-    if (loading) return <LoadingSpinner />
+    if (isLoading) return <LoadingSpinner />
 
     return (
         <div>

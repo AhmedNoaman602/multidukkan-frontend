@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import api from '../api/axios'
@@ -11,35 +12,28 @@ import { useTranslation } from '../i18n/useTranslation'
 import { formatCurrency, formatNumber } from '../lib/format'
 
 export default function Customers() {
-    const [customers, setCustomers] = useState([])
-    const [loading, setLoading] = useState(true)
     const [search, setSearch] = useState('')
     const [deleteTarget, setDeleteTarget] = useState(null)
     const [deleting, setDeleting] = useState(false)
     const [page, setPage] = useState(1)
-    const [lastPage, setLastPage] = useState(1)
-    const [stats, setStats] = useState(null)
     const navigate = useNavigate()
     const {showToast} = useToast()
     const { t, lang, dir } = useTranslation()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
+    const queryClient = useQueryClient()
 
-    const fetchCustomers = () => {
-        api.get('/customers', { params: { page, search } })
-            .then(res => {
-                setCustomers(res.data.data)
-                setLastPage(res.data.meta.last_page)
-                setStats(res.data.stats)
-            })
-            .catch(() => {
-                showToast(t('customers.loadFailed'), 'error')
-                setCustomers([])
-                setStats(null)
-            })
-            .finally(() => setLoading(false))
-    }
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['customers', { page, search }],
+        queryFn: () => api.get('/customers', { params: { page, search } }).then(res => res.data),
+    })
 
-    useEffect(() => { fetchCustomers() }, [page, search])
+    useEffect(() => {
+        if (isError) showToast(t('customers.loadFailed'), 'error')
+    }, [isError, showToast, t])
+
+    const customers = data?.data || []
+    const lastPage = data?.meta?.last_page || 1
+    const stats = data?.stats || null
 
     const handleDelete = async () => {
         if (!deleteTarget) return
@@ -48,7 +42,7 @@ export default function Customers() {
             await api.delete(`/customers/${deleteTarget.id}`)
             showToast(t('customers.deleted'), 'success')
             setDeleteTarget(null)
-            fetchCustomers()
+            queryClient.invalidateQueries({ queryKey: ['customers'] })
         } catch (err) {
             showToast(err.response?.data?.message || t('customers.deleteFailed'), 'error')
             setDeleteTarget(null)
@@ -67,7 +61,7 @@ export default function Customers() {
     const PrevIcon = dir === 'rtl' ? ChevronRight : ChevronLeft
     const NextIcon = dir === 'rtl' ? ChevronLeft : ChevronRight
 
-    if (loading) return <LoadingSpinner />
+    if (isLoading) return <LoadingSpinner />
 
     return (
         <div>
