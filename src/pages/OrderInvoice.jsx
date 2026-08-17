@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -8,8 +9,6 @@ import { formatCurrency, formatDate } from '../lib/format'
 
 export default function OrderInvoice() {
     const { id } = useParams()
-    const [order, setOrder] = useState(null)
-    const [loading, setLoading] = useState(true)
     const {showToast} = useToast()
     const { t, lang } = useTranslation()
    let user = {}
@@ -20,14 +19,16 @@ try {
     user = {}
 }
 
-    useEffect(() => {
-        api.get(`/orders/${id}`)
-            .then(res => setOrder(res.data))
-            .catch(() => showToast(t('orders.invoice.loadFailed'), 'error'))
-            .finally(() => setLoading(false))
-    }, [id])
+    const { data: order, isLoading, isError } = useQuery({
+        queryKey: ['orders', id],
+        queryFn: () => api.get(`/orders/${id}`).then(res => res.data),
+    })
 
-    if (loading) return (
+    useEffect(() => {
+        if (isError) showToast(t('orders.invoice.loadFailed'), 'error')
+    }, [isError, showToast, t])
+
+    if (isLoading) return (
         <div className="flex items-center justify-center min-h-screen bg-white">
             <LoadingSpinner />
         </div>

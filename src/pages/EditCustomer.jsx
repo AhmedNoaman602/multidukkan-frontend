@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -11,28 +12,34 @@ export default function EditCustomer() {
     const navigate = useNavigate()
     const {showToast} = useToast()
     const { t } = useTranslation()
-    const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [form, setForm] = useState({
        code: '', name: '', phone: '', address: '', area: '', price_tier: ''
     })
 
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['customers', id],
+        queryFn: () => api.get(`/customers/${id}`).then(res => res.data.data),
+    })
+
     useEffect(() => {
-        api.get(`/customers/${id}`)
-            .then(res => {
-                const c = res.data.data
-                setForm({
-                    code: c.code || '',
-                    name: c.name || '',
-                    phone: c.phone || '',
-                    address: c.address || '',
-                    area: c.area || '',
-                    price_tier: c.price_tier === 'default' ? '' : (c.price_tier || ''),
-                })
+        if (isError) showToast(t('customers.edit.loadFailed'), 'error')
+    }, [isError, showToast, t])
+
+    const formInitialized = useRef(false)
+    useEffect(() => {
+        if (data && !formInitialized.current) {
+            formInitialized.current = true
+            setForm({
+                code: data.code || '',
+                name: data.name || '',
+                phone: data.phone || '',
+                address: data.address || '',
+                area: data.area || '',
+                price_tier: data.price_tier === 'default' ? '' : (data.price_tier || ''),
             })
-            .catch(() => showToast(t('customers.edit.loadFailed'), 'error'))
-            .finally(() => setLoading(false))
-    }, [id])
+        }
+    }, [data])
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -50,7 +57,7 @@ export default function EditCustomer() {
         }
     }
 
-    if (loading) return <LoadingSpinner />
+    if (isLoading) return <LoadingSpinner />
 
     return (
         <div className="">

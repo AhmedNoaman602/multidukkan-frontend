@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -12,8 +13,6 @@ import { formatCurrency, formatDate } from '../lib/format'
 export default function OrderDetail() {
     const { id } = useParams()
     const navigate = useNavigate()
-    const [order, setOrder] = useState(null)
-    const [loading, setLoading] = useState(true)
     const [cancelling, setCancelling] = useState(false)
     const [showConfirm, setShowConfirm] = useState(false)
     const [editMode, setEditMode] = useState(false)
@@ -26,24 +25,30 @@ export default function OrderDetail() {
     const { showToast } = useToast()
     const { t, lang } = useTranslation()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
+    const queryClient = useQueryClient()
 
     const canEdit = user.role === 'tenant_admin' || user.role === 'store_manager'
 
-    const fetchOrder = () => {
-        api.get(`/orders/${id}`)
-            .then(res => {
-                setOrder(res.data)
-                setEditForm({
-                    order_date: res.data.order_date,
-                    notes:      res.data.notes ?? '',
-                    discount:   res.data.discount ?? 0,
-                })
-            })
-            .catch(() => showToast(t('orders.detail.loadFailed'), 'error'))
-            .finally(() => setLoading(false))
-    }
+    const { data: order, isLoading, isError } = useQuery({
+        queryKey: ['orders', id],
+        queryFn: () => api.get(`/orders/${id}`).then(res => res.data),
+    })
 
-    useEffect(() => { fetchOrder() }, [id])
+    useEffect(() => {
+        if (isError) showToast(t('orders.detail.loadFailed'), 'error')
+    }, [isError, showToast, t])
+
+    useEffect(() => {
+        if (order && !editMode) {
+            setEditForm({
+                order_date: order.order_date,
+                notes:      order.notes ?? '',
+                discount:   order.discount ?? 0,
+            })
+        }
+    }, [order, editMode])
+
+    const refetchOrder = () => queryClient.invalidateQueries({ queryKey: ['orders', id] })
 
     const handleCancel = async () => {
         setCancelling(true)
@@ -71,7 +76,7 @@ export default function OrderDetail() {
                 notes:      editForm.notes,
                 discount:   discountAmount,
             })
-            setOrder(res.data)
+            queryClient.setQueryData(['orders', id], res.data)
             setEditMode(false)
             showToast(t('orders.detail.updated'), 'success')
         } catch (err) {
@@ -90,7 +95,7 @@ export default function OrderDetail() {
             })
             showToast(t('orders.detail.itemUpdated'), 'success')
             setEditingItem(null)
-            fetchOrder()
+            refetchOrder()
         } catch (err) {
     showToast(err.response?.data?.message || t('orders.detail.itemUpdateFailed'), 'error')
 } finally {
@@ -107,7 +112,8 @@ export default function OrderDetail() {
         })
     }
 
-    if (loading) return <LoadingSpinner />
+    if (isLoading) return <LoadingSpinner />
+    if (!order) return null
 
 
     const discountPreview = discountType === 'percent'
@@ -425,7 +431,7 @@ const displayTotal = editMode
             open={showAddItem}
             orderId={id}
             onSuccess={() => {
-                fetchOrder()
+                refetchOrder()
                 setShowAddItem(false)
             }}
             onClose={() => setShowAddItem(false)}

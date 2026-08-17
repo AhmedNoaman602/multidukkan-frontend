@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -27,8 +28,6 @@ export default function CustomerBalance() {
     const navigate = useNavigate()
     const { showToast } = useToast()
     const { t, lang } = useTranslation()
-    const [data, setData] = useState(null)
-    const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
 
     const [editPayment , setEditPayment] = useState(null)
@@ -38,20 +37,18 @@ export default function CustomerBalance() {
     const [autoForm, setAutoForm] = useState({ amount: '', method: 'cash', order_id: '', payment_reference: '' })
     const [refundModal, setRefundModal] = useState(false)
     const [showCreditModal, setShowCreditModal] = useState(false)
+    const queryClient = useQueryClient()
 
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['customers', id, 'summary'],
+        queryFn: () => api.get(`/customers/${id}/summary`).then(res => res.data),
+    })
 
-    const fetchData = async () => {
-        try {
-            const res = await api.get(`/customers/${id}/summary`)
-            setData(res.data)
-        } catch {
-            showToast(t('customers.balance.loadFailed'), 'error')
-        } finally {
-            setLoading(false)
-        }
-    }
+    useEffect(() => {
+        if (isError) showToast(t('customers.balance.loadFailed'), 'error')
+    }, [isError, showToast, t])
 
-    useEffect(() => { fetchData() }, [id])
+    const invalidateSummary = () => queryClient.invalidateQueries({ queryKey: ['customers', id, 'summary'] })
 
     const handleAutoPayment = async (e) => {
         e.preventDefault()
@@ -77,7 +74,7 @@ export default function CustomerBalance() {
             showToast(t('customers.balance.paymentReceived'), 'success')
             setPaymentModal(false)
             setAutoForm({ amount: '', method: 'cash', order_id: '' })
-            fetchData()
+            invalidateSummary()
         } catch (err) {
             showToast(err.response?.data?.message || t('customers.balance.paymentFailed'), 'error')
         } finally {
@@ -96,7 +93,7 @@ export default function CustomerBalance() {
             showToast(t('customers.balance.paymentUpdated'), 'success')
             setEditPayment(false)
             setEditForm({amount: '', method: 'cash'})
-            fetchData()
+            invalidateSummary()
         }catch(err){
             showToast(err.response?.data?.message || t('customers.balance.paymentUpdateFailed'), 'error')
         }finally{
@@ -104,7 +101,7 @@ export default function CustomerBalance() {
         }
     }
 
-    if (loading) return <LoadingSpinner />
+    if (isLoading) return <LoadingSpinner />
     if (!data) return null
 
         const visiblePayments = data.payments.filter(p => !p.is_auto_reversible)
@@ -429,13 +426,13 @@ export default function CustomerBalance() {
                 orders={paidOrders}
                 payments={data.payments}
                 customerId={id}
-                onSuccess={fetchData}
+                onSuccess={invalidateSummary}
             />
             {showCreditModal && (
                 <AddCreditModal
                     customer={data}
                     onClose={() => setShowCreditModal(false)}
-                    onSuccess={fetchData}
+                    onSuccess={invalidateSummary}
                 />
             )}
 

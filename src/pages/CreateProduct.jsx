@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate , useLocation} from 'react-router-dom'
 import api from '../api/axios'
 import BackButton from '../components/BackButton'
@@ -8,8 +9,6 @@ import { useTranslation } from '../i18n/useTranslation'
 import { formatCurrency } from '../lib/format'
 
 export default function CreateProduct() {
-    const [warehouses, setWarehouses] = useState([])
-    const [suppliers, setSuppliers] = useState([])
     const [supplierId, setSupplierId] = useState(null)
     const [saving, setSaving] = useState(false)
     const [newUnit, setNewUnit] = useState('')
@@ -41,21 +40,30 @@ export default function CreateProduct() {
         { warehouse_id: '', quantity: 1, threshold: 10, unit_type: 'base' }
     ])
     const navigate = useNavigate()
-    const [units, setUnits] = useState([])
     const { showToast } = useToast()
     const { t, lang } = useTranslation()
+    const queryClient = useQueryClient()
 
+    const { data: warehouses = [] } = useQuery({
+        queryKey: ['warehouses'],
+        queryFn: () => api.get('/warehouses').then(res => res.data.data),
+    })
+    const { data: units = [] } = useQuery({
+        queryKey: ['units'],
+        queryFn: () => api.get('/units').then(res => res.data.data),
+    })
+    const { data: suppliers = [] } = useQuery({
+        queryKey: ['suppliers', 'all'],
+        queryFn: () => api.get('/suppliers').then(res => res.data.data),
+    })
 
+    const defaultUnitSet = useRef(false)
     useEffect(() => {
-        api.get('/warehouses').then(res => setWarehouses(res.data.data))
-        api.get('/units').then(res => {
-            setUnits(res.data.data)
-            if (res.data.data.length > 0) {
-                setForm(f => ({ ...f, unit: res.data.data[0].name }))
-            }
-        })
-        api.get('/suppliers').then(res => setSuppliers(res.data.data))
-    }, [])
+        if (units.length > 0 && !defaultUnitSet.current) {
+            defaultUnitSet.current = true
+            setForm(f => ({ ...f, unit: units[0].name }))
+        }
+    }, [units])
 
     const addStock = () => {
         setStocks([...stocks, { warehouse_id: '', quantity: 1, threshold: 10, unit_type: 'base' }])
@@ -78,7 +86,7 @@ export default function CreateProduct() {
         try {
             const res = await api.post('/units', { name: newUnit.trim() })
             const saved = res.data.data ?? res.data
-            setUnits(prev => [...prev, saved])
+            queryClient.setQueryData(['units'], (prev = []) => [...prev, saved])
             setForm(f => ({ ...f, unit: saved.name }))
             showToast(t('products.form.unitCreated'), 'success')
             setNewUnit('')

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import api from '../api/axios'
@@ -12,13 +13,7 @@ import { formatNumber } from '../lib/format'
 const STORAGE_KEY = 'createPurchaseOrderDraft'
 
 export default function CreatePurchaseOrder() {
-    const [warehouses, setWarehouses] = useState([])
-    const [suppliers, setSuppliers] = useState([])
-    const [products, setProducts] = useState([])
-    const [supplierProducts, setSupplierProducts] = useState([])
-    const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
-    const [stores, setStores] = useState([])
     const [flashIndex, setFlashIndex] = useState(-1)
     const navigate = useNavigate()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
@@ -62,6 +57,31 @@ const supplierChanged = items.length > 0 && supplierId !== pricedForSupplier
         localStorage.setItem('order_draft_date', orderDate)
     }, [orderDate])
 
+    // Fetch data
+    const { data: suppliers = [], isLoading: suppliersLoading, isError: suppliersError } = useQuery({
+        queryKey: ['suppliers', 'all'],
+        queryFn: () => api.get('/suppliers').then(res => res.data.data),
+    })
+    const { data: products = [], isLoading: productsLoading, isError: productsError } = useQuery({
+        queryKey: ['products', 'all'],
+        queryFn: () => api.get('/products?per_page=all').then(res => res.data.data),
+    })
+    const { data: warehouses = [], isLoading: warehousesLoading, isError: warehousesError } = useQuery({
+        queryKey: ['warehouses'],
+        queryFn: () => api.get('/warehouses').then(res => res.data.data),
+    })
+    const { data: stores = [], isLoading: storesLoading, isError: storesError } = useQuery({
+        queryKey: ['stores'],
+        queryFn: () => api.get('/stores').then(res => res.data.data),
+    })
+
+    const loading = suppliersLoading || productsLoading || warehousesLoading || storesLoading
+    const loadError = suppliersError || productsError || warehousesError || storesError
+
+    useEffect(() => {
+        if (loadError) showToast(t('orders.create.loadFailed'), 'error')
+    }, [loadError, showToast, t])
+
     // Set store from user or saved default
     useEffect(() => {
         if (user.store_id) {
@@ -79,31 +99,14 @@ const supplierChanged = items.length > 0 && supplierId !== pricedForSupplier
             localStorage.setItem('default_store_id', id)
         }
     }, [stores])
-    
-    // Fetch data
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [suppliersRes, productsRes, warehousesRes, storesRes] = await Promise.all([
-                    api.get('/suppliers'),
-                    api.get('/products?per_page=all'),
-                    api.get('/warehouses'),
-                    api.get('/stores'),
-                ])
-                setSuppliers(suppliersRes.data.data)
-                setProducts(productsRes.data.data)
-                setWarehouses(warehousesRes.data.data)
-                setStores(storesRes.data.data)
-            } catch {
-                showToast(t('orders.create.loadFailed'), 'error')
-            } finally {
-                setLoading(false)
-            }
-        }
-        fetchData()
-    }, [])
 
-  
+    const { data: supplierProducts = [] } = useQuery({
+        queryKey: ['suppliers', supplierId, 'products'],
+        queryFn: () => api.get(`/suppliers/${supplierId}/products`).then(res => res.data.data.products || []),
+        enabled: !!supplierId,
+    })
+
+
 
     // ---- Persist draft on every change ----
   useEffect(() => {
@@ -126,16 +129,6 @@ const supplierChanged = items.length > 0 && supplierId !== pricedForSupplier
             setTimeout(() => productSearchRef.current?.focus(), 100)
         }
     }, [supplierId])
-
-    useEffect(() => {
-    if (!supplierId) {
-        setSupplierProducts([])
-        return
-    }
-    api.get(`/suppliers/${supplierId}/products`)
-        .then(res => setSupplierProducts(res.data.data.products || []))
-        .catch(() => setSupplierProducts([]))
-}, [supplierId])
 
     const handleStoreChange = (id) => {
         setStoreId(id)

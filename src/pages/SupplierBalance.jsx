@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -17,49 +18,44 @@ export default function SupplierBalance() {
     const navigate = useNavigate()
     const { showToast } = useToast()
     const { t, lang } = useTranslation()
-    const [data, setData] = useState(null)
-    const [loading, setLoading] = useState(true)
-    const [allProducts, setAllProducts] = useState([])
     const [attachModal, setAttachModal] = useState(false)
     const [editModal, setEditModal] = useState(false)
     const [selectedProduct, setSelectedProduct] = useState(null)
     const [cart, setCart] = useState([])
     const [pivotForm, setPivotForm] = useState({ cost_price: '', is_preferred: false, notes: '' })
     const [detaching, setDetaching] = useState(null)
-    const [purchaseOrders, setPurchaseOrders] = useState([])
-    const [attachedProducts, setAttachedProducts] = useState([])
-    const [payments, setPayments] = useState([])
     const [reverseModal, setReverseModal] = useState(false)
     const [saving, setSaving] = useState(false)
     const [paymentModal, setPaymentModal] = useState(false)
     const [payForm, setPayForm] = useState({ amount: '', method: 'cash', purchase_order_id: '' })
+    const queryClient = useQueryClient()
 
-    const fetchData = async () => {
-         try {
-            const [res , productRes] = await Promise.all([
-                api.get(`/suppliers/${id}/summary`),
-                api.get('/products')
-            ])
+    const { data: bundle, isLoading, isError } = useQuery({
+        queryKey: ['suppliers', id, 'balance'],
+        queryFn: () => Promise.all([
+            api.get(`/suppliers/${id}/summary`),
+            api.get('/products'),
+        ]).then(([res, productRes]) => {
             const d = res.data
-            setAllProducts(productRes.data.data || [])
-            setData({
-                 balance: {
+            return {
+                balance: {
                     balance: d.balance,
                     supplier_name: d.supplier_name,
-                 },
-                  history: d.history,
-            })
-            setPurchaseOrders(d.purchase_orders)
-            setAttachedProducts(d.products)
-            setPayments(d.payments || [])
-        } catch (err) {
-            showToast(err.response?.data?.message || t('suppliers.balance.loadFailed'), 'error')
-        } finally {
-            setLoading(false)
-        }
-    }
+                },
+                history: d.history,
+                purchaseOrders: d.purchase_orders,
+                attachedProducts: d.products,
+                payments: d.payments || [],
+                allProducts: productRes.data.data || [],
+            }
+        }),
+    })
 
-    useEffect(() => { fetchData() }, [id])
+    const invalidateBalance = () => queryClient.invalidateQueries({ queryKey: ['suppliers', id, 'balance'] })
+
+    useEffect(() => {
+        if (isError) showToast(t('suppliers.balance.loadFailed'), 'error')
+    }, [isError, showToast, t])
 
     const handlePayment = async (e) => {
         e.preventDefault()
@@ -76,7 +72,7 @@ export default function SupplierBalance() {
             showToast(t('suppliers.balance.paymentAdded'), 'success')
             setPaymentModal(false)
             setPayForm({ amount: '', method: 'cash', purchase_order_id: '' })
-            fetchData()
+            invalidateBalance()
         } catch (err) {
             showToast(err.response?.data?.message || t('suppliers.balance.paymentFailed'), 'error')
         } finally {
@@ -84,17 +80,24 @@ export default function SupplierBalance() {
         }
     }
 
-    const handleAttach = async () => {
-    if (!selectedProduct) return
+const handleBulkAttach = async () => {
+    if (cart.length === 0) return
     setSaving(true)
     try {
-        await api.post(`/suppliers/${id}/products/${selectedProduct.id}`, pivotForm)
-        showToast(t('suppliers.balance.productLinked'), 'success')
+        await api.post(`/suppliers/${id}/products/bulk`, {
+            products: cart.map(p => ({
+                product_id: p.id,
+                cost_price: p.cost_price,
+                is_preferred: p.is_preferred,
+                notes: p.notes
+            }))
+        })
+        showToast(t('suppliers.balance.bulkLinked', { count: cart.length }), 'success')
         setAttachModal(false)
-        setSelectedProduct(null)
-        fetchData()
+        setCart([])
+        invalidateBalance()
     } catch (err) {
-        showToast(err.response?.data?.message || t('suppliers.balance.attachFailed'), 'error')
+        showToast(err.response?.data?.message || t('suppliers.balance.bulkAttachFailed'), 'error')
     } finally {
         setSaving(false)
     }
@@ -107,7 +110,7 @@ const handleEdit = async () => {
         await api.put(`/suppliers/${id}/products/${selectedProduct.id}`, pivotForm)
         showToast(t('suppliers.balance.productUpdated'), 'success')
         setEditModal(false)
-        fetchData()
+        invalidateBalance()
     } catch (err) {
         showToast(err.response?.data?.message || t('suppliers.balance.editFailed'), 'error')
     } finally {
@@ -121,7 +124,7 @@ const handleDetach = async (productId) => {
     try {
         await api.delete(`/suppliers/${id}/products/${productId}`)
         showToast(t('suppliers.balance.productDetached'), 'success')
-        fetchData()
+        invalidateBalance()
     } catch (err) {
         showToast(err.response?.data?.message || t('suppliers.balance.detachFailed'), 'error')
     } finally {
@@ -154,31 +157,11 @@ const updateCartItem = (productId, field, value) => {
     setCart(c => c.map(p => p.id === productId ? { ...p, [field]: value } : p))
 }
 
-const handleBulkAttach = async () => {
-    if (cart.length === 0) return
-    setSaving(true)
-    try {
-        await api.post(`/suppliers/${id}/products/bulk`, {
-            products: cart.map(p => ({
-                product_id: p.id,
-                cost_price: p.cost_price,
-                is_preferred: p.is_preferred,
-                notes: p.notes
-            }))
-        })
-        showToast(t('suppliers.balance.bulkLinked', { count: cart.length }), 'success')
-        setAttachModal(false)
-        setCart([])
-        fetchData()
-    } catch (err) {
-        showToast(err.response?.data?.message || t('suppliers.balance.bulkAttachFailed'), 'error')
-    } finally {
-        setSaving(false)
-    }
-}
 
-    if (loading) return <LoadingSpinner />
-    const { balance, history } = data
+
+    if (isLoading) return <LoadingSpinner />
+    if (isError || !bundle) return null
+    const { balance, history, purchaseOrders, attachedProducts, payments, allProducts } = bundle
     const isOwed = balance.balance > 0
     const isOverpaid = balance.balance < 0
 
@@ -449,7 +432,7 @@ const handleBulkAttach = async () => {
                 onClose={() => setReverseModal(false)}
                 orders={ordersWithPayments}
                 payments={payments}
-                onSuccess={fetchData}
+                onSuccess={invalidateBalance}
             />
 
             {/* Payment Modal */}

@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -8,7 +9,6 @@ import { useTranslation } from '../i18n/useTranslation'
 export default function EditSupplier() {
     const { id } = useParams()
     const navigate = useNavigate()
-    const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
     const { t } = useTranslation()
@@ -17,32 +17,43 @@ export default function EditSupplier() {
     })
 
     // ─── Product linking state ─────────────────────────────────────────
-    const [allProducts, setAllProducts] = useState([])
     const [attachedIds, setAttachedIds] = useState(new Set())
     const [togglingId, setTogglingId] = useState(null)
 
-    useEffect(() => {
-        Promise.all([
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['suppliers', id, 'edit'],
+        queryFn: () => Promise.all([
             api.get(`/suppliers/${id}`),
             api.get(`/suppliers/${id}/products`),
             api.get(`/products?per_page=200`),
-        ])
-            .then(([supplierRes, attachedRes, allProductsRes]) => {
-                const c = supplierRes.data.data
-                setForm({
-                    code: c.code || '',
-                    name: c.name || '',
-                    phone: c.phone || '',
-                    address: c.address || '',
-                    notes: c.notes || '',
-                    area: c.area || '',
-                })
-                setAttachedIds(new Set(attachedRes.data.data.map(p => p.id)))
-                setAllProducts(allProductsRes.data.data)
-            })
-            .catch(() => setError(t('suppliers.edit.loadFailed')))
-            .finally(() => setLoading(false))
-    }, [id])
+        ]).then(([supplierRes, attachedRes, allProductsRes]) => ({
+            supplier: supplierRes.data.data,
+            attachedIds: attachedRes.data.data.map(p => p.id),
+            allProducts: allProductsRes.data.data,
+        })),
+    })
+
+    useEffect(() => {
+        if (isError) setError(t('suppliers.edit.loadFailed'))
+    }, [isError, t])
+
+    const formInitialized = useRef(false)
+    useEffect(() => {
+        if (!data || formInitialized.current) return
+        formInitialized.current = true
+        const c = data.supplier
+        setForm({
+            code: c.code || '',
+            name: c.name || '',
+            phone: c.phone || '',
+            address: c.address || '',
+            notes: c.notes || '',
+            area: c.area || '',
+        })
+        setAttachedIds(new Set(data.attachedIds))
+    }, [data])
+
+    const allProducts = data?.allProducts || []
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -80,7 +91,7 @@ export default function EditSupplier() {
         }
     }
 
-    if (loading) return <LoadingSpinner />
+    if (isLoading) return <LoadingSpinner />
 
     return (
         <div className="">

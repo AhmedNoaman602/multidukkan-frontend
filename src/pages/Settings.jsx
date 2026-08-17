@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -10,16 +11,12 @@ import { useTranslation } from '../i18n/useTranslation'
 export default function Settings() {
     const { t } = useTranslation()
     const [activeTab, setActiveTab] = useState('users')
-    const [users, setUsers] = useState([])
-    const [stores, setStores] = useState([])
-    const [loading, setLoading] = useState(true)
     const [showCreateUser, setShowCreateUser] = useState(false)
     const [saving, setSaving] = useState(false)
     const [showCreateStore, setShowCreateStore] = useState(false)
     const [storeForm, setStoreForm] = useState({ name: '', address: '', phone: '' })
     const user = JSON.parse(localStorage.getItem('user') || '{}')
     const navigate = useNavigate()
-    const [warehouses, setWarehouses] = useState([])
     const [showCreateWarehouse, setShowCreateWarehouse] = useState(false)
     const [warehouseForm, setWarehouseForm] = useState({
         name: '',
@@ -30,7 +27,6 @@ export default function Settings() {
         name: '', email: '', password: '', role: 'store_staff', store_id: ''
     })
 
-    const [units, setUnits] = useState([])
     const [showCreateUnit, setShowCreateUnit] = useState(false)
     const [unitForm, setUnitForm] = useState({ name: '' })
     const [deleteTargetUser, setDeleteTargetUser] = useState(null)
@@ -42,39 +38,45 @@ export default function Settings() {
     const [deleteTargetUnit, setDeleteTargetUnit] = useState(null)
     const [deletingUnit, setDeletingUnit] = useState(false)
     const { showToast } = useToast()
+    const queryClient = useQueryClient()
 
     const allowedRoles = user.role === 'tenant_admin'
         ? ['store_manager', 'store_staff']
         : ['store_staff']
 
+    const { data: settingsData, isLoading, isError } = useQuery({
+        queryKey: ['settings'],
+        queryFn: () => Promise.all([
+            api.get('/users'),
+            api.get('/stores'),
+            api.get('/warehouses'),
+            api.get('/units'),
+        ]).then(([usersRes, storesRes, warehousesRes, unitsRes]) => ({
+            users: usersRes.data.data,
+            stores: storesRes.data.data,
+            warehouses: warehousesRes.data.data,
+            units: unitsRes.data.data,
+        })),
+    })
+
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [usersRes, storesRes, warehousesRes , unitsRes] = await Promise.all([
-                    api.get('/users'),
-                    api.get('/stores'),
-                    api.get('/warehouses'),
-                    api.get('/units'),
-                ])
-                setUsers(usersRes.data.data)
-                setStores(storesRes.data.data)
-                setWarehouses(warehousesRes.data.data)
-                setUnits(unitsRes.data.data)
-            } catch (err) {
-                showToast(t('settings.loadFailed'), 'error')
-            } finally {
-                setLoading(false)
-            }
-        }
-        fetchData()
-    }, [])
+        if (isError) showToast(t('settings.loadFailed'), 'error')
+    }, [isError, showToast, t])
+
+    const users = settingsData?.users || []
+    const stores = settingsData?.stores || []
+    const warehouses = settingsData?.warehouses || []
+    const units = settingsData?.units || []
+
+    const updateSettingsList = (key, updater) =>
+        queryClient.setQueryData(['settings'], (prev) => ({ ...prev, [key]: updater(prev?.[key] || []) }))
 
     const handleCreateUser = async (e) => {
         e.preventDefault()
         setSaving(true)
         try {
             const res = await api.post('/users', userForm)
-            setUsers([...users, res.data.data])
+            updateSettingsList('users', (list) => [...list, res.data.data])
             setUserForm({ name: '', email: '', password: '', role: 'store_staff', store_id: '' })
             showToast(t('settings.users.created'), 'success')
             setShowCreateUser(false)
@@ -90,7 +92,7 @@ export default function Settings() {
     setDeletingUser(true)
     try {
         await api.delete(`/users/${deleteTargetUser.id}`)
-        setUsers(users.filter(u => u.id !== deleteTargetUser.id))
+        updateSettingsList('users', (list) => list.filter(u => u.id !== deleteTargetUser.id))
         showToast(t('settings.users.deleted'), 'success')
         setDeleteTargetUser(null)
     } catch (err) {
@@ -106,7 +108,8 @@ export default function Settings() {
     setSaving(true)
     try {
         const res = await api.post('/stores', storeForm)
-        setStores([...stores, res.data.data])
+        updateSettingsList('stores', (list) => [...list, res.data.data])
+        queryClient.invalidateQueries({ queryKey: ['stores'] })
         setStoreForm({ name: '', address: '', phone: '' })
         showToast(t('settings.stores.created'), 'success')
         setShowCreateStore(false)
@@ -122,7 +125,8 @@ const handleDeleteStore = async () => {
     setDeletingStore(true)
     try {
         await api.delete(`/stores/${deleteTargetStore.id}`)
-        setStores(stores.filter(s => s.id !== deleteTargetStore.id))
+        updateSettingsList('stores', (list) => list.filter(s => s.id !== deleteTargetStore.id))
+        queryClient.invalidateQueries({ queryKey: ['stores'] })
         showToast(t('settings.stores.deleted'), 'success')
         setDeleteTargetStore(null)
     } catch (err) {
@@ -139,7 +143,8 @@ const handleCreateWarehouse = async (e) => {
     setSaving(true)
     try {
         const res = await api.post('/warehouses', warehouseForm)
-        setWarehouses([...warehouses, res.data.data])
+        updateSettingsList('warehouses', (list) => [...list, res.data.data])
+        queryClient.invalidateQueries({ queryKey: ['warehouses'] })
         setWarehouseForm({ name: '', address: '', store_id: '' })
         showToast(t('settings.warehouses.created'), 'success')
         setShowCreateWarehouse(false)
@@ -155,7 +160,8 @@ const handleDeleteWarehouse = async () => {
     setDeletingWarehouse(true)
     try {
         await api.delete(`/warehouses/${deleteTargetWarehouse.id}`)
-        setWarehouses(warehouses.filter(w => w.id !== deleteTargetWarehouse.id))
+        updateSettingsList('warehouses', (list) => list.filter(w => w.id !== deleteTargetWarehouse.id))
+        queryClient.invalidateQueries({ queryKey: ['warehouses'] })
         showToast(t('settings.warehouses.deleted'), 'success')
         setDeleteTargetWarehouse(null)
     } catch (err) {
@@ -171,7 +177,8 @@ const handleCreateUnit = async (e) => {
     setSaving(true)
     try {
         const res = await api.post('/units', unitForm)
-        setUnits([...units, res.data.data])
+        updateSettingsList('units', (list) => [...list, res.data.data])
+        queryClient.invalidateQueries({ queryKey: ['units'] })
         setUnitForm({ name: '' })
         showToast(t('products.form.unitCreated'), 'success')
         setShowCreateUnit(false)
@@ -187,7 +194,8 @@ const handleDeleteUnit = async () => {
     setDeletingUnit(true)
     try {
         await api.delete(`/units/${deleteTargetUnit.id}`)
-        setUnits(units.filter(u => u.id !== deleteTargetUnit.id))
+        updateSettingsList('units', (list) => list.filter(u => u.id !== deleteTargetUnit.id))
+        queryClient.invalidateQueries({ queryKey: ['units'] })
         showToast(t('settings.units.deleted'), 'success')
         setDeleteTargetUnit(null)
     } catch (err) {
@@ -198,7 +206,7 @@ const handleDeleteUnit = async () => {
     }
 }
 
-    if (loading) return <LoadingSpinner />
+    if (isLoading) return <LoadingSpinner />
 
     const roleColors = {
         tenant_admin: 'bg-purple-500/20 text-purple-400',

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -7,28 +7,23 @@ import { formatCurrency, formatDate } from '../lib/format'
 
 export default function PurchaseOrderInvoice() {
     const { id } = useParams()
-    const [order, setOrder] = useState(null)
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState('')
     const user = JSON.parse(localStorage.getItem('user') || '{}')
     const { t, lang } = useTranslation()
 
-    useEffect(() => {
-        api.get(`/purchase-orders/${id}`)
-            .then(res => setOrder(res.data.data))
-            .catch(() => setError(t('purchaseOrders.invoice.loadFailed')))
-            .finally(() => setLoading(false))
-    }, [id])
+    const { data: order, isLoading, isError } = useQuery({
+        queryKey: ['purchase-orders', id],
+        queryFn: () => api.get(`/purchase-orders/${id}`).then(res => res.data.data),
+    })
 
-    if (loading) return (
+    if (isLoading) return (
         <div className="flex items-center justify-center min-h-screen bg-white">
             <LoadingSpinner />
         </div>
     )
 
-    if (error || !order) return (
+    if (isError || !order) return (
         <div className="flex items-center justify-center min-h-screen bg-white">
-            <p className="text-red-500">{error || t('purchaseOrders.invoice.notFound')}</p>
+            <p className="text-red-500">{isError ? t('purchaseOrders.invoice.loadFailed') : t('purchaseOrders.invoice.notFound')}</p>
         </div>
     )
 

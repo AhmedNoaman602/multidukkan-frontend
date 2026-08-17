@@ -1,5 +1,6 @@
 // 1. Imports
 import { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -43,11 +44,6 @@ const StatCard = ({ label, value, unit, sub, icon, chip, onClick }) => {
 export default function Dashboard() {
 
     // 4. Hooks — state, router, toast
-    const [stats, setStats] = useState(null)
-    const [recentOrders, setRecentOrders] = useState([])
-    const [topDebtors, setTopDebtors] = useState([])
-    const [lowStockItems, setLowStockItems] = useState([])
-    const [loading, setLoading] = useState(true)
     const [insights, setInsights] = useState('')
     const [loadingInsights, setLoadingInsights] = useState(false)
     const [insightsFetched, setInsightsFetched] = useState(false)
@@ -132,38 +128,31 @@ export default function Dashboard() {
         window.scrollTo(0, 0)
     }, [])
 
-   useEffect(() => {
-    const fetchData = async () => {
-        try {
-            const res = await api.get('/dashboard')
-            const d = res.data
+    const { data: dashboard, isLoading, isError } = useQuery({
+        queryKey: ['dashboard'],
+        queryFn: () => api.get('/dashboard').then(res => res.data),
+    })
 
-            setStats({
-                todayRevenue: Math.round(d.stats.today_revenue),
-                todayPaymentsCount: d.stats.today_payments_count,
-                todaySales: Math.round(d.stats.today_sales),
-                todayOrdersCount: d.stats.today_orders_count,
-                unpaidOrders: d.stats.unpaid_orders,
-                totalOwed: Math.round(d.stats.total_owed),
-                totalCustomers: d.stats.total_customers,
-                totalProducts: d.stats.total_products,
-                lowStock: d.stats.low_stock,
-            })
+    useEffect(() => {
+        if (isError) showToast(t('dashboard.loadFailed'), 'error')
+    }, [isError, showToast, t])
 
-            setRecentOrders(d.recent_orders)
-            setTopDebtors(d.top_debtors)
-            setLowStockItems(d.low_stock)
+    const stats = dashboard ? {
+        todayRevenue: Math.round(dashboard.stats.today_revenue),
+        todayPaymentsCount: dashboard.stats.today_payments_count,
+        todaySales: Math.round(dashboard.stats.today_sales),
+        todayOrdersCount: dashboard.stats.today_orders_count,
+        unpaidOrders: dashboard.stats.unpaid_orders,
+        totalOwed: Math.round(dashboard.stats.total_owed),
+        totalCustomers: dashboard.stats.total_customers,
+        totalProducts: dashboard.stats.total_products,
+        lowStock: dashboard.stats.low_stock,
+    } : null
+    const recentOrders = dashboard?.recent_orders || []
+    const topDebtors = dashboard?.top_debtors || []
+    const lowStockItems = dashboard?.low_stock || []
 
-        } catch (err) {
-            showToast(err.response?.data?.message || t('dashboard.loadFailed'), 'error')
-        } finally {
-            setLoading(false)
-        }
-    }
-    fetchData()
-}, [])
-
-    if (loading) return <LoadingSpinner />
+    if (isLoading) return <LoadingSpinner />
 
     return (
         <div className="space-y-6">

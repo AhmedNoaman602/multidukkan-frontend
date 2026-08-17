@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -10,71 +11,80 @@ import { useTranslation } from '../i18n/useTranslation'
 export default function EditProduct() {
     const { id } = useParams()
     const navigate = useNavigate()
-    const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
-    const [suppliers, setSuppliers] = useState([])
     const [supplierId, setSupplierId] = useState(null)
     const [generatingDesc, setGeneratingDesc] = useState(false)
-    const [units, setUnits] = useState([])
-    const [warehouses, setWarehouses] = useState([])
     const [stocks, setStocks] = useState([])
     const [form, setForm] = useState({
         name: '', sku: '', price: '', unit: '',
         price_a: '', price_b: '', price_c: '', price_d: '', price_e: '',
-        cost_price:'', 
+        cost_price:'',
         description_ar: '', description_en: '',
         secondary_unit: '', conversion_factor: '',
     })
     const { showToast } = useToast()
     const { t } = useTranslation()
 
-    useEffect(() => {
-        Promise.all([
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['products', id, 'edit'],
+        queryFn: () => Promise.all([
             api.get(`/products/${id}`),
-            api.get('/warehouses'), 
+            api.get('/warehouses'),
             api.get('/units'),
             api.get('/suppliers'),
-        ]).then(([productRes, warehouseRes, unitRes, supplierRes]) => {
-            const p = productRes.data.data  
+        ]).then(([productRes, warehouseRes, unitRes, supplierRes]) => ({
+            product: productRes.data.data,
+            warehouses: warehouseRes.data.data,
+            units: unitRes.data.data,
+            suppliers: supplierRes.data.data,
+        })),
+    })
 
-            setForm({
-                name:              p.name || '',
-                sku:               p.sku || '',
-                price:             p.price || '',
-                unit:              p.unit || '',
-                price_a:           p.price_a || '',
-                price_b:           p.price_b || '',
-                price_c:           p.price_c || '',
-                price_d:           p.price_d || '',
-                price_e:           p.price_e || '',
-                cost_price:        p.cost_price || '',
-                secondary_unit:    p.secondary_unit || '',
-                conversion_factor: p.conversion_factor || '',
-                description_ar:    p.description_ar || '',
-                description_en:    p.description_en || '',
-            })
-            
-            // Pre-populate selected supplier when loading product:
-            if (p.supplier_id) {
-                setSupplierId(p.supplier_id)
-            }
+    useEffect(() => {
+        if (isError) showToast(t('products.edit.loadFailed'), 'error')
+    }, [isError, showToast, t])
 
-            // Load existing warehouse stocks
-            setStocks(p.stocks.map(s => ({
-                warehouse_id:   s.warehouse_id,
-                warehouse_name: s.warehouse_name,
-                quantity:       s.quantity,
-                threshold:      s.threshold,
-                isNew:          false,
-            })))
+    const formInitialized = useRef(false)
+    useEffect(() => {
+        if (!data || formInitialized.current) return
+        formInitialized.current = true
+        const p = data.product
 
-            setWarehouses(warehouseRes.data.data)
-            setUnits(unitRes.data.data)
-            setSuppliers(supplierRes.data.data)
+        setForm({
+            name:              p.name || '',
+            sku:               p.sku || '',
+            price:             p.price || '',
+            unit:              p.unit || '',
+            price_a:           p.price_a || '',
+            price_b:           p.price_b || '',
+            price_c:           p.price_c || '',
+            price_d:           p.price_d || '',
+            price_e:           p.price_e || '',
+            cost_price:        p.cost_price || '',
+            secondary_unit:    p.secondary_unit || '',
+            conversion_factor: p.conversion_factor || '',
+            description_ar:    p.description_ar || '',
+            description_en:    p.description_en || '',
         })
-        .catch(() => showToast(t('products.edit.loadFailed'), 'error'))
-        .finally(() => setLoading(false))
-    }, [id])
+
+        // Pre-populate selected supplier when loading product:
+        if (p.supplier_id) {
+            setSupplierId(p.supplier_id)
+        }
+
+        // Load existing warehouse stocks
+        setStocks(p.stocks.map(s => ({
+            warehouse_id:   s.warehouse_id,
+            warehouse_name: s.warehouse_name,
+            quantity:       s.quantity,
+            threshold:      s.threshold,
+            isNew:          false,
+        })))
+    }, [data])
+
+    const warehouses = data?.warehouses || []
+    const units = data?.units || []
+    const suppliers = data?.suppliers || []
 
     const usedWarehouseIds = stocks.map(s => parseInt(s.warehouse_id)).filter(Boolean)
 
@@ -151,7 +161,7 @@ export default function EditProduct() {
         }
     }
 
-    if (loading) return <LoadingSpinner />
+    if (isLoading) return <LoadingSpinner />
 
     return (
         <div className="">

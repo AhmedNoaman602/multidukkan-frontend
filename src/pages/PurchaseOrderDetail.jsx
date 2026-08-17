@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -9,20 +10,16 @@ import { formatCurrency, formatDate } from '../lib/format'
 export default function PurchaseOrderDetail() {
     const { id } = useParams()
     const navigate = useNavigate()
-    const [order, setOrder] = useState(null)
-    const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [cancelling, setCancelling] = useState(false)
     const [showConfirm, setShowConfirm] = useState(false)
     const user = JSON.parse(localStorage.getItem('user') || '{}')
     const { t, lang } = useTranslation()
 
-    useEffect(() => {
-        api.get(`/purchase-orders/${id}`)
-            .then(res => setOrder(res.data.data))
-            .catch(() => setError(t('purchaseOrders.detail.loadFailed')))
-            .finally(() => setLoading(false))
-    }, [id])
+    const { data: order, isLoading, isError } = useQuery({
+        queryKey: ['purchase-orders', id],
+        queryFn: () => api.get(`/purchase-orders/${id}`).then(res => res.data.data),
+    })
 
     const handleCancel = async () => {
         setCancelling(true)
@@ -37,8 +34,8 @@ export default function PurchaseOrderDetail() {
         }
     }
 
-    if (loading) return <LoadingSpinner />
-    if (error && !order) return <p className="text-red-400">{error}</p>
+    if (isLoading) return <LoadingSpinner />
+    if (isError && !order) return <p className="text-red-400">{t('purchaseOrders.detail.loadFailed')}</p>
 
     return (
         <div className="max-w-4xl">

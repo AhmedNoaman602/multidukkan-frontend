@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import { useToast } from '../hooks/useToast'
@@ -30,10 +31,10 @@ export default function Onboarding() {
     const [customerCreated, setCustomerCreated] = useState(false)
     const [teamCreated, setTeamCreated] = useState(false)
     const [loading, setLoading] = useState(false)
-    const [units, setUnits] = useState([])
     const [showNewUnit, setShowNewUnit] = useState(false)
     const [newUnit, setNewUnit] = useState('')
     const [savingUnit, setSavingUnit] = useState(false)
+    const queryClient = useQueryClient()
 
     const [storeForm, setStoreForm] = useState({ name: '', address: '', phone: '' })
     const [warehouseForm, setWarehouseForm] = useState({ name: '', address: '' })
@@ -41,13 +42,18 @@ export default function Onboarding() {
     const [customerForm, setCustomerForm] = useState({ name: '', phone: '', price_tier: '' })
     const [teamForm, setTeamForm] = useState({ name: '', email: '', password: '', role: 'store_manager' })
 
+    const { data: units = [] } = useQuery({
+        queryKey: ['units'],
+        queryFn: () => api.get('/units').then(res => res.data.data),
+    })
+
+    const defaultUnitSet = useRef(false)
     useEffect(() => {
-        api.get('/units').then(res => {
-            const data = res.data.data
-            setUnits(data)
-            if (data.length > 0) setProductForm(f => ({ ...f, unit: data[0].name }))
-        })
-    }, [])
+        if (units.length > 0 && !defaultUnitSet.current) {
+            defaultUnitSet.current = true
+            setProductForm(f => ({ ...f, unit: units[0].name }))
+        }
+    }, [units])
 
     const handleSaveUnit = async () => {
         if (!newUnit.trim()) return
@@ -55,7 +61,7 @@ export default function Onboarding() {
         try {
             const res = await api.post('/units', { name: newUnit.trim() })
             const saved = res.data.data ?? res.data
-            setUnits(prev => [...prev, saved])
+            queryClient.setQueryData(['units'], (prev = []) => [...prev, saved])
             setProductForm(f => ({ ...f, unit: saved.name }))
             showToast(t('onboarding.product.unitAdded'), 'success')
             setNewUnit('')

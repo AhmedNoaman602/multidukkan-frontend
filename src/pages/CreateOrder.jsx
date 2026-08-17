@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import api from '../api/axios'
@@ -12,13 +13,7 @@ import { formatNumber } from '../lib/format'
 const STORAGE_KEY = 'createOrderDraft'
 
 export default function CreateOrder() {
-    const [warehouses, setWarehouses] = useState([])
-    const [inventory, setInventory] = useState([])
-    const [customers, setCustomers] = useState([])
-    const [products, setProducts] = useState([])
-    const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
-    const [stores, setStores] = useState([])
     const [flashIndex, setFlashIndex] = useState(-1)
     const navigate = useNavigate()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
@@ -45,7 +40,36 @@ export default function CreateOrder() {
     const [orderDate, setOrderDate] = useState(() => {
        return new Date().toISOString().split('T')[0]
     })
-  
+
+    // Fetch data
+    const { data: customers = [], isLoading: customersLoading, isError: customersError } = useQuery({
+        queryKey: ['customers', 'all'],
+        queryFn: () => api.get('/customers').then(res => res.data.data),
+    })
+    const { data: products = [], isLoading: productsLoading, isError: productsError } = useQuery({
+        queryKey: ['products', 'all'],
+        queryFn: () => api.get('/products?per_page=all').then(res => res.data.data),
+    })
+    const { data: warehouses = [], isLoading: warehousesLoading, isError: warehousesError } = useQuery({
+        queryKey: ['warehouses'],
+        queryFn: () => api.get('/warehouses').then(res => res.data.data),
+    })
+    const { data: inventory = [], isLoading: inventoryLoading, isError: inventoryError } = useQuery({
+        queryKey: ['inventory', 'all'],
+        queryFn: () => api.get('/inventory?per_page=all').then(res => res.data.data),
+    })
+    const { data: stores = [], isLoading: storesLoading, isError: storesError } = useQuery({
+        queryKey: ['stores'],
+        queryFn: () => api.get('/stores').then(res => res.data.data),
+    })
+
+    const loading = customersLoading || productsLoading || warehousesLoading || inventoryLoading || storesLoading
+    const loadError = customersError || productsError || warehousesError || inventoryError || storesError
+
+    useEffect(() => {
+        if (loadError) showToast(t('orders.create.loadFailed'), 'error')
+    }, [loadError, showToast, t])
+
     // Set store from user or saved default
     useEffect(() => {
         if (user.store_id) {
@@ -63,34 +87,6 @@ export default function CreateOrder() {
             localStorage.setItem('default_store_id', id)
         }
     }, [stores])
-
-
-    // Fetch data
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [customersRes, productsRes, warehousesRes, inventoryRes, storesRes] = await Promise.all([
-                    api.get('/customers'),
-                    api.get('/products?per_page=all'),
-                    api.get('/warehouses'),
-                    api.get('/inventory?per_page=all'),
-                    api.get('/stores'),
-                ])
-                setCustomers(customersRes.data.data)
-                setProducts(productsRes.data.data)
-                setWarehouses(warehousesRes.data.data)
-                setInventory(inventoryRes.data.data)
-                setStores(storesRes.data.data)
-            } catch {
-                showToast(t('orders.create.loadFailed'), 'error')
-            } finally {
-                setLoading(false)
-            }
-        }
-        fetchData()
-    }, [])
-
-  
 
     // ---- Persist draft on every change ----
     useEffect(() => {

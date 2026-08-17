@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -9,24 +9,19 @@ import { formatCurrency, formatDate } from '../lib/format'
 export default function ProductDetail() {
     const { id } = useParams()
     const navigate = useNavigate()
-    const [product, setProduct] = useState(null)
-    const [suppliers, setSuppliers] = useState([])
-    const [loading, setLoading] = useState(true)
     const { t, lang } = useTranslation()
 
-    useEffect(() => {
-        api.get(`/products/${id}`)
-            .then(res => setProduct(res.data.data))
-            .finally(() => setLoading(false))
-    }, [id])
+    const { data: product, isLoading } = useQuery({
+        queryKey: ['products', id],
+        queryFn: () => api.get(`/products/${id}`).then(res => res.data.data),
+    })
 
-    useEffect(() => {
-        api.get(`/products/${id}/suppliers`)
-            .then(res => setSuppliers(res.data.data))
-            .catch(err => console.error(err))
-    }, [id])
+    const { data: suppliers = [] } = useQuery({
+        queryKey: ['products', id, 'suppliers'],
+        queryFn: () => api.get(`/products/${id}/suppliers`).then(res => res.data.data),
+    })
 
-    if (loading) return <LoadingSpinner />
+    if (isLoading) return <LoadingSpinner />
     if (!product) return <div className="text-red-400">{t('products.detail.notFound')}</div>
 
     const totalStock = product.stocks?.reduce((sum, s) => sum + s.quantity, 0) ?? 0

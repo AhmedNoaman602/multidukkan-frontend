@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import api from "../api/axios";
 import LoadingSpinner from "../components/LoadingSpinner";
+import { useToast } from "../hooks/useToast";
 import { useTranslation } from "../i18n/useTranslation";
 import { formatCurrency, formatDate } from "../lib/format";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -34,45 +36,41 @@ const toLocalDateStr = (date) => {
 
 export default function Reports() {
   const { t, lang, dir } = useTranslation();
+  const { showToast } = useToast();
   const PrevIcon = dir === 'rtl' ? ChevronRight : ChevronLeft;
   const NextIcon = dir === 'rtl' ? ChevronLeft : ChevronRight;
   const today = toLocalDateStr(new Date());
   const [from, setFrom] = useState(today);
   const [to, setTo] = useState(today);
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [tableLoading, setTableLoading] = useState(false);
   const [activeFilter, setActiveFilter] = useState("today");
+  const [queryParams, setQueryParams] = useState({
+    from: today, to: today, orderPage: 1, paymentPage: 1, customerPage: 1, dailyPage: 1,
+  });
 
-  const fetchReport = async (fromDate, toDate, pages = {}) => {
-    const isPaginating = Object.keys(pages).length > 0;
-    if (!isPaginating) setLoading(true);
-    try {
-      const params = new URLSearchParams({
-        from: fromDate,
-        to: toDate,
-        order_page: pages.order_page ?? 1,
-        payment_page: pages.payment_page ?? 1,
-        customer_page: pages.customer_page ?? 1,
-        daily_page: pages.daily_page ?? 1,
-      });
-      const res = await api.get(`/reports/daily?${params}`);
-      setData(res.data);
-    } catch {
-    } finally {
-      setLoading(false);
-      setTableLoading(false);
-    }
-  };
+  const { data, isLoading: loading, isError } = useQuery({
+    queryKey: ['reports', 'daily', queryParams],
+    queryFn: () => api.get('/reports/daily', {
+      params: {
+        from: queryParams.from,
+        to: queryParams.to,
+        order_page: queryParams.orderPage,
+        payment_page: queryParams.paymentPage,
+        customer_page: queryParams.customerPage,
+        daily_page: queryParams.dailyPage,
+      },
+    }).then(res => res.data),
+    placeholderData: keepPreviousData,
+  });
 
-  // Auto-load today on mount
   useEffect(() => {
-    fetchReport(from, to);
-  }, []);
+    if (isError) showToast(t('reports.print.loadFailed'), 'error');
+  }, [isError, showToast, t]);
+
+  const setReportPage = (key, page) => setQueryParams(p => ({ ...p, [key]: page }));
 
   const handleFilter = (e) => {
     e.preventDefault();
-    fetchReport(from, to);
+    setQueryParams({ from, to, orderPage: 1, paymentPage: 1, customerPage: 1, dailyPage: 1 });
   };
 
   // Quick filter helpers
@@ -93,7 +91,7 @@ export default function Reports() {
     }
     setFrom(f);
     setTo(toDate);
-    fetchReport(f, toDate);
+    setQueryParams({ from: f, to: toDate, orderPage: 1, paymentPage: 1, customerPage: 1, dailyPage: 1 });
   };
 
   return (
@@ -416,9 +414,7 @@ export default function Reports() {
                 <div className="flex justify-between items-center px-4 py-3 border-t border-gray-800">
                   <button
                     onClick={() =>
-                      fetchReport(from, to, {
-                        order_page: data.profit_by_order.current_page - 1,
-                      })
+                      setReportPage('orderPage', data.profit_by_order.current_page - 1)
                     }
                     disabled={data.profit_by_order.current_page === 1}
                     className="flex items-center gap-1 px-3 py-1 bg-gray-800 text-gray-400 text-xs rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors"
@@ -431,9 +427,7 @@ export default function Reports() {
                   </span>
                   <button
                     onClick={() =>
-                      fetchReport(from, to, {
-                        order_page: data.profit_by_order.current_page + 1,
-                      })
+                      setReportPage('orderPage', data.profit_by_order.current_page + 1)
                     }
                     disabled={
                       data.profit_by_order.current_page ===
@@ -499,9 +493,7 @@ export default function Reports() {
                 <div className="flex justify-between items-center px-4 py-3 border-t border-gray-800">
                   <button
                     onClick={() =>
-                      fetchReport(from, to, {
-                        customer_page: data.orders_by_customer.current_page - 1,
-                      })
+                      setReportPage('customerPage', data.orders_by_customer.current_page - 1)
                     }
                     disabled={data.orders_by_customer.current_page === 1}
                     className="flex items-center gap-1 px-3 py-1 bg-gray-800 text-gray-400 text-xs rounded-lg disabled:opacity-50 hover:bg-gray-700"
@@ -514,9 +506,7 @@ export default function Reports() {
                   </span>
                   <button
                     onClick={() =>
-                      fetchReport(from, to, {
-                        customer_page: data.orders_by_customer.current_page + 1,
-                      })
+                      setReportPage('customerPage', data.orders_by_customer.current_page + 1)
                     }
                     disabled={
                       data.orders_by_customer.current_page ===
@@ -595,9 +585,7 @@ export default function Reports() {
               <div className="flex justify-between items-center px-4 py-3 border-t border-gray-800">
                 <button
                   onClick={() =>
-                    fetchReport(from, to, {
-                      payment_page: data.payments_history.current_page - 1,
-                    })
+                    setReportPage('paymentPage', data.payments_history.current_page - 1)
                   }
                   disabled={data.payments_history.current_page === 1}
                   className="flex items-center gap-1 px-3 py-1 bg-gray-800 text-gray-400 text-xs rounded-lg disabled:opacity-50 hover:bg-gray-700"
@@ -610,9 +598,7 @@ export default function Reports() {
                 </span>
                 <button
                   onClick={() =>
-                    fetchReport(from, to, {
-                      payment_page: data.payments_history.current_page + 1,
-                    })
+                    setReportPage('paymentPage', data.payments_history.current_page + 1)
                   }
                   disabled={
                     data.payments_history.current_page ===
@@ -669,9 +655,7 @@ export default function Reports() {
                     <div className="flex justify-between items-center px-4 py-3 border-t border-gray-800">
                       <button
                         onClick={() =>
-                          fetchReport(from, to, {
-                            daily_page: data.daily_breakdown.current_page - 1,
-                          })
+                          setReportPage('dailyPage', data.daily_breakdown.current_page - 1)
                         }
                         disabled={data.daily_breakdown.current_page === 1}
                         className="flex items-center gap-1 px-3 py-1 bg-gray-800 text-gray-400 text-xs rounded-lg disabled:opacity-50 hover:bg-gray-700"
@@ -684,9 +668,7 @@ export default function Reports() {
                       </span>
                       <button
                         onClick={() =>
-                          fetchReport(from, to, {
-                            daily_page: data.daily_breakdown.current_page + 1,
-                          })
+                          setReportPage('dailyPage', data.daily_breakdown.current_page + 1)
                         }
                         disabled={
                           data.daily_breakdown.current_page ===

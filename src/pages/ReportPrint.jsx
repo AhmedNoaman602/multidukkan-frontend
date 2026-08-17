@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -15,20 +15,17 @@ export default function ReportPrint() {
     const [searchParams] = useSearchParams()
     const from = searchParams.get('from')
     const to   = searchParams.get('to')
-    const [data, setData] = useState(null)
-    const [loading, setLoading] = useState(true)
     const { t, lang } = useTranslation()
 
     let user = {}
     try { user = JSON.parse(localStorage.getItem('user') || '{}') } catch {}
 
-    useEffect(() => {
-        api.get(`/reports/daily?from=${from}&to=${to}&print=1`)
-            .then(res => setData(res.data))
-            .finally(() => setLoading(false))
-    }, [from, to])
+    const { data, isLoading } = useQuery({
+        queryKey: ['reports', 'daily', 'print', { from, to }],
+        queryFn: () => api.get(`/reports/daily?from=${from}&to=${to}&print=1`).then(res => res.data),
+    })
 
-    if (loading) return (
+    if (isLoading) return (
         <div className="flex items-center justify-center min-h-screen bg-white">
             <LoadingSpinner />
         </div>
