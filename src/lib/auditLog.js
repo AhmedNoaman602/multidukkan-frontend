@@ -1,5 +1,7 @@
 import { formatDate } from './format'
 
+const timeLocale = (lang) => (lang === 'ar' ? 'ar-EG-u-nu-latn' : 'en-GB')
+
 export const typeStyles = {
   // ledger
   ORDER_CHARGE: 'bg-red-500/20 text-red-400',
@@ -39,6 +41,32 @@ export function getInitials(name) {
   const parts = name.trim().split(/\s+/)
   const initials = parts.slice(0, 2).map((p) => p[0]?.toUpperCase() || '').join('')
   return initials || 'SY'
+}
+
+// "2 min ago" / "Today, 3:42 PM" / "Yesterday, 6:20 PM" / falls back to an
+// absolute date beyond that. Caller passes `t` and `lang`, same convention
+// as groupByDay below.
+export function formatRelativeTime(value, t, lang) {
+  if (!value) return '—'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '—'
+
+  const now = new Date()
+  const diffMinutes = Math.floor((now - date) / 60000)
+
+  if (diffMinutes < 1) return t('auditLog.detail.justNow')
+  if (diffMinutes < 60) return t('auditLog.detail.minutesAgo', { minutes: diffMinutes })
+
+  const yesterday = new Date(now)
+  yesterday.setDate(now.getDate() - 1)
+  const sameDay = (a, b) =>
+    a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
+
+  const time = date.toLocaleTimeString(timeLocale(lang), { hour: '2-digit', minute: '2-digit' })
+  if (sameDay(date, now)) return `${t('auditLog.days.today')}, ${time}`
+  if (sameDay(date, yesterday)) return `${t('auditLog.days.yesterday')}, ${time}`
+
+  return formatDate(date, lang)
 }
 
 // Group labels are localized, so the caller passes in `t` and `lang` rather
