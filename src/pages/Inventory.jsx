@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -38,6 +38,7 @@ export default function Inventory() {
         queryFn: () => api.get('/inventory', {
             params: { page, search, warehouse_id: selectedWarehouse, low_stock: lowStockOnly ? 1 : undefined },
         }).then(res => res.data),
+        placeholderData: keepPreviousData,
     })
 
     const { data: storesData, isLoading: storesLoading } = useQuery({

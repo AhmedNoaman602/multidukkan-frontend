@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import api from '../api/axios'
@@ -26,6 +26,7 @@ export default function Suppliers() {
     const { data, isLoading, isError } = useQuery({
         queryKey: ['suppliers', { page, search }],
         queryFn: () => api.get('/suppliers', { params: { page, search } }).then(res => res.data),
+        placeholderData: keepPreviousData,
     })
 
     useEffect(() => {

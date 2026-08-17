@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -64,6 +64,7 @@ export default function PurchaseOrders() {
         },
       }).then((res) => res.data);
     },
+    placeholderData: keepPreviousData,
   });
 
   useEffect(() => {
