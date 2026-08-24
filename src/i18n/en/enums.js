@@ -4,7 +4,7 @@
 
 export default {
     role: {
-        tenant_admin: 'Store Owner',
+        tenant_admin: 'Admin',
         store_manager: 'Store Manager',
         store_staff: 'Staff',
     },
