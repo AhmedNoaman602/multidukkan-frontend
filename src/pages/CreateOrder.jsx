@@ -38,7 +38,7 @@ export default function CreateOrder() {
     const [discountType, setDiscountType] = useState(draft.discountType || 'amount')
 
     const [orderDate, setOrderDate] = useState(() => {
-       return new Date().toISOString().split('T')[0]
+       return new Date().toLocaleDateString('en-CA')
     })
 
     // Fetch data
@@ -285,7 +285,7 @@ export default function CreateOrder() {
     <input
         type="date"
         value={orderDate}
-        max={new Date().toISOString().split('T')[0]}
+        max={new Date().toLocaleDateString('en-CA')}
         onChange={e => setOrderDate(e.target.value)}
         className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
     />

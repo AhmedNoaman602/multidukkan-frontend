@@ -48,7 +48,7 @@ export default function CreatePurchaseOrder() {
 const supplierChanged = items.length > 0 && supplierId !== pricedForSupplier
 
     const [orderDate, setOrderDate] = useState(() => {
-        const today = new Date().toISOString().split('T')[0]
+        const today = new Date().toLocaleDateString('en-CA')
         const saved = localStorage.getItem('order_draft_date')
         return saved || today
     })
@@ -287,7 +287,7 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
     <input
         type="date"
         value={orderDate}
-        max={new Date().toISOString().split('T')[0]}
+        max={new Date().toLocaleDateString('en-CA')}
         onChange={e => setOrderDate(e.target.value)}
         className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
     />

@@ -119,7 +119,7 @@ export default function QuickSaleModal({
             const res = await api.post('/orders', {
                 customer_id: user.walk_in_customer_id,
                 store_id: finalStoreId,
-                order_date: new Date().toISOString().split('T')[0],
+                order_date: new Date().toLocaleDateString('en-CA'),
                 discount: discountAmount,
                 pay_immediately: true,
                 payment_method: 'cash',
