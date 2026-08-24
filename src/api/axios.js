@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { STORAGE_KEY, DEFAULT_LANG, LANGUAGES } from '../i18n/translate'
 
 // Create a single axios instance used by every page in the app.
 // Configuring it once here means we don't repeat baseURL or headers everywhere.
@@ -26,6 +27,20 @@ api.interceptors.request.use((config) => {
     // Laravel Sanctum reads this header to identify the logged-in user
     if (token) {
         config.headers.Authorization = `Bearer ${token}`
+    }
+
+    // Tells the backend which language to return error messages in
+    const lang = localStorage.getItem(STORAGE_KEY)
+    config.headers['X-Locale'] = LANGUAGES.includes(lang) ? lang : DEFAULT_LANG
+
+    // Tells the backend which calendar day "today" is for this viewer, so date
+    // filters mean the local day rather than the UTC one. Timestamps themselves
+    // stay UTC end to end — this never changes what gets stored or returned.
+    try {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+        if (tz) config.headers['X-Timezone'] = tz
+    } catch {
+        // Older browsers without a resolvable zone fall back to the server default.
     }
 
     // Must return config for the request to proceed
