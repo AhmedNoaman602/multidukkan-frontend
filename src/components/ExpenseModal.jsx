@@ -5,7 +5,7 @@ import { useToast } from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
 import { EXPENSE_CATEGORIES } from '../lib/enums'
 
-const todayStr = () => new Date().toISOString().slice(0, 10)
+const todayStr = () => new Date().toLocaleDateString('en-CA')
 
 export default function ExpenseModal({ expense, stores, isAdmin, onClose, onSuccess }) {
     const isEdit = !!expense

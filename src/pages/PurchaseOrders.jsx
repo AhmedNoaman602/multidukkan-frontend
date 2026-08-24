@@ -51,7 +51,7 @@ export default function PurchaseOrders() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["purchase-orders", { page, search, yearFilter, monthFilter, dateFrom, dateTo, dateExact, filterMode }],
     queryFn: () => {
-      const today = new Date().toISOString().split("T")[0];
+      const today = new Date().toLocaleDateString("en-CA");
       return api.get("/purchase-orders", {
         params: {
           page,
@@ -233,7 +233,7 @@ export default function PurchaseOrders() {
                 <input
                   type="date"
                   value={dateFrom}
-                  max={dateTo || new Date().toISOString().split("T")[0]}
+                  max={dateTo || new Date().toLocaleDateString("en-CA")}
                   onChange={(e) => {
                     setDateFrom(e.target.value);
                     setPage(1);
@@ -247,7 +247,7 @@ export default function PurchaseOrders() {
                   type="date"
                   value={dateTo}
                   min={dateFrom}
-                  max={new Date().toISOString().split("T")[0]}
+                  max={new Date().toLocaleDateString("en-CA")}
                   onChange={(e) => {
                     setDateTo(e.target.value);
                     setPage(1);
@@ -262,7 +262,7 @@ export default function PurchaseOrders() {
             <input
               type="date"
               value={dateExact}
-              max={new Date().toISOString().split("T")[0]}
+              max={new Date().toLocaleDateString("en-CA")}
               onChange={(e) => {
                 setDateExact(e.target.value);
                 setPage(1);
