@@ -267,12 +267,18 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
                         </div>
                     )}
                     <div className={`bg-gray-900 border border-gray-800 rounded-xl p-4 ${user.store_id ? 'col-span-2' : ''}`}>
-                        <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wider">{t('common.supplier')}</label>
-                       <SupplierSearchInput
-    suppliers={suppliers}
-    value={supplierId}
-    onSelect={setSupplierId}
-/>
+                        <label className="flex items-center gap-1.5 text-xs text-gray-400 mb-1.5 uppercase tracking-wider">
+                            <span className="flex items-center justify-center w-4 h-4 rounded-full bg-gray-700 text-gray-300 text-[10px] normal-case">2</span>
+                            {t('orders.create.addProduct')}
+                        </label>
+                        <ProductSearchInput
+                            products={productsWithSupplierPricing}
+                            onSelect={handleProductSelect}
+                            showCostPrice={true}
+                            inputRef={productSearchRef}
+                            disabled={!supplierId}
+                            placeholder={!supplierId ? t('purchaseOrders.create.selectSupplierFirst') : undefined}
+                        />
                     </div>
                     <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
     <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wider">
@@ -511,14 +517,17 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
                     {/* Sticky right panel */}
                     <div className="w-full lg:w-[340px] shrink-0 lg:sticky lg:top-4 space-y-3">
 
-                        {/* Product search */}
-                        <div id="add-product-panel" className="bg-gray-900 border border-gray-800 rounded-xl p-4 scroll-mt-20">
-                            <p className="text-[11px] text-gray-400 mb-2 uppercase tracking-wider font-medium">{t('orders.create.addProduct')}</p>
-                            <ProductSearchInput
-                                products={productsWithSupplierPricing}
-                                onSelect={handleProductSelect}
-                                showCostPrice={true}
-                                inputRef={productSearchRef}
+                        {/* Supplier search */}
+                        <div id="supplier-panel" className="bg-gray-900 border border-gray-800 rounded-xl p-4 scroll-mt-20">
+                            <p className="flex items-center gap-1.5 text-[11px] text-gray-400 mb-2 uppercase tracking-wider font-medium">
+                                <span className="flex items-center justify-center w-4 h-4 rounded-full bg-blue-600 text-white text-[10px] normal-case">1</span>
+                                {t('common.supplier')}
+                            </p>
+                            <SupplierSearchInput
+                                suppliers={suppliers}
+                                value={supplierId}
+                                onSelect={setSupplierId}
+                                autoFocus
                             />
                         </div>
 

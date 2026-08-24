@@ -15,6 +15,7 @@ export default {
         title: 'إنشاء أمر شراء جديد',
         backToOrders: 'رجوع لأوامر الشراء',
         orderDate: 'تاريخ أمر الشراء',
+        selectSupplierFirst: 'اختر المورد أولاً',
         supplierChanged: '⚠️ المورد اتغير — الأسعار تحت ممكن تكون قديمة. امسح المنتج وضيفه تاني عشان السعر يتحدث.',
         creating: 'جاري الإنشاء...',
         submit: 'إنشاء الأمر',

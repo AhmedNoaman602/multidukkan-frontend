@@ -15,6 +15,7 @@ export default {
         title: 'Create New Purchase Order',
         backToOrders: 'Back to purchase orders',
         orderDate: 'Purchase order date',
+        selectSupplierFirst: 'Select a supplier first',
         supplierChanged: '⚠️ The supplier changed — prices below may be outdated. Remove the item and re-add it to refresh the price.',
         creating: 'Creating…',
         submit: 'Create order',

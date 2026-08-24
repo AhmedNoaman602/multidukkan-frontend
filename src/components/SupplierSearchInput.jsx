@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from '../i18n/useTranslation'
 
-export default function SupplierSearchInput({ suppliers, value, onSelect, placeholder }) {
+export default function SupplierSearchInput({ suppliers, value, onSelect, placeholder, autoFocus = false }) {
     const { t } = useTranslation()
     const effectivePlaceholder = placeholder ?? t('search.supplier.placeholder')
     const [query, setQuery] = useState('')
@@ -112,6 +112,7 @@ export default function SupplierSearchInput({ suppliers, value, onSelect, placeh
                         onFocus={() => query && setOpen(true)}
                         placeholder={effectivePlaceholder}
                         autoComplete="off"
+                        autoFocus={autoFocus}
                         className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                     />
 

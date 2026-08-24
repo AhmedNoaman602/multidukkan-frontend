@@ -55,6 +55,7 @@ export default {
         nextField: 'Enter = next field',
         addItemsHint: 'Search or browse products to add items',
         addProduct: 'Add product',
+        selectCustomerFirst: 'Select a customer first',
         summary: 'Summary',
         discountAmount: '= {amount} discount',
         chooseWarehouse: 'Choose',

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatNumber } from '../lib/format'
 
-export default function ProductSearchInput({ products, onSelect, showCostPrice = false, placeholder, inputRef: externalRef }) {
+export default function ProductSearchInput({ products, onSelect, showCostPrice = false, placeholder, inputRef: externalRef, disabled = false }) {
     const { t } = useTranslation()
     const effectivePlaceholder = placeholder ?? t('search.product.placeholder')
     const [query, setQuery] = useState('')
@@ -86,7 +86,8 @@ export default function ProductSearchInput({ products, onSelect, showCostPrice =
                         onFocus={() => query && setOpen(true)}
                         placeholder={effectivePlaceholder}
                         autoComplete="off"
-                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
+                        disabled={disabled}
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     />
 
                     {open && filtered.length > 0 && (
@@ -125,7 +126,8 @@ export default function ProductSearchInput({ products, onSelect, showCostPrice =
                 <button
                     type="button"
                     onClick={() => setBrowseOpen(true)}
-                    className="px-3 py-2 bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-300 text-sm rounded-lg transition-colors whitespace-nowrap"
+                    disabled={disabled}
+                    className="px-3 py-2 bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-300 text-sm rounded-lg transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-700"
                 >
                     {t('search.browse')}
                 </button>

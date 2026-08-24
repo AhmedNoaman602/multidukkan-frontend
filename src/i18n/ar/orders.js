@@ -55,6 +55,7 @@ export default {
         nextField: 'Enter = الحقل التالي',
         addItemsHint: 'ابحث أو اتصفح المنتجات عشان تضيف أصناف',
         addProduct: 'إضافة منتج',
+        selectCustomerFirst: 'اختر العميل أولاً',
         summary: 'الملخص',
         discountAmount: '= خصم {amount}',
         chooseWarehouse: 'اختر',
