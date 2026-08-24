@@ -129,8 +129,8 @@ export default function Dashboard() {
     }, [])
 
     const { data: dashboard, isLoading, isError } = useQuery({
-        queryKey: ['dashboard'],
-        queryFn: () => api.get('/dashboard').then(res => res.data),
+        queryKey: ['dashboard', activePeriod],
+        queryFn: () => api.get('/dashboard', { params: { period: activePeriod.toLowerCase() } }).then(res => res.data),
     })
 
     useEffect(() => {
@@ -192,7 +192,7 @@ export default function Dashboard() {
 
             {/* PRIMARY — Today's performance */}
             <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">{t('dashboard.sections.today')}</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">{t(`dashboard.periods.${activePeriod}`)}</p>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                     <StatCard
                         label={t('dashboard.stats.revenue')}
