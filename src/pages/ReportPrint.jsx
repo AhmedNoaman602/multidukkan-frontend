@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatCurrency, formatDate } from '../lib/format'
+import { formatCurrency, formatDate, formatTime } from '../lib/format'
 
 function formatNetProfitPrint(netProfit, lang) {
     const v = netProfit ?? 0
@@ -24,6 +24,10 @@ export default function ReportPrint() {
         queryKey: ['reports', 'daily', 'print', { from, to }],
         queryFn: () => api.get(`/reports/daily?from=${from}&to=${to}&print=1`).then(res => res.data),
     })
+
+    // Same rule as the on-screen report: the printed sheet shows the shop's trading
+    // day, so times are rendered in the zone the backend bounded the totals by.
+    const businessTimeZone = data?.business_timezone || 'Africa/Cairo'
 
     if (isLoading) return (
         <div className="flex items-center justify-center min-h-screen bg-white">
@@ -230,11 +234,7 @@ export default function ReportPrint() {
                 <td className="py-2 text-end text-gray-900 text-sm font-medium">{formatCurrency(p.amount, lang)}</td>
                 <td className="py-2 text-end text-gray-600 text-sm">{t(`enums.paymentMethod.${p.method}`)}</td>
                 <td className="py-2 text-end text-gray-500 text-sm">
-                    {new Date(p.paid_at).toLocaleTimeString('en-GB', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        timeZone: 'Africa/Cairo'
-                    })}
+                    {formatTime(p.paid_at, lang, { timeZone: businessTimeZone })}
                 </td>
             </tr>
         ))}

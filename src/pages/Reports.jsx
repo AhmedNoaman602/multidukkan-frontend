@@ -4,7 +4,7 @@ import api from "../api/axios";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useToast } from "../hooks/useToast";
 import { useTranslation } from "../i18n/useTranslation";
-import { formatCurrency, formatDate } from "../lib/format";
+import { formatCurrency, formatDate, formatTime } from "../lib/format";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   LineChart,
@@ -61,6 +61,11 @@ export default function Reports() {
     }).then(res => res.data),
     placeholderData: keepPreviousData,
   });
+
+  // Reports are bounded by the shop's trading day, not the viewer's, so payment
+  // times are rendered in the same zone the backend used to calculate the totals.
+  // The backend is the source of truth; the fallback only covers a stale cache.
+  const businessTimeZone = data?.business_timezone || 'Africa/Cairo';
 
   useEffect(() => {
     if (isError) showToast(t('reports.print.loadFailed'), 'error');
@@ -566,11 +571,7 @@ export default function Reports() {
                       </span>
                     </td>
                     <td className="px-4 py-2 text-gray-400 text-sm">
-                      {new Date(p.paid_at).toLocaleTimeString("en-GB", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        timeZone: "Africa/Cairo",
-                      })}
+                      {formatTime(p.paid_at, lang, { timeZone: businessTimeZone })}
                     </td>
                   </tr>
                 ))}

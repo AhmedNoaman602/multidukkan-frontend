@@ -1,6 +1,4 @@
-import { formatDate } from './format'
-
-const timeLocale = (lang) => (lang === 'ar' ? 'ar-EG-u-nu-latn' : 'en-GB')
+import { formatDate, formatTime } from './format'
 
 export const typeStyles = {
   // ledger
@@ -62,7 +60,7 @@ export function formatRelativeTime(value, t, lang) {
   const sameDay = (a, b) =>
     a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
 
-  const time = date.toLocaleTimeString(timeLocale(lang), { hour: '2-digit', minute: '2-digit' })
+  const time = formatTime(date, lang)
   if (sameDay(date, now)) return `${t('auditLog.days.today')}, ${time}`
   if (sameDay(date, yesterday)) return `${t('auditLog.days.yesterday')}, ${time}`
 
