@@ -10,12 +10,12 @@ import { useTranslation } from '../i18n/useTranslation'
 
 export default function Settings() {
     const { t } = useTranslation()
-    const [activeTab, setActiveTab] = useState('users')
     const [showCreateUser, setShowCreateUser] = useState(false)
     const [saving, setSaving] = useState(false)
     const [showCreateStore, setShowCreateStore] = useState(false)
     const [storeForm, setStoreForm] = useState({ name: '', address: '', phone: '' })
     const user = JSON.parse(localStorage.getItem('user') || '{}')
+    const [activeTab, setActiveTab] = useState(user.role === 'tenant_admin' ? 'stores' : 'users')
     const navigate = useNavigate()
     const [showCreateWarehouse, setShowCreateWarehouse] = useState(false)
     const [warehouseForm, setWarehouseForm] = useState({
