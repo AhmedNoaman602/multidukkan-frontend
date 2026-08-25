@@ -134,13 +134,15 @@ export default function Products() {
                                 <td className="px-4 py-3 text-gray-400 text-sm">{product.unit}</td>
                                 <td className="px-4 py-3">
     <div className="flex gap-2">
-        <button
+        {user.role === 'tenant_admin' && (
+            <button
     onClick={(e) => { e.stopPropagation(); navigate('/products/create', { state: { duplicate: product } }) }}
     className="px-3 py-1 bg-gray-500/10 border border-gray-500/20 text-gray-400 text-xs font-medium rounded-lg hover:bg-gray-500/20 transition-colors"
 >
     {t('products.duplicate')}
 </button>
-        {user.role !== 'store_staff' && (
+        )}
+        {user.role === 'tenant_admin' && (
             <button
     onClick={(e) => { e.stopPropagation(); navigate(`/products/${product.id}/edit`) }}
                 className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium rounded-lg hover:bg-blue-500/20 transition-colors"

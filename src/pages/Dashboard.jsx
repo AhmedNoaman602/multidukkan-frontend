@@ -148,6 +148,9 @@ export default function Dashboard() {
         totalProducts: dashboard.stats.total_products,
         lowStock: dashboard.stats.low_stock,
     } : null
+    // The API omits revenue, sales and total_owed for store_staff rather than zeroing
+    // them, so these keys are absent — not 0. Rendering them anyway gives NaN.
+    const canViewFinancials = dashboard?.stats?.can_view_financials ?? false
     const recentOrders = dashboard?.recent_orders || []
     const topDebtors = dashboard?.top_debtors || []
     const lowStockItems = dashboard?.low_stock || []
@@ -193,23 +196,27 @@ export default function Dashboard() {
             {/* PRIMARY — Today's performance */}
             <div>
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">{t(`dashboard.periods.${activePeriod}`)}</p>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                    <StatCard
-                        label={t('dashboard.stats.revenue')}
-                        value={stats.todayRevenue > 0 ? formatNumber(stats.todayRevenue) : '—'}
-                        unit={stats.todayRevenue > 0 ? t('common.currency') : null}
-                        sub={stats.todayRevenue > 0
-                            ? t('common.paymentsCount', { count: stats.todayPaymentsCount })
-                            : t('dashboard.stats.noSalesYet')}
-                        icon={Banknote}
-                        chip="bg-green-500/10 border-green-500/30 text-green-400"
-                        onClick={user.role === 'tenant_admin' ? () => navigate('/reports') : undefined}
-                    />
+                <div className={`grid grid-cols-2 ${canViewFinancials ? 'lg:grid-cols-4' : 'lg:grid-cols-2'} gap-3 sm:gap-4`}>
+                    {canViewFinancials && (
+                        <StatCard
+                            label={t('dashboard.stats.revenue')}
+                            value={stats.todayRevenue > 0 ? formatNumber(stats.todayRevenue) : '—'}
+                            unit={stats.todayRevenue > 0 ? t('common.currency') : null}
+                            sub={stats.todayRevenue > 0
+                                ? t('common.paymentsCount', { count: stats.todayPaymentsCount })
+                                : t('dashboard.stats.noSalesYet')}
+                            icon={Banknote}
+                            chip="bg-green-500/10 border-green-500/30 text-green-400"
+                            onClick={user.role === 'tenant_admin' ? () => navigate('/reports') : undefined}
+                        />
+                    )}
                     <StatCard
                         label={t('dashboard.stats.newOrders')}
                         value={stats.todayOrdersCount > 0 ? formatNumber(stats.todayOrdersCount) : '—'}
                         sub={stats.todayOrdersCount > 0
-                            ? t('dashboard.stats.sales', { amount: formatCurrency(stats.todaySales, lang) })
+                            ? (canViewFinancials
+                                ? t('dashboard.stats.sales', { amount: formatCurrency(stats.todaySales, lang) })
+                                : null)
                             : t('dashboard.stats.noOrdersYet')}
                         icon={ShoppingCart}
                         chip="bg-violet-500/10 border-violet-500/30 text-violet-400"
@@ -223,15 +230,17 @@ export default function Dashboard() {
                         chip={stats.unpaidOrders > 0 ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : 'bg-gray-800/60 border-gray-700 text-gray-400'}
                         onClick={() => navigate('/orders')}
                     />
-                    <StatCard
-                        label={t('dashboard.stats.totalOwed')}
-                        value={stats.totalOwed > 0 ? formatNumber(stats.totalOwed) : '—'}
-                        unit={stats.totalOwed > 0 ? t('common.currency') : null}
-                        sub={stats.totalOwed > 0 ? t('dashboard.stats.acrossAllCustomers') : t('dashboard.stats.noDues')}
-                        icon={Receipt}
-                        chip="bg-red-500/10 border-red-500/30 text-red-400"
-                        onClick={() => navigate('/customers')}
-                    />
+                    {canViewFinancials && (
+                        <StatCard
+                            label={t('dashboard.stats.totalOwed')}
+                            value={stats.totalOwed > 0 ? formatNumber(stats.totalOwed) : '—'}
+                            unit={stats.totalOwed > 0 ? t('common.currency') : null}
+                            sub={stats.totalOwed > 0 ? t('dashboard.stats.acrossAllCustomers') : t('dashboard.stats.noDues')}
+                            icon={Receipt}
+                            chip="bg-red-500/10 border-red-500/30 text-red-400"
+                            onClick={() => navigate('/customers')}
+                        />
+                    )}
                 </div>
             </div>
 
