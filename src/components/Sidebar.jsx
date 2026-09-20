@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import api from '../api/axios'
 import { useTranslation } from '../i18n/useTranslation'
+import { canViewCostData, canViewReports } from '../lib/permissions'
 import LanguageSwitcher from './LanguageSwitcher'
 import {
     Menu,
@@ -98,9 +99,10 @@ export default function Sidebar() {
     }
 
     const canSeeExpenses = user.role === 'tenant_admin' || user.role === 'store_manager'
-    const canSeeReports = user.role === 'tenant_admin'
+    const canSeeReports = canViewReports(user)
     const canSeeAuditLog = user.role === 'tenant_admin'
     const canSeeSettings = user.role === 'tenant_admin' || user.role === 'store_manager'
+    const canSeeCostData = canViewCostData(user)
 
     const groups = [
         { title: null, items: [
@@ -114,11 +116,11 @@ export default function Sidebar() {
         ] },
         { title: t('navigation.groups.finance'), items: [
             ...(canSeeExpenses ? [{ to: '/expenses', label: t('navigation.expenses'), icon: Wallet }] : []),
-            { to: '/purchase-orders', label: t('navigation.purchaseOrders'), icon: ShoppingBag },
+            ...(canSeeCostData ? [{ to: '/purchase-orders', label: t('navigation.purchaseOrders'), icon: ShoppingBag }] : []),
             ...(canSeeReports ? [{ to: '/reports', label: t('navigation.reports'), icon: BarChart3 }] : []),
         ] },
         { title: t('navigation.groups.suppliers'), items: [
-            { to: '/suppliers', label: t('navigation.suppliers'), icon: Building2 },
+            ...(canSeeCostData ? [{ to: '/suppliers', label: t('navigation.suppliers'), icon: Building2 }] : []),
         ] },
         { title: t('navigation.groups.system'), items: [
             ...(canSeeAuditLog ? [{ to: '/audit-log', label: t('navigation.auditLog'), icon: History }] : []),

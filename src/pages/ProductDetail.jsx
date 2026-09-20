@@ -5,11 +5,14 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import BackButton from '../components/BackButton'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatCurrency, formatDate } from '../lib/format'
+import { canViewCostData } from '../lib/permissions'
 
 export default function ProductDetail() {
     const { id } = useParams()
     const navigate = useNavigate()
     const { t, lang } = useTranslation()
+    const user = JSON.parse(localStorage.getItem('user') || '{}')
+    const showCost = canViewCostData(user)
 
     const { data: product, isLoading } = useQuery({
         queryKey: ['products', id],
@@ -19,6 +22,7 @@ export default function ProductDetail() {
     const { data: suppliers = [] } = useQuery({
         queryKey: ['products', id, 'suppliers'],
         queryFn: () => api.get(`/products/${id}/suppliers`).then(res => res.data.data),
+        enabled: showCost,
     })
 
     if (isLoading) return <LoadingSpinner />
@@ -57,18 +61,22 @@ export default function ProductDetail() {
                         <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">{t('products.defaultPrice')}</p>
                         <p className="text-white text-lg font-semibold">{formatCurrency(product.price, lang)}</p>
                     </div>
-                    <div>
-                        <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">{t('products.costPrice')}</p>
-                        <p className="text-white text-lg font-semibold">
-                            {product.cost_price ? formatCurrency(product.cost_price, lang) : '—'}
-                        </p>
-                    </div>
-                    <div>
-                        <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">{t('products.profitMargin')}</p>
-                        <p className="text-blue-400 text-lg font-semibold">
-                            {product.profit_margin ? `${product.profit_margin}%` : '—'}
-                        </p>
-                    </div>
+                    {showCost && (
+                        <>
+                            <div>
+                                <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">{t('products.costPrice')}</p>
+                                <p className="text-white text-lg font-semibold">
+                                    {product.cost_price ? formatCurrency(product.cost_price, lang) : '—'}
+                                </p>
+                            </div>
+                            <div>
+                                <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">{t('products.profitMargin')}</p>
+                                <p className="text-blue-400 text-lg font-semibold">
+                                    {product.profit_margin ? `${product.profit_margin}%` : '—'}
+                                </p>
+                            </div>
+                        </>
+                    )}
                     <div>
                         <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">{t('products.form.unit')}</p>
                         <p className="text-white text-sm">{product.unit}</p>
@@ -144,6 +152,7 @@ export default function ProductDetail() {
             </div>
 
             {/* Suppliers */}
+            {showCost && (
             <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto mb-4">
                 <div className="px-4 py-3 border-b border-gray-800">
                     <h3 className="text-white font-semibold text-sm">{t('suppliers.title')}</h3>
@@ -173,6 +182,7 @@ export default function ProductDetail() {
                     <div className="text-center py-8 text-gray-500 text-sm">{t('products.detail.noSuppliersLinked')}</div>
                 )}
             </div>
+            )}
         </div>
     )
 }

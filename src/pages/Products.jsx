@@ -9,6 +9,7 @@ import {useToast} from '../hooks/useToast'
 import DeleteModal from '../components/DeleteModal'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatCurrency } from '../lib/format'
+import { canViewCostData } from '../lib/permissions'
 
 export default function Products() {
     const navigate = useNavigate()
@@ -19,6 +20,7 @@ export default function Products() {
     const {showToast} = useToast()
     const { t, lang, dir } = useTranslation()
     const user = JSON.parse(localStorage.getItem('user') || '{}')
+    const showCost = canViewCostData(user)
     const queryClient = useQueryClient()
 
     const { data, isLoading, isError } = useQuery({
@@ -54,8 +56,6 @@ export default function Products() {
     }
 }
 
-    // Pagination arrows are physical, so they have to follow the reading
-    // direction rather than being baked into the translated label.
     const PrevIcon = dir === 'rtl' ? ChevronRight : ChevronLeft
     const NextIcon = dir === 'rtl' ? ChevronLeft : ChevronRight
 
@@ -90,7 +90,8 @@ export default function Products() {
                             {[
                                 'common.name', 'common.code', 'products.defaultPrice',
                                 'enums.priceTier.a', 'enums.priceTier.b', 'enums.priceTier.c', 'enums.priceTier.d', 'enums.priceTier.e',
-                                'products.costPrice', 'products.profitMargin', 'common.warehouse', 'common.actions',
+                                ...(showCost ? ['products.costPrice', 'products.profitMargin'] : []),
+                                'common.warehouse', 'common.actions',
                             ].map(key => (
                                 <th key={key} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">
                                     {t(key)}
@@ -109,10 +110,10 @@ export default function Products() {
         <div className="text-gray-300">
             {product[`price_${tier}`] ?? '—'}
         </div>
-        {product[`price_${tier}`] && product[`profit_margin_${tier}`] !== null && (
+        {showCost && product[`price_${tier}`] && product[`profit_margin_${tier}`] != null && (
             <div className={`text-xs ${
-                product[`profit_margin_${tier}`] >= 0 
-                    ? 'text-green-400' 
+                product[`profit_margin_${tier}`] >= 0
+                    ? 'text-green-400'
                     : 'text-red-400'
             }`}>
                 {product[`profit_margin_${tier}`]}%
@@ -120,17 +121,21 @@ export default function Products() {
         )}
     </td>
 ))}
-                              
-    <td className='px-4 py-3 text-white text-sm'>
-    {product.cost_price ? formatCurrency(product.cost_price, lang) : '—'}
-    </td>
 
-    <td className={`px-4 py-3 text-sm font-medium ${
-    product.profit_margin === null ? 'text-gray-500' :
-    product.profit_margin >= 0 ? 'text-green-400' : 'text-red-400'
-    }`}>
-    {product.profit_margin !== null ? `${product.profit_margin}%` : '—'}
-</td>
+    {showCost && (
+        <>
+            <td className='px-4 py-3 text-white text-sm'>
+            {product.cost_price ? formatCurrency(product.cost_price, lang) : '—'}
+            </td>
+
+            <td className={`px-4 py-3 text-sm font-medium ${
+            product.profit_margin == null ? 'text-gray-500' :
+            product.profit_margin >= 0 ? 'text-green-400' : 'text-red-400'
+            }`}>
+            {product.profit_margin != null ? `${product.profit_margin}%` : '—'}
+            </td>
+        </>
+    )}
                                 <td className="px-4 py-3 text-gray-400 text-sm">{product.unit}</td>
                                 <td className="px-4 py-3">
     <div className="flex gap-2">

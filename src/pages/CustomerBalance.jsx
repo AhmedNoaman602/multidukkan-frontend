@@ -185,8 +185,10 @@ export default function CustomerBalance() {
                     <tbody className="divide-y divide-gray-800">
                         {data.orders.map(order => (
                             <tr key={order.id}
-                                onClick={() => navigate(`/orders/${order.id}`)}
-                                className="hover:bg-gray-800/50 transition-colors cursor-pointer">
+                                onClick={order.can_view === false ? undefined : () => navigate(`/orders/${order.id}`)}
+                                className={order.can_view === false
+                                    ? 'cursor-default'
+                                    : 'hover:bg-gray-800/50 transition-colors cursor-pointer'}>
                                 <td className="px-4 py-3 text-gray-400 text-sm font-mono">{order.invoice_number}</td>
                                 <td className="px-4 py-3 text-white text-sm">{formatCurrency(order.total, lang)}</td>
                                 <td className="px-4 py-3 text-green-400 text-sm">{formatCurrency(order.paid, lang)}</td>

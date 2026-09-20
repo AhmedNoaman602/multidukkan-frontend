@@ -9,6 +9,7 @@ import AddItemModal from '../components/AddItemModal'
 import DeleteModal from '../components/DeleteModal'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatCurrency, formatDate } from '../lib/format'
+import { canViewCostData } from '../lib/permissions'
 
 export default function OrderDetail() {
     const { id } = useParams()
@@ -369,7 +370,7 @@ const displayTotal = editMode
                 </div>
             </div>
 {/* Profit */}
-{order.items.some(i => i.cost_price !== null) && (
+{canViewCostData(user) && order.items.some(i => i.cost_price != null) && (
     <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
         <p className="text-gray-400 text-xs uppercase tracking-wider mb-4">{t('orders.detail.profitSummary')}</p>
         <div className="flex gap-8">

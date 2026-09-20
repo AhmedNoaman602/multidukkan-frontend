@@ -39,12 +39,22 @@ import ChatWidget from './components/ChatWidget'
 import ReportPrint from './pages/ReportPrint'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import GlobalSearch from './components/GlobalSearch'
+import { canViewCostData, canViewReports } from './lib/permissions'
 
 // Simple auth check — is the user logged in at all?
 // Does NOT check has_store here. That's AuthGate's job with fresh data.
 const PrivateRoute = ({ children }) => {
     const token = localStorage.getItem('token')
     return token ? children : <Navigate to="/login" />
+}
+
+// Keeps a non-admin off routes the API now 403s. The server is the enforcement;
+// this just stops the app offering a dead end.
+const RoleRoute = ({ allow, children }) => {
+    let user = {}
+    try { user = JSON.parse(localStorage.getItem('user') || '{}') } catch { /* empty */ }
+
+    return allow(user) ? children : <Navigate to="/dashboard" replace />
 }
 
 function ChatWidgetGuard() {
@@ -220,8 +230,10 @@ export default function App() {
                     } />
                     <Route path="/reports" element={
                         <PrivateRoute>
-                            <Sidebar />
-                            <Layout><Reports /></Layout>
+                            <RoleRoute allow={canViewReports}>
+                                <Sidebar />
+                                <Layout><Reports /></Layout>
+                            </RoleRoute>
                         </PrivateRoute>
                     } />
                     <Route path="/audit-log" element={
@@ -232,54 +244,72 @@ export default function App() {
                     } />
                     <Route path="/reports/print" element={
                         <PrivateRoute>
-                            <ReportPrint />
+                            <RoleRoute allow={canViewReports}>
+                                <ReportPrint />
+                            </RoleRoute>
                             </PrivateRoute>
                     } />
                     <Route path="/suppliers" element={
                         <PrivateRoute>
-                            <Sidebar />
-                            <Layout><Suppliers /></Layout>
+                            <RoleRoute allow={canViewCostData}>
+                                <Sidebar />
+                                <Layout><Suppliers /></Layout>
+                            </RoleRoute>
                         </PrivateRoute>
                     } />
                     <Route path="/suppliers/create" element={
                         <PrivateRoute>
-                            <Sidebar />
-                            <Layout><CreateSupplier /></Layout>
+                            <RoleRoute allow={canViewCostData}>
+                                <Sidebar />
+                                <Layout><CreateSupplier /></Layout>
+                            </RoleRoute>
                         </PrivateRoute>
                     } />
                     <Route path="/suppliers/:id/balance" element={
                         <PrivateRoute>
-                            <Sidebar />
-                            <Layout><SupplierBalance /></Layout>
+                            <RoleRoute allow={canViewCostData}>
+                                <Sidebar />
+                                <Layout><SupplierBalance /></Layout>
+                            </RoleRoute>
                         </PrivateRoute>
                     } />
                     <Route path="/suppliers/:id/edit" element={
                         <PrivateRoute>
-                            <Sidebar />
-                            <Layout><EditSupplier /></Layout>
+                            <RoleRoute allow={canViewCostData}>
+                                <Sidebar />
+                                <Layout><EditSupplier /></Layout>
+                            </RoleRoute>
                         </PrivateRoute>
                     } />
                     <Route path="/purchase-orders" element={
                         <PrivateRoute>
-                            <Sidebar />
-                            <Layout><PurchaseOrders /></Layout>
+                            <RoleRoute allow={canViewCostData}>
+                                <Sidebar />
+                                <Layout><PurchaseOrders /></Layout>
+                            </RoleRoute>
                         </PrivateRoute>
                     } />
                     <Route path="/purchase-orders/create" element={
                         <PrivateRoute>
-                            <Sidebar />
-                            <Layout><CreatePurchaseOrder /></Layout>
+                            <RoleRoute allow={canViewCostData}>
+                                <Sidebar />
+                                <Layout><CreatePurchaseOrder /></Layout>
+                            </RoleRoute>
                         </PrivateRoute>
                     } />
                     <Route path="/purchase-orders/:id/invoice" element={
                         <PrivateRoute>
-                            <PurchaseOrderInvoice />
+                            <RoleRoute allow={canViewCostData}>
+                                <PurchaseOrderInvoice />
+                            </RoleRoute>
                         </PrivateRoute>
                     } />
                     <Route path="/purchase-orders/:id" element={
                         <PrivateRoute>
-                            <Sidebar />
-                            <Layout><PurchaseOrderDetail /></Layout>
+                            <RoleRoute allow={canViewCostData}>
+                                <Sidebar />
+                                <Layout><PurchaseOrderDetail /></Layout>
+                            </RoleRoute>
                         </PrivateRoute>
                     } />
                     <Route path="/expenses" element={

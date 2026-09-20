@@ -103,7 +103,7 @@ export default function ProductSearchInput({ products, onSelect, showCostPrice =
                                     <div className="flex justify-between items-center">
                                         <span className="font-medium">{product.name}</span>
                                         <span className={`text-xs ${i === highlighted ? 'text-blue-200' : 'text-gray-400'}`}>
-                                            {formatNumber(showCostPrice ? (product.cost_price ?? product.price) : product.price)} {t('common.currency')}
+                                            {showCostPrice && (product.cost_price ?? '') === '' ? '—' : `${formatNumber(showCostPrice ? product.cost_price : product.price)} ${t('common.currency')}`}
                                         </span>
                                     </div>
                                     {product.sku && (
@@ -183,7 +183,7 @@ export default function ProductSearchInput({ products, onSelect, showCostPrice =
                                     </div>
                                     <div className="text-end">
 <p className="text-white text-sm font-medium">
-    {formatNumber(showCostPrice ? (product.cost_price ?? product.price) : product.price)} {t('common.currency')}
+    {showCostPrice && (product.cost_price ?? '') === '' ? '—' : `${formatNumber(showCostPrice ? product.cost_price : product.price)} ${t('common.currency')}`}
 </p>                                        <p className="text-gray-500 text-xs">{product.unit}</p>
                                     </div>
                                 </div>
