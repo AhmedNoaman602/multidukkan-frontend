@@ -106,7 +106,7 @@ export default function PurchaseOrderDetail() {
                 <table className="w-full">
                     <thead>
                         <tr className="border-b border-gray-800">
-                            {['common.product', 'common.quantity', 'orders.unitPrice', 'common.total'].map(key => (
+                            {['common.product', 'common.quantity', 'common.warehouse', 'orders.unitPrice', 'common.total'].map(key => (
                                 <th key={key} className="text-start text-xs text-gray-400 uppercase tracking-wider pb-3">
                                     {t(key)}
                                 </th>
@@ -123,6 +123,7 @@ export default function PurchaseOrderDetail() {
                                         <span className={`ms-1 text-xs ${item.unit_type !== 'base' ? 'text-blue-400' : 'text-gray-500'}`}>{item.unit_label}</span>
                                     )}
                                 </td>
+                                <td className="py-3 text-gray-400 text-sm">{item.warehouse_name ?? '—'}</td>
                                 <td className="py-3 text-gray-400 text-sm">{formatCurrency(item.unit_price, lang)}</td>
                                 <td className="py-3 text-white text-sm font-medium">{formatCurrency(item.total, lang)}</td>
                             </tr>
