@@ -25,10 +25,10 @@ export default function EditSupplier() {
         queryFn: () => Promise.all([
             api.get(`/suppliers/${id}`),
             api.get(`/suppliers/${id}/products`),
-            api.get(`/products?per_page=200`),
+            api.get(`/products?per_page=all`),
         ]).then(([supplierRes, attachedRes, allProductsRes]) => ({
             supplier: supplierRes.data.data,
-            attachedIds: attachedRes.data.data.map(p => p.id),
+            attachedIds: attachedRes.data.data.products.map(p => p.id),
             allProducts: allProductsRes.data.data,
         })),
     })

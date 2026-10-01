@@ -34,7 +34,7 @@ export default function SupplierBalance() {
         queryKey: ['suppliers', id, 'balance'],
         queryFn: () => Promise.all([
             api.get(`/suppliers/${id}/summary`),
-            api.get('/products'),
+            api.get('/products?per_page=all'),
         ]).then(([res, productRes]) => {
             const d = res.data
             return {
@@ -87,9 +87,9 @@ const handleBulkAttach = async () => {
         await api.post(`/suppliers/${id}/products/bulk`, {
             products: cart.map(p => ({
                 product_id: p.id,
-                cost_price: p.cost_price,
+                ...(p.cost_price !== '' && p.cost_price !== null && { cost_price: p.cost_price }),
+                ...(p.notes !== '' && p.notes !== null && { notes: p.notes }),
                 is_preferred: p.is_preferred,
-                notes: p.notes
             }))
         })
         showToast(t('suppliers.balance.bulkLinked', { count: cart.length }), 'success')
@@ -143,7 +143,7 @@ const addToCart = (product) => {
     setCart(c => [...c, {
         id: product.id,
         name: product.name,
-        cost_price: product.cost_price ?? product.price ?? '',
+        cost_price: product.cost_price ?? '',
         is_preferred: false,
         notes: ''
     }])
