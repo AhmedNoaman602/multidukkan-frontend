@@ -39,11 +39,16 @@ export default function CreatePurchaseOrder() {
 
     const [pricedForSupplier, setPricedForSupplier] = useState(supplierId)
 
+    // Track which supplier the cart's prices were fetched for.
+    // Reset when the cart empties, and establish it when the first item is
+    // added (pricedForSupplier is still '' — no supplier owns these prices yet).
+    // Once it holds a real id, only the refresh button may change it, so
+    // switching suppliers leaves it stale and raises supplierChanged.
     useEffect(() => {
-    if (items.length === 0) {
+    if (items.length === 0 || !pricedForSupplier) {
         setPricedForSupplier(supplierId)
     }
-}, [items.length])
+}, [items.length, supplierId, pricedForSupplier])
 
 const supplierChanged = items.length > 0 && supplierId !== pricedForSupplier
 
