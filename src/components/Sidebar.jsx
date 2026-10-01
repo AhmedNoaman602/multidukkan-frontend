@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import api from '../api/axios'
 import { useTranslation } from '../i18n/useTranslation'
 import { canViewCostData, canViewReports } from '../lib/permissions'
@@ -86,6 +87,7 @@ function UserFooter({ user, onLogout }) {
 export default function Sidebar() {
     const navigate = useNavigate()
     const { t, dir } = useTranslation()
+    const queryClient = useQueryClient()
     const [mobileOpen, setMobileOpen] = useState(false)
     const user = JSON.parse(localStorage.getItem('user') || '{}')
 
@@ -95,6 +97,9 @@ export default function Sidebar() {
         } catch (err) {}
         localStorage.removeItem('token')
         localStorage.removeItem('user')
+        localStorage.removeItem('default_store_id')
+        sessionStorage.clear()
+        queryClient.clear()
         navigate('/login')
     }
 
