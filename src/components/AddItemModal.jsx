@@ -4,8 +4,9 @@ import {useToast} from '../hooks/useToast'
 import api from '../api/axios'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatCurrency } from '../lib/format'
+import { sortShelfFirst, shelfIdFor } from '../lib/locations'
 
-export default function AddItemModal({ open, onClose,orderId, onSuccess }) {
+export default function AddItemModal({ open, onClose,orderId, storeId, onSuccess }) {
     const [selectedProduct, setSelectedProduct] = useState(null)
     const [products,setProducts] = useState([])
     const[warehouses,setWarehouses] = useState([])
@@ -39,12 +40,16 @@ export default function AddItemModal({ open, onClose,orderId, onSuccess }) {
     },[open , orderId])
 
 
+    // The added line can only use the order's own store's locations; default to its shelf.
+    const storeWarehouses = sortShelfFirst(warehouses.filter(w => w.store_id === parseInt(storeId)))
+
     const handleProductSelect = (product) => {
         setSelectedProduct(product)
         setForm(f => ({
             ...f,
             product_id: String(product.id),
             unit_price: product.price ?? '',
+            warehouse_id: f.warehouse_id || String(shelfIdFor(warehouses, storeId)),
         }))
     }
 
@@ -154,7 +159,7 @@ export default function AddItemModal({ open, onClose,orderId, onSuccess }) {
                                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                             >
                                 <option value="">{t('products.form.chooseWarehouse')}</option>
-                                {warehouses.map(w => (
+                                {storeWarehouses.map(w => (
                                     <option key={w.id} value={w.id}>
                                         {w.name} ({getStock(w.id)})
                                     </option>

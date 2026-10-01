@@ -10,6 +10,7 @@ import CustomerSearchInput from '../components/CustomerSearchInput'
 import { useToast } from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatNumber } from '../lib/format'
+import { sortShelfFirst, shelfIdFor } from '../lib/locations'
 const STORAGE_KEY = 'createOrderDraft'
 
 export default function CreateOrder() {
@@ -110,10 +111,17 @@ export default function CreateOrder() {
         }
     }, [customerId])
 
+    // New lines default to the selected store's shelf; a line can only use its own store's locations.
+    const shelfIdRef = useRef('')
+    shelfIdRef.current = shelfIdFor(warehouses, storeId)
+
     const handleStoreChange = (id) => {
         setStoreId(id)
         localStorage.setItem('default_store_id', id)
+        setItems(prev => prev.map(i => ({ ...i, warehouse_id: String(shelfIdFor(warehouses, id)) })))
     }
+
+    const storeWarehouses = sortShelfFirst(warehouses.filter(w => !storeId || w.store_id === parseInt(storeId)))
 
     const selectedCustomer = customers.find(c => c.id === parseInt(customerId))
 
@@ -170,7 +178,7 @@ export default function CreateOrder() {
             const next = [...prev, {
                 product_id: String(product.id),
                 quantity: 1,
-                warehouse_id: '',
+                warehouse_id: String(shelfIdRef.current),
                 unit_type: 'base',
                 unit_price: getPriceForCustomer(product)
             }]
@@ -367,8 +375,7 @@ export default function CreateOrder() {
                                                         className="w-full px-1.5 py-1 bg-gray-800 border border-gray-700 text-white rounded text-xs focus:outline-none focus:border-blue-500"
                                                     >
                                                         <option value="">{t('orders.create.chooseWarehouse')}</option>
-                                                        {warehouses
-                                                            .filter(w => !storeId || w.store_id === parseInt(storeId))
+                                                        {storeWarehouses
                                                             .map(w => {
                                                                 const qty = getAvailableStock(w.id, parseInt(item.product_id), index)
                                                                 return <option key={w.id} value={w.id}>{w.name} ({qty})</option>
@@ -459,8 +466,7 @@ export default function CreateOrder() {
                                                     className="flex-1 min-w-0 px-1.5 py-1.5 bg-gray-800 border border-gray-700 text-white rounded text-xs focus:outline-none focus:border-blue-500"
                                                 >
                                                     <option value="">{t('orders.create.chooseWarehouse')}</option>
-                                                    {warehouses
-                                                        .filter(w => !storeId || w.store_id === parseInt(storeId))
+                                                    {storeWarehouses
                                                         .map(w => {
                                                             const qty = getAvailableStock(w.id, parseInt(item.product_id), index)
                                                             return <option key={w.id} value={w.id}>{w.name} ({qty})</option>

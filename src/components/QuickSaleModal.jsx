@@ -4,6 +4,7 @@ import api from '../api/axios'
 import ProductSearchInput from './ProductSearchInput'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatCurrency } from '../lib/format'
+import { sortShelfFirst, shelfIdFor } from '../lib/locations'
 
 export default function QuickSaleModal({
     open,
@@ -22,6 +23,17 @@ export default function QuickSaleModal({
     const { t, lang } = useTranslation()
     const productSearchRef = useRef(null)
 
+    // An order draws only on its own store's locations: the user's store, or (for an
+    // admin) the store of the first line's warehouse. New lines default to its shelf.
+    const storeOf = (warehouseId) => warehouses.find(w => w.id === parseInt(warehouseId))?.store_id
+    const anchorStoreId = storeId ? parseInt(storeId) : storeOf(items[0]?.warehouse_id)
+    const ownStoreWarehouses = storeId ? warehouses.filter(w => w.store_id === parseInt(storeId)) : warehouses
+    const warehouseOptions = (index) => sortShelfFirst(
+        index === 0 || !anchorStoreId ? ownStoreWarehouses : ownStoreWarehouses.filter(w => w.store_id === anchorStoreId)
+    )
+    const defaultWarehouseRef = useRef('')
+    defaultWarehouseRef.current = anchorStoreId ? shelfIdFor(warehouses, anchorStoreId) : ''
+
 
     const getStock = (warehouseId, productId) => {
         if (!productId || !warehouseId) return 0
@@ -39,7 +51,7 @@ export default function QuickSaleModal({
             product_name: product.name,
             unit_price: product.price,
             quantity: 1,
-            warehouse_id: '',
+            warehouse_id: String(defaultWarehouseRef.current),
             unit_type: 'base',
         }]
         setTimeout(() => {
@@ -228,7 +240,7 @@ try {
                                                 className="w-full px-1 py-1 bg-gray-800 border border-gray-700 text-white rounded text-xs focus:outline-none focus:border-blue-500"
                                             >
                                                 <option value="">{t('orders.create.chooseWarehouse')}</option>
-                                                {warehouses.map(w => {
+                                                {warehouseOptions(index).map(w => {
                                                     const stock = getStock(w.id, item.product_id)
                                                     return (
                                                         <option key={w.id} value={w.id}>
@@ -289,7 +301,7 @@ try {
                                             className="flex-1 min-w-0 px-1 py-1.5 bg-gray-800 border border-gray-700 text-white rounded text-xs focus:outline-none focus:border-blue-500"
                                         >
                                             <option value="">{t('orders.create.chooseWarehouse')}</option>
-                                            {warehouses.map(w => {
+                                            {warehouseOptions(index).map(w => {
                                                 const stock = getStock(w.id, item.product_id)
                                                 return (
                                                     <option key={w.id} value={w.id}>
