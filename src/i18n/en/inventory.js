@@ -8,6 +8,7 @@ export default {
     inStock: 'In Stock',
     addAction: '+ Add',
     removeAction: '− Remove',
+    transferAction: '⇄ Transfer',
     emptyStore: 'No inventory for this store.',
     empty: 'No inventory records.',
     loadFailed: 'Something went wrong loading inventory.',

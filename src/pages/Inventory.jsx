@@ -10,6 +10,8 @@ import { useLocation } from 'react-router-dom'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatUnitBreakdown } from '../lib/format'
 import { isShelf, sortShelfFirst } from '../lib/locations'
+import { canTransferStock } from '../lib/permissions'
+import StockTransferModal from '../components/StockTransferModal'
 
 export default function Inventory() {
     const [selectedStore, setSelectedStore] = useState('')
@@ -24,7 +26,9 @@ export default function Inventory() {
     const [adjustUnitType, setAdjustUnitType] = useState('base')
     const user = JSON.parse(localStorage.getItem('user') || '{}')
     const canAdjust = user.role !== 'store_staff'
+    const canTransfer = canTransferStock(user)
     const isAdmin = user.role === 'tenant_admin'
+    const [transferSource, setTransferSource] = useState(null)
 
     const { showToast } = useToast()
     const location = useLocation()
@@ -68,6 +72,20 @@ export default function Inventory() {
         setAdjustDirection(direction)
         setAdjustQty('')
         setAdjustNotes('')
+    }
+
+    // Kept in state so the modal gets a stable source/product until the next click.
+    const openTransferModal = (item) => {
+        setTransferSource({
+            fromId: item.warehouse_id,
+            product: {
+                id: item.product_id,
+                name: item.product_name,
+                unit: item.product_unit,
+                secondary_unit: item.secondary_unit,
+                conversion_factor: item.conversion_factor,
+            },
+        })
     }
 
     const closeAdjustModal = () => {
@@ -277,6 +295,15 @@ export default function Inventory() {
                                             >
                                                 {t('inventory.removeAction')}
                                             </button>
+                                            {canTransfer && (
+                                                <button
+                                                    onClick={() => openTransferModal(item)}
+                                                    disabled={item.quantity === 0}
+                                                    className="px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-medium rounded-lg hover:bg-cyan-500/20 transition-colors whitespace-nowrap disabled:opacity-30 disabled:cursor-not-allowed"
+                                                >
+                                                    {t('inventory.transferAction')}
+                                                </button>
+                                            )}
                                         </div>
                                     ) : (
                                         <span className="text-gray-600 text-xs">—</span>
@@ -403,6 +430,19 @@ export default function Inventory() {
                     </form>
                 )}
             </Modal>
+
+            {canTransfer && (
+                <StockTransferModal
+                    open={!!transferSource}
+                    onClose={() => setTransferSource(null)}
+                    initialFromId={transferSource?.fromId}
+                    initialProduct={transferSource?.product ?? null}
+                    onSuccess={() => {
+                        queryClient.invalidateQueries({ queryKey: ['inventory'] })
+                        queryClient.invalidateQueries({ queryKey: ['stock-transfers'] })
+                    }}
+                />
+            )}
         </div>
     )
 }

@@ -8,6 +8,7 @@ export default {
     inStock: 'متوفر',
     addAction: '+ إضافة',
     removeAction: '− خصم',
+    transferAction: '⇄ تحويل',
     emptyStore: 'مفيش مخزون للمتجر ده.',
     empty: 'مفيش سجلات مخزون.',
     loadFailed: 'حصلت مشكلة في تحميل المخزون',
