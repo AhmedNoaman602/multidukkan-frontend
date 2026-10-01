@@ -15,6 +15,7 @@ export default {
     purchaseOrders: 'Purchases',
     reports: 'Reports',
     suppliers: 'Suppliers',
+    stockTransfers: 'Transfers',
     auditLog: 'Activity',
     settings: 'Settings',
 

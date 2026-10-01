@@ -17,6 +17,7 @@ import settings from './settings'
 import onboarding from './onboarding'
 import quickSale from './quickSale'
 import chat from './chat'
+import stockTransfers from './stockTransfers'
 
 // Add a namespace here as each feature is migrated off hardcoded strings.
 export default {
@@ -39,4 +40,5 @@ export default {
     onboarding,
     quickSale,
     chat,
+    stockTransfers,
 }

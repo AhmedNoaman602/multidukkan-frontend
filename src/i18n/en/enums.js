@@ -91,4 +91,17 @@ export default {
         SUPPLIES: 'Supplies',
         MISCELLANEOUS: 'Miscellaneous',
     },
+
+    // Keys match StockTransfer::TYPE_* / STATUS_* on the backend.
+    transferType: {
+        manual: 'Manual',
+        replenishment: 'Auto refill',
+    },
+
+    transferStatus: {
+        PENDING: 'Pending',
+        APPROVED: 'Approved',
+        REJECTED: 'Rejected',
+        COMPLETED: 'Completed',
+    },
 }

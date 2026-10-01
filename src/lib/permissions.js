@@ -6,3 +6,8 @@ export function canViewCostData(user) {
 export function canViewReports(user) {
     return user?.role === 'tenant_admin'
 }
+
+// Mirrors StockTransferPolicy::create — the server also checks the source store.
+export function canTransferStock(user) {
+    return user?.role === 'tenant_admin' || user?.role === 'store_manager'
+}

@@ -1,0 +1,25 @@
+export default {
+    title: 'Stock Transfers',
+    newTransfer: 'New transfer',
+    empty: 'No transfers yet.',
+    emptyFiltered: 'No transfers match these filters.',
+    loadFailed: 'Something went wrong loading transfers.',
+    allTypes: 'All types',
+    allLocations: 'All locations',
+    route: 'From → To',
+    lines: 'Products',
+
+    modal: {
+        title: 'Transfer stock',
+        source: 'From',
+        destination: 'To',
+        chooseLocation: 'Choose a location',
+        unit: 'Unit',
+        notesPlaceholder: 'e.g. Restock the front shelf',
+        preview: 'Preview: {qty} will move. The server confirms the final amount.',
+        sameLocation: 'Choose a destination different from the source.',
+        submit: 'Transfer',
+        success: 'Stock transferred',
+        failed: 'Transfer failed',
+    },
+}

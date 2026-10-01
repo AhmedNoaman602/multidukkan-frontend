@@ -91,4 +91,17 @@ export default {
         SUPPLIES: 'مستلزمات',
         MISCELLANEOUS: 'متنوعات',
     },
+
+    // المفاتيح مطابقة لـ StockTransfer::TYPE_* / STATUS_* في الباك إند.
+    transferType: {
+        manual: 'يدوي',
+        replenishment: 'تعبئة تلقائية',
+    },
+
+    transferStatus: {
+        PENDING: 'قيد الانتظار',
+        APPROVED: 'موافق عليه',
+        REJECTED: 'مرفوض',
+        COMPLETED: 'مكتمل',
+    },
 }

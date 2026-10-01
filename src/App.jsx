@@ -39,7 +39,8 @@ import ChatWidget from './components/ChatWidget'
 import ReportPrint from './pages/ReportPrint'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import GlobalSearch from './components/GlobalSearch'
-import { canViewCostData, canViewReports } from './lib/permissions'
+import { canViewCostData, canViewReports, canTransferStock } from './lib/permissions'
+import StockTransfers from './pages/StockTransfers'
 
 // Simple auth check — is the user logged in at all?
 // Does NOT check has_store here. That's AuthGate's job with fresh data.
@@ -315,6 +316,14 @@ export default function App() {
                         <PrivateRoute>
                             <Sidebar />
                             <Layout><Expenses /></Layout>
+                        </PrivateRoute>
+                    } />
+                    <Route path="/stock-transfers" element={
+                        <PrivateRoute>
+                            <RoleRoute allow={canTransferStock}>
+                                <Sidebar />
+                                <Layout><StockTransfers /></Layout>
+                            </RoleRoute>
                         </PrivateRoute>
                     } />
                     <Route path="/settings" element={

@@ -1,0 +1,25 @@
+export default {
+    title: 'تحويلات المخزون',
+    newTransfer: 'تحويل جديد',
+    empty: 'لا توجد تحويلات بعد.',
+    emptyFiltered: 'لا توجد تحويلات مطابقة لهذه الفلاتر.',
+    loadFailed: 'حدث خطأ أثناء تحميل التحويلات.',
+    allTypes: 'كل الأنواع',
+    allLocations: 'كل الأماكن',
+    route: 'من ← إلى',
+    lines: 'المنتجات',
+
+    modal: {
+        title: 'تحويل مخزون',
+        source: 'من',
+        destination: 'إلى',
+        chooseLocation: 'اختر مكاناً',
+        unit: 'الوحدة',
+        notesPlaceholder: 'مثال: تعبئة الرف الأمامي',
+        preview: 'معاينة: سيتم نقل {qty}. الخادم يؤكد الكمية النهائية.',
+        sameLocation: 'اختر وجهة مختلفة عن المصدر.',
+        submit: 'تحويل',
+        success: 'تم تحويل المخزون',
+        failed: 'فشل التحويل',
+    },
+}

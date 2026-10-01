@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import api from '../api/axios'
 import { useTranslation } from '../i18n/useTranslation'
-import { canViewCostData, canViewReports } from '../lib/permissions'
+import { canViewCostData, canViewReports, canTransferStock } from '../lib/permissions'
 import LanguageSwitcher from './LanguageSwitcher'
 import {
     Menu,
@@ -12,6 +12,7 @@ import {
     Users,
     Package,
     Warehouse,
+    ArrowLeftRight,
     Wallet,
     ShoppingBag,
     BarChart3,
@@ -108,6 +109,7 @@ export default function Sidebar() {
     const canSeeAuditLog = user.role === 'tenant_admin'
     const canSeeSettings = user.role === 'tenant_admin' || user.role === 'store_manager'
     const canSeeCostData = canViewCostData(user)
+    const canSeeTransfers = canTransferStock(user)
 
     const groups = [
         { title: null, items: [
@@ -118,6 +120,7 @@ export default function Sidebar() {
             { to: '/customers', label: t('navigation.customers'), icon: Users },
             { to: '/products', label: t('navigation.products'), icon: Package },
             { to: '/inventory', label: t('navigation.inventory'), icon: Warehouse },
+            ...(canSeeTransfers ? [{ to: '/stock-transfers', label: t('navigation.stockTransfers'), icon: ArrowLeftRight }] : []),
         ] },
         { title: t('navigation.groups.finance'), items: [
             ...(canSeeExpenses ? [{ to: '/expenses', label: t('navigation.expenses'), icon: Wallet }] : []),

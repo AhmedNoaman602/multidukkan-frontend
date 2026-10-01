@@ -15,6 +15,7 @@ export default {
     purchaseOrders: 'المشتريات',
     reports: 'التقارير',
     suppliers: 'الموردين',
+    stockTransfers: 'التحويلات',
     auditLog: 'النشاط',
     settings: 'الإعدادات',
 
