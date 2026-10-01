@@ -47,5 +47,44 @@ api.interceptors.request.use((config) => {
     return config
 })
 
+// Endpoints where a 401 means "wrong credentials", not "your session died".
+// The login form shows that error itself — redirecting would replace it with a
+// blank login page and the user would never learn what went wrong.
+const CREDENTIAL_ENDPOINTS = ['/login', '/register']
+
+// Interceptor: runs after every response. Without this a revoked or expired
+// token leaves the user on a page whose requests all fail, because nothing
+// notices until AuthGate's next /me on a route change.
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        const status = error.response?.status
+        const url = error.config?.url ?? ''
+
+        // Matched on the path itself, not a substring: '/settings/login-attempts'
+        // must not be mistaken for the login call.
+        const requestPath = url.split('?')[0]
+        const isCredentialAttempt = CREDENTIAL_ENDPOINTS.some(
+            path => requestPath === path || requestPath.endsWith(path)
+        )
+        const alreadyOnLogin = window.location.pathname === '/login'
+
+        if (status === 401 && !isCredentialAttempt && !alreadyOnLogin) {
+            // Same keys handleLogout clears. A full page load rather than a router
+            // navigate, so React Query's cache and every component's state go with
+            // it — axios lives outside React and has no router or queryClient here.
+            localStorage.removeItem('token')
+            localStorage.removeItem('user')
+            localStorage.removeItem('default_store_id')
+            sessionStorage.clear()
+
+            window.location.replace('/login')
+        }
+
+        // Still rejected, so existing per-page error handling keeps working.
+        return Promise.reject(error)
+    }
+)
+
 // Export so any page can: import api from '../api/axios'
 export default api
