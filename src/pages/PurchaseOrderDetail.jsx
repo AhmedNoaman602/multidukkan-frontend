@@ -117,7 +117,12 @@ export default function PurchaseOrderDetail() {
                         {order.items.map((item, index) => (
                             <tr key={index}>
                                 <td className="py-3 text-white text-sm">{item.product_name}</td>
-                                <td className="py-3 text-gray-400 text-sm">{item.quantity}</td>
+                                <td className="py-3 text-gray-400 text-sm">
+                                    {item.quantity}
+                                    {item.unit_label && (
+                                        <span className={`ms-1 text-xs ${item.unit_type !== 'base' ? 'text-blue-400' : 'text-gray-500'}`}>{item.unit_label}</span>
+                                    )}
+                                </td>
                                 <td className="py-3 text-gray-400 text-sm">{formatCurrency(item.unit_price, lang)}</td>
                                 <td className="py-3 text-white text-sm font-medium">{formatCurrency(item.total, lang)}</td>
                             </tr>

@@ -113,7 +113,10 @@ export default function PurchaseOrderInvoice() {
                         {order.items.map((item, index) => (
                             <tr key={index} className="border-b border-gray-100">
                                 <td className="py-3 text-gray-900 text-sm">{item.product_name}</td>
-                                <td className="py-3 text-center text-gray-600 text-sm">{item.quantity}</td>
+                                <td className="py-3 text-center text-gray-600 text-sm">
+                                    {item.quantity}
+                                    {item.unit_label && <span className="ms-1 text-xs text-gray-400">{item.unit_label}</span>}
+                                </td>
                                 <td className="py-3 text-end text-gray-600 text-sm">{formatCurrency(item.unit_price, lang)}</td>
                                 <td className="py-3 text-end text-gray-900 text-sm font-medium">{formatCurrency(item.total, lang)}</td>
                             </tr>
