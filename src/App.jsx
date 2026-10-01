@@ -141,8 +141,7 @@ export default function App() {
                     } />
                     <Route path="/" element={
                         <PrivateRoute>
-                            <Sidebar />
-                            <Layout><Dashboard /></Layout>
+                            <Navigate to="/dashboard" replace />
                         </PrivateRoute>
                     } />
                     <Route path="/dashboard" element={
