@@ -4,7 +4,7 @@ export default {
         subtitle: "We'll help you set up your store in two minutes. Everything can be edited later.",
         checklist: {
             createStore: 'Create your store',
-            createWarehouse: 'Create your warehouse',
+            createWarehouse: 'Add a storage warehouse',
             addProduct: 'Add a product',
             addCustomer: 'Add a customer',
             addStaff: 'Add a staff member',
@@ -23,9 +23,9 @@ export default {
     },
 
     warehouse: {
-        stepLabel: 'Step 2 of 5',
-        title: 'Create your first warehouse',
-        subtitle: "Where you'll track inventory — you can add more warehouses later.",
+        stepLabel: 'Step 2 of 5 · Optional',
+        title: 'Add a storage warehouse',
+        subtitle: "Your store's shelf was created automatically — sales come from there. Add a back room or warehouse if you keep extra stock.",
         nameRequired: 'Warehouse name *',
         namePlaceholder: 'e.g. Main Warehouse',
         addressPlaceholder: 'e.g. Main Warehouse - Alexandria',

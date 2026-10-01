@@ -4,7 +4,7 @@ export default {
         subtitle: 'سنساعدك في إعداد متجرك في دقيقتين. كل شيء يمكن تعديله لاحقاً.',
         checklist: {
             createStore: 'إنشاء المتجر',
-            createWarehouse: 'إنشاء المخزن',
+            createWarehouse: 'إضافة مخزن تخزين',
             addProduct: 'إضافة منتج',
             addCustomer: 'إضافة عميل',
             addStaff: 'إضافة موظف',
@@ -23,9 +23,9 @@ export default {
     },
 
     warehouse: {
-        stepLabel: 'الخطوة 2 من 5',
-        title: 'أنشئ مخزنك الأول',
-        subtitle: 'المكان الذي ستتابع منه المخزون — يمكنك إضافة مخازن أخرى لاحقاً.',
+        stepLabel: 'الخطوة 2 من 5 · اختياري',
+        title: 'أضف مخزن تخزين',
+        subtitle: 'تم إنشاء رف متجرك تلقائياً — البيع يتم منه. أضف مخزناً أو غرفة تخزين لو عندك بضاعة إضافية.',
         nameRequired: 'اسم المخزن *',
         namePlaceholder: 'مثال: المخزن الرئيسي',
         addressPlaceholder: 'مثال: المخزن الرئيسي - الإسكندرية',

@@ -26,6 +26,7 @@ export default function Onboarding() {
 
     const [step, setStep] = useState(1)
     const [createdStoreId, setCreatedStoreId] = useState(null)
+    const [createdShelfId, setCreatedShelfId] = useState(null)
     const [createdWarehouseId, setCreatedWarehouseId] = useState(null)
     const [productCreated, setProductCreated] = useState(false)
     const [customerCreated, setCustomerCreated] = useState(false)
@@ -82,6 +83,7 @@ export default function Onboarding() {
                 if (!createdStoreId) {
                     const res = await api.post('/stores', storeForm)
                     setCreatedStoreId(res.data.data.id)
+                    setCreatedShelfId(res.data.data.shelf?.id ?? null)
                 }
                 setStep(3)
             } else if (step === 3) {
@@ -102,8 +104,8 @@ export default function Onboarding() {
                         ...productForm,
                         price: parseFloat(productForm.price),
                         cost_price: productForm.cost_price ? parseFloat(productForm.cost_price) : null,
-                        stocks: createdWarehouseId && parseInt(productForm.quantity) > 0
-                            ? [{ warehouse_id: parseInt(createdWarehouseId), quantity: parseInt(productForm.quantity) || 0, threshold: 10 }]
+                        stocks: createdShelfId && parseInt(productForm.quantity) > 0
+                            ? [{ warehouse_id: parseInt(createdShelfId), quantity: parseInt(productForm.quantity) || 0, threshold: 10 }]
                             : []
                     })
                     setProductCreated(true)
@@ -187,7 +189,7 @@ export default function Onboarding() {
                         <div className="space-y-2">
                             {[
                                 { label: t('onboarding.welcome.checklist.createStore'), optional: false },
-                                { label: t('onboarding.welcome.checklist.createWarehouse'), optional: false },
+                                { label: t('onboarding.welcome.checklist.createWarehouse'), optional: true },
                                 { label: t('onboarding.welcome.checklist.addProduct'), optional: true },
                                 { label: t('onboarding.welcome.checklist.addCustomer'), optional: true },
                                 { label: t('onboarding.welcome.checklist.addStaff'), optional: true },
@@ -420,7 +422,7 @@ export default function Onboarding() {
                         </button>
 
                         <div className="flex items-center gap-3">
-                            {[4, 5, 6].includes(step) && (
+                            {[3, 4, 5, 6].includes(step) && (
                                 <button onClick={handleSkip} className="text-sm text-gray-500 hover:text-gray-300 transition-colors">
                                     {t('onboarding.nav.skip')}
                                 </button>
