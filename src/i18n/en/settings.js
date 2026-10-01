@@ -7,6 +7,16 @@ export default {
         users: 'Users & Permissions',
         warehouses: 'Warehouses',
         units: 'Units',
+        security: 'Security',
+    },
+
+    security: {
+        signOutAll: 'Sign out of all devices',
+        signOutAllDescription: 'Ends every session signed in with your account — every phone and computer, including this one. Use this if a device is lost or stolen.',
+        signOutAllConfirm: 'Sign out of all devices?',
+        signingOut: 'Signing out…',
+        signedOut: 'Signed out of {count} sessions.',
+        signOutFailed: 'Something went wrong signing out of all devices.',
     },
 
     users: {

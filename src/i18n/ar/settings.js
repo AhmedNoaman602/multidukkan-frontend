@@ -7,6 +7,16 @@ export default {
         users: 'المستخدمين والصلاحيات',
         warehouses: 'المخازن',
         units: 'الوحدات',
+        security: 'الأمان',
+    },
+
+    security: {
+        signOutAll: 'تسجيل الخروج من كل الأجهزة',
+        signOutAllDescription: 'ينهي كل الجلسات المفتوحة بحسابك على أي تليفون أو كمبيوتر، بما فيهم الجهاز ده. استخدمها لو ضاع منك جهاز أو اتسرق.',
+        signOutAllConfirm: 'تسجيل الخروج من كل الأجهزة؟',
+        signingOut: 'جاري تسجيل الخروج…',
+        signedOut: 'تم تسجيل الخروج من {count} جلسة',
+        signOutFailed: 'حصلت مشكلة في تسجيل الخروج من كل الأجهزة',
     },
 
     users: {

@@ -37,8 +37,30 @@ export default function Settings() {
     const [deletingWarehouse, setDeletingWarehouse] = useState(false)
     const [deleteTargetUnit, setDeleteTargetUnit] = useState(null)
     const [deletingUnit, setDeletingUnit] = useState(false)
+    const [confirmSignOutAll, setConfirmSignOutAll] = useState(false)
+    const [signingOutAll, setSigningOutAll] = useState(false)
     const { showToast } = useToast()
     const queryClient = useQueryClient()
+
+    const handleSignOutAll = async () => {
+        setSigningOutAll(true)
+        try {
+            const res = await api.post('/logout-all')
+
+            localStorage.removeItem('token')
+            localStorage.removeItem('user')
+            localStorage.removeItem('default_store_id')
+            sessionStorage.clear()
+            queryClient.clear()
+
+            showToast(t('settings.security.signedOut', { count: res.data?.revoked ?? 0 }), 'success')
+            navigate('/login')
+        } catch {
+            showToast(t('settings.security.signOutFailed'), 'error')
+            setSigningOutAll(false)
+            setConfirmSignOutAll(false)
+        }
+    }
 
     const allowedRoles = user.role === 'tenant_admin'
         ? ['store_manager', 'store_staff']
@@ -227,6 +249,7 @@ const handleDeleteUnit = async () => {
                     { key: 'users', label: t('settings.tabs.users'), icon: '👥' },
                     { key: 'warehouses', label: t('settings.tabs.warehouses'), icon: '🏭' },
                     { key: 'units', label: t('settings.tabs.units'), icon: '📦' },
+                    { key: 'security', label: t('settings.tabs.security'), icon: '🔐' },
                 ].map(tab => (
                     <button
                         key={tab.key}
@@ -542,6 +565,34 @@ const handleDeleteUnit = async () => {
                 title={t('settings.units.deleteUnit')}
                 name={deleteTargetUnit?.name}
             />
+
+            {/* Security tab */}
+            {activeTab === 'security' && (
+                <div>
+                    <h3 className="text-white font-semibold mb-4">{t('settings.tabs.security')}</h3>
+
+                    <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+                        <p className="text-white font-medium mb-1">{t('settings.security.signOutAll')}</p>
+                        <p className="text-gray-400 text-sm mb-4">{t('settings.security.signOutAllDescription')}</p>
+                        <button
+                            onClick={() => setConfirmSignOutAll(true)}
+                            disabled={signingOutAll}
+                            className="px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium rounded-lg hover:bg-red-500/20 disabled:opacity-50 transition-colors"
+                        >
+                            {signingOutAll ? t('settings.security.signingOut') : t('settings.security.signOutAll')}
+                        </button>
+                    </div>
+
+                    <DeleteModal
+                        open={confirmSignOutAll}
+                        onClose={() => setConfirmSignOutAll(false)}
+                        onConfirm={handleSignOutAll}
+                        deleting={signingOutAll}
+                        title={t('settings.security.signOutAllConfirm')}
+                        warning={t('settings.security.signOutAllDescription')}
+                    />
+                </div>
+            )}
         </div>
     </div>
 )
