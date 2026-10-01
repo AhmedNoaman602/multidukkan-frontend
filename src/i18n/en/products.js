@@ -18,6 +18,7 @@ export default {
         productCode: 'Product code',
         supplier: 'Supplier',
         supplierSearchPlaceholder: 'Search for a supplier…',
+        allSuppliersLinked: 'All suppliers are linked',
         openingQuantity: 'Opening quantity',
         openingQuantityPlaceholder: 'Quantity currently on hand',
         openingStockValue: 'Opening stock value: {amount}',

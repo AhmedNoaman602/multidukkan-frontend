@@ -19,6 +19,7 @@ export default {
         // كانت مكتوبة "Supplier" إنجليزي جوه الشاشة العربية بالغلط — بقت "المورد".
         supplier: 'المورد',
         supplierSearchPlaceholder: 'ابحث عن مورد...',
+        allSuppliersLinked: 'تم ربط كل الموردين',
         // كانت "Opening Quantity" إنجليزي بالغلط — بقت "الكمية الافتتاحية".
         openingQuantity: 'الكمية الافتتاحية',
         openingQuantityPlaceholder: 'الكمية الموجودة حالياً',

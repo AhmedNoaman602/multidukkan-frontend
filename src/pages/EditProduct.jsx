@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import BackButton from '../components/BackButton'
-import SupplierSearchInput from '../components/SupplierSearchInput'
+import SupplierMultiSelect from '../components/SupplierMultiSelect'
 import { useToast } from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
 
@@ -12,7 +12,7 @@ export default function EditProduct() {
     const { id } = useParams()
     const navigate = useNavigate()
     const [saving, setSaving] = useState(false)
-    const [supplierId, setSupplierId] = useState(null)
+    const [supplierIds, setSupplierIds] = useState([])
     const [generatingDesc, setGeneratingDesc] = useState(false)
     const [stocks, setStocks] = useState([])
     const [form, setForm] = useState({
@@ -31,12 +31,14 @@ export default function EditProduct() {
             api.get(`/products/${id}`),
             api.get('/warehouses'),
             api.get('/units'),
-            api.get('/suppliers'),
-        ]).then(([productRes, warehouseRes, unitRes, supplierRes]) => ({
+            api.get('/suppliers?per_page=all'),
+            api.get(`/products/${id}/suppliers`),
+        ]).then(([productRes, warehouseRes, unitRes, supplierRes, linkedRes]) => ({
             product: productRes.data.data,
             warehouses: warehouseRes.data.data,
             units: unitRes.data.data,
             suppliers: supplierRes.data.data,
+            linkedSupplierIds: linkedRes.data.data.map(s => s.id),
         })),
     })
 
@@ -67,10 +69,7 @@ export default function EditProduct() {
             description_en:    p.description_en || '',
         })
 
-        // Pre-populate selected supplier when loading product:
-        if (p.supplier_id) {
-            setSupplierId(p.supplier_id)
-        }
+        setSupplierIds(data.linkedSupplierIds)
 
         // Load existing warehouse stocks
         setStocks(p.stocks.map(s => ({
@@ -143,7 +142,7 @@ export default function EditProduct() {
                 price_e:           form.price_e ? parseFloat(form.price_e) : null,
                 cost_price:        form.cost_price ? parseFloat(form.cost_price) :null,
                 conversion_factor: form.conversion_factor ? parseInt(form.conversion_factor) : null,
-                supplier_id:       supplierId ?? null,
+                supplier_ids:      supplierIds,
                 stocks: stocks
                     .filter(s => s.warehouse_id)
                     .map(s => ({
@@ -196,11 +195,12 @@ export default function EditProduct() {
     <label className="block text-sm text-gray-400 mb-1">
         {t('products.form.supplier')} <span className="text-gray-600">({t('common.optional')})</span>
     </label>
-    <SupplierSearchInput
+    <SupplierMultiSelect
         suppliers={suppliers}
-        value={supplierId}
-        onSelect={setSupplierId}
+        value={supplierIds}
+        onChange={setSupplierIds}
         placeholder={t('products.form.supplierSearchPlaceholder')}
+        allSelectedLabel={t('products.form.allSuppliersLinked')}
     />
 </div>
 

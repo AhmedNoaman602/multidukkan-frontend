@@ -3,13 +3,13 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate , useLocation} from 'react-router-dom'
 import api from '../api/axios'
 import BackButton from '../components/BackButton'
-import SupplierSearchInput from '../components/SupplierSearchInput'
+import SupplierMultiSelect from '../components/SupplierMultiSelect'
 import {useToast} from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatCurrency } from '../lib/format'
 
 export default function CreateProduct() {
-    const [supplierId, setSupplierId] = useState(null)
+    const [supplierIds, setSupplierIds] = useState([])
     const [saving, setSaving] = useState(false)
     const [newUnit, setNewUnit] = useState('')
     const [showNewUnit, setShowNewUnit] = useState(false)
@@ -34,7 +34,6 @@ export default function CreateProduct() {
     description: '',
     description_ar: '',
     description_en: '',
-    supplier_id: '',
 })
     const [stocks, setStocks] = useState([
         { warehouse_id: '', quantity: 1, threshold: 10, unit_type: 'base' }
@@ -54,7 +53,7 @@ export default function CreateProduct() {
     })
     const { data: suppliers = [] } = useQuery({
         queryKey: ['suppliers', 'all'],
-        queryFn: () => api.get('/suppliers').then(res => res.data.data),
+        queryFn: () => api.get('/suppliers?per_page=all').then(res => res.data.data),
     })
 
     const defaultUnitSet = useRef(false)
@@ -124,7 +123,7 @@ export default function CreateProduct() {
         try {
             await api.post('/products', {
                 ...form,
-                supplier_id: supplierId ?? null,
+                supplier_ids: supplierIds,
                 price: parseFloat(form.price),
                 cost_price: form.cost_price ? parseFloat(form.cost_price) : null,
                 opening_quantity: form.opening_quantity ? parseFloat(form.opening_quantity) : 0,
@@ -184,11 +183,12 @@ export default function CreateProduct() {
     <label className="block text-sm text-gray-400 mb-1">
         {t('products.form.supplier')} <span className="text-gray-600">({t('common.optional')})</span>
     </label>
-    <SupplierSearchInput
+    <SupplierMultiSelect
         suppliers={suppliers}
-        value={supplierId}
-        onSelect={setSupplierId}
+        value={supplierIds}
+        onChange={setSupplierIds}
         placeholder={t('products.form.supplierSearchPlaceholder')}
+        allSelectedLabel={t('products.form.allSuppliersLinked')}
     />
 </div>
 
