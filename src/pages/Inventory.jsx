@@ -8,6 +8,8 @@ import SearchInput from '../components/SearchInput'
 import { useToast } from '../hooks/useToast'
 import { useLocation } from 'react-router-dom'
 import { useTranslation } from '../i18n/useTranslation'
+import { formatUnitBreakdown } from '../lib/format'
+import { isShelf, sortShelfFirst } from '../lib/locations'
 
 export default function Inventory() {
     const [selectedStore, setSelectedStore] = useState('')
@@ -175,7 +177,16 @@ export default function Inventory() {
     )}
 
             <div className="flex gap-2 mb-4 border-b border-gray-800 pb-3 overflow-x-auto">
-    {[{ key: '', label: t('inventory.allWarehouses') }, ...warehousesList.map(w => ({ key: w.id, label: w.name }))].map(tab => (
+    {[
+        { key: '', label: t('inventory.allWarehouses') },
+        ...sortShelfFirst(warehousesList).map(w => ({
+            key: w.id,
+            label: isAdmin && stores.length > 1
+                ? `${w.name} · ${stores.find(s => s.id === w.store_id)?.name ?? ''}`
+                : w.name,
+            shelf: isShelf(w),
+        })),
+    ].map(tab => (
         <button
             key={tab.key}
             onClick={() => { setSelectedWarehouse(tab.key) ; setPage(1) }}
@@ -186,6 +197,7 @@ export default function Inventory() {
             }`}
         >
             {tab.label}
+            {tab.shelf && <span className="ms-1.5 text-xs opacity-75">({t('common.shelf')})</span>}
         </button>
     ))}
 </div>
@@ -224,9 +236,16 @@ export default function Inventory() {
 
                                 <td className="px-4 py-3 text-gray-400 text-sm">
                                     {item.warehouse_name}
+                                    {item.warehouse_type === 'shelf' && (
+                                        <span className="ms-2 px-1.5 py-0.5 bg-blue-500/15 text-blue-400 text-xs rounded">{t('common.shelf')}</span>
+                                    )}
                                 </td>
                                 <td className="px-4 py-3 text-white text-sm font-semibold">
-                                    {item.quantity}
+                                    {formatUnitBreakdown(item.quantity, {
+                                        unit: item.product_unit,
+                                        secondary_unit: item.secondary_unit,
+                                        conversion_factor: item.conversion_factor,
+                                    })}
                                 </td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">
                                     {item.threshold}

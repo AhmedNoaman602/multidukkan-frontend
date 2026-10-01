@@ -50,6 +50,7 @@ export default {
     quantity: 'Quantity',
     product: 'Product',
     warehouse: 'Warehouse',
+    shelf: 'Shelf',
     name: 'Name',
     code: 'Code',
     phone: 'Phone',

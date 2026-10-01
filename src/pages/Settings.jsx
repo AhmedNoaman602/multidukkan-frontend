@@ -7,6 +7,7 @@ import { useToast } from '../hooks/useToast'
 import DeleteModal from '../components/DeleteModal'
 import Modal from '../components/Modal'
 import { useTranslation } from '../i18n/useTranslation'
+import { isShelf, sortShelfFirst } from '../lib/locations'
 
 export default function Settings() {
     const { t } = useTranslation()
@@ -130,8 +131,14 @@ export default function Settings() {
     setSaving(true)
     try {
         const res = await api.post('/stores', storeForm)
-        updateSettingsList('stores', (list) => [...list, res.data.data])
+        const store = res.data.data
+        updateSettingsList('stores', (list) => [...list, store])
+        // Every new store comes with its shelf
+        if (store.shelf) {
+            updateSettingsList('warehouses', (list) => [...list, { ...store.shelf, type: 'shelf', store_id: store.id, address: store.address }])
+        }
         queryClient.invalidateQueries({ queryKey: ['stores'] })
+        queryClient.invalidateQueries({ queryKey: ['warehouses'] })
         setStoreForm({ name: '', address: '', phone: '' })
         showToast(t('settings.stores.created'), 'success')
         setShowCreateStore(false)
@@ -148,7 +155,9 @@ const handleDeleteStore = async () => {
     try {
         await api.delete(`/stores/${deleteTargetStore.id}`)
         updateSettingsList('stores', (list) => list.filter(s => s.id !== deleteTargetStore.id))
+        updateSettingsList('warehouses', (list) => list.filter(w => w.store_id !== deleteTargetStore.id))
         queryClient.invalidateQueries({ queryKey: ['stores'] })
+        queryClient.invalidateQueries({ queryKey: ['warehouses'] })
         showToast(t('settings.stores.deleted'), 'success')
         setDeleteTargetStore(null)
     } catch (err) {
@@ -477,13 +486,18 @@ const handleDeleteUnit = async () => {
                                 <tr>{['common.name', 'common.store', 'common.address', 'common.actions'].map(key => <th key={key} className="px-4 py-3 text-start text-xs font-medium text-gray-400 uppercase tracking-wider">{t(key)}</th>)}</tr>
                             </thead>
                             <tbody className="divide-y divide-gray-800">
-                                {warehouses.map(w => (
+                                {sortShelfFirst(warehouses).map(w => (
                                     <tr key={w.id} className="hover:bg-gray-800/50 transition-colors">
-                                        <td className="px-4 py-3 text-white text-sm font-medium">{w.name}</td>
+                                        <td className="px-4 py-3 text-white text-sm font-medium">
+                                            {w.name}
+                                            {isShelf(w) && <span className="ms-2 px-1.5 py-0.5 bg-blue-500/15 text-blue-400 text-xs rounded">{t('common.shelf')}</span>}
+                                        </td>
                                         <td className="px-4 py-3 text-gray-400 text-sm">{stores.find(s => s.id === parseInt(w.store_id))?.name || '—'}</td>
                                         <td className="px-4 py-3 text-gray-400 text-sm">{w.address || '—'}</td>
                                         <td className="px-4 py-3">
-                                            <button onClick={() => setDeleteTargetWarehouse(w)} className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-medium rounded-lg transition-colors">{t('common.delete')}</button>
+                                            {!isShelf(w) && (
+                                                <button onClick={() => setDeleteTargetWarehouse(w)} className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-medium rounded-lg transition-colors">{t('common.delete')}</button>
+                                            )}
                                         </td>
                                     </tr>
                                 ))}

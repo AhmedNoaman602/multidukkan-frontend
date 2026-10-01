@@ -50,6 +50,7 @@ export default {
     quantity: 'الكمية',
     product: 'المنتج',
     warehouse: 'المخزن',
+    shelf: 'الرف',
     name: 'الاسم',
     code: 'الكود',
     phone: 'التليفون',

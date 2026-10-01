@@ -38,6 +38,22 @@ export function formatCurrency(value, lang) {
     return lang === 'ar' ? `${amount} ${symbol}` : `${symbol} ${amount}`
 }
 
+// Base-unit stock in readable form: 44 with a 12-piece box → "44 pcs (3 box + 8 pcs)".
+// Display only — the backend stores and moves base units.
+export function formatUnitBreakdown(quantity, { unit, secondary_unit, conversion_factor } = {}) {
+    const qty = Number(quantity) || 0
+    const base = `${formatNumber(qty)}${unit ? ` ${unit}` : ''}`
+    const factor = Number(conversion_factor)
+    if (!secondary_unit || !(factor > 1) || qty < factor) return base
+
+    const packs = Math.floor(qty / factor)
+    const loose = qty % factor
+    const breakdown = loose
+        ? `${formatNumber(packs)} ${secondary_unit} + ${formatNumber(loose)}${unit ? ` ${unit}` : ''}`
+        : `${formatNumber(packs)} ${secondary_unit}`
+    return `${base} (${breakdown})`
+}
+
 export function formatDate(value, lang, options) {
     if (!value) return '—'
     const date = new Date(value)

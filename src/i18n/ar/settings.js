@@ -49,8 +49,8 @@ export default {
     },
 
     warehouses: {
-        addWarehouse: '+ إضافة مخزن',
-        newWarehouse: 'مخزن جديد',
+        addWarehouse: '+ إضافة مخزن تخزين',
+        newWarehouse: 'مخزن تخزين جديد',
         warehouseName: 'اسم المخزن',
         yourStore: 'متجرك',
         createWarehouse: 'إنشاء المخزن',

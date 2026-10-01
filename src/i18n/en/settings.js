@@ -49,8 +49,8 @@ export default {
     },
 
     warehouses: {
-        addWarehouse: '+ Add Warehouse',
-        newWarehouse: 'New Warehouse',
+        addWarehouse: '+ Add Storage Warehouse',
+        newWarehouse: 'New Storage Warehouse',
         warehouseName: 'Warehouse name',
         yourStore: 'Your store',
         createWarehouse: 'Create Warehouse',
