@@ -47,6 +47,8 @@ function DrawerBody({ row, isBatch, batchItems, loadingBatch }) {
   const typeColorClass = badgeClass.split(' ').find(c => c.startsWith('text-')) || 'text-gray-400'
   const typeAccentClass = typeColorClass.replace('text-', 'bg-').replace(/-\d+$/, '-500')
 
+  // A transfer moves stock between locations — nothing is gained or lost, so no sign or color.
+  const isTransfer = row.type === 'TRANSFER'
   const hasAmount = row.amount !== null
   const hasQuantity = row.quantity !== null && !isBatch
   const changedCount = row.changes ? Object.keys(row.changes).length : 0
@@ -57,6 +59,9 @@ function DrawerBody({ row, isBatch, batchItems, loadingBatch }) {
   if (row.changes) {
     heroValue = t('auditLog.detail.fieldsChanged', { count: changedCount })
     heroCaption = t('auditLog.detail.recordUpdated')
+  } else if (isTransfer) {
+    heroValue = formatNumber(row.quantity)
+    heroCaption = row.description || t('auditLog.detail.noDescription')
   } else if (isBatch) {
     heroValue = signed(row.quantity)
     heroCaption = t('auditLog.detail.batchSummary', { products: row.item_count, quantity: row.quantity })
@@ -191,15 +196,19 @@ function DrawerBody({ row, isBatch, batchItems, loadingBatch }) {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {(batchItems || []).map((item, i) => (
-                        <TableRow key={i} className="border-gray-800">
-                          <TableCell className="font-medium text-gray-200">{item.product_name}</TableCell>
-                          <TableCell className="text-gray-400">{item.warehouse_name}</TableCell>
-                          <TableCell className={`text-end font-mono font-semibold [unicode-bidi:plaintext] ${qtyColorClass(item.quantity)}`}>
-                            {signed(item.quantity)}
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {(batchItems || []).map((item, i) => {
+                        // Transfer batches hold both sides; show what left as negative.
+                        const qty = item.type === 'TRANSFER_OUT' ? -item.quantity : item.quantity
+                        return (
+                          <TableRow key={i} className="border-gray-800">
+                            <TableCell className="font-medium text-gray-200">{item.product_name}</TableCell>
+                            <TableCell className="text-gray-400">{item.warehouse_name}</TableCell>
+                            <TableCell className={`text-end font-mono font-semibold [unicode-bidi:plaintext] ${qtyColorClass(qty)}`}>
+                              {signed(qty)}
+                            </TableCell>
+                          </TableRow>
+                        )
+                      })}
                     </TableBody>
                   </Table>
                 )}

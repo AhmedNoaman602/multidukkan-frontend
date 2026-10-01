@@ -60,6 +60,7 @@ export default {
         RETURN: 'Stock Return',
         TRANSFER_IN: 'Transfer In',
         TRANSFER_OUT: 'Transfer Out',
+        TRANSFER: 'Stock Transfer',
         ADJUSTMENT_IN: 'Adjustment In',
         ADJUSTMENT_OUT: 'Adjustment Out',
         PURCHASE_IN: 'Purchase In',
@@ -78,6 +79,7 @@ export default {
         Order: 'Order',
         PurchaseOrder: 'Purchase Order',
         Expense: 'Expense',
+        StockTransfer: 'Stock Transfer',
     },
 
     // Keys match Expense::CATEGORIES on the backend exactly.

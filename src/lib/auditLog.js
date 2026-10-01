@@ -16,6 +16,7 @@ export const typeStyles = {
   RETURN: 'bg-teal-500/20 text-teal-400',
   TRANSFER_IN: 'bg-cyan-500/20 text-cyan-400',
   TRANSFER_OUT: 'bg-orange-500/20 text-orange-400',
+  TRANSFER: 'bg-cyan-500/20 text-cyan-400',
   ADJUSTMENT_IN: 'bg-green-500/20 text-green-400',
   ADJUSTMENT_OUT: 'bg-red-500/20 text-red-400',
   PURCHASE_IN: 'bg-indigo-500/20 text-indigo-400',

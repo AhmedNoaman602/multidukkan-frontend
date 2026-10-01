@@ -60,6 +60,7 @@ export default {
         RETURN: 'مرتجع مخزون',
         TRANSFER_IN: 'تحويل وارد',
         TRANSFER_OUT: 'تحويل صادر',
+        TRANSFER: 'تحويل مخزون',
         ADJUSTMENT_IN: 'تسوية إضافة',
         ADJUSTMENT_OUT: 'تسوية خصم',
         PURCHASE_IN: 'وارد مشتريات',
@@ -78,6 +79,7 @@ export default {
         Order: 'طلب',
         PurchaseOrder: 'أمر شراء',
         Expense: 'مصروف',
+        StockTransfer: 'تحويل مخزون',
     },
 
     // المفاتيح مطابقة لـ Expense::CATEGORIES في الباك إند بالظبط.
