@@ -83,9 +83,7 @@ export default function QuickSaleModal({
 
     const grandTotal = Math.max(0, subtotal - discountAmount)
 
-    const finalTotal = manualTotal !== null && manualTotal !== ''
-    ? parseFloat(manualTotal)
-    : grandTotal
+    const hasManualTotal = manualTotal !== null && manualTotal !== ''
 
     const handleSubmit = async () => {
            const user = JSON.parse(localStorage.getItem('user') || '{}')
@@ -120,7 +118,9 @@ export default function QuickSaleModal({
                 customer_id: user.walk_in_customer_id,
                 store_id: finalStoreId,
                 order_date: new Date().toLocaleDateString('en-CA'),
-                discount: discountAmount,
+                discount: hasManualTotal ? 0 : parseFloat(discount) || 0,
+                discount_type: discountType,
+                ...(hasManualTotal && { manual_total: parseFloat(manualTotal) }),
                 pay_immediately: true,
                 payment_method: 'cash',
                 items: items.map(i => ({
@@ -134,6 +134,7 @@ export default function QuickSaleModal({
 showToast(t('quickSale.saleRecorded'), 'success')
 setItems([])
 setDiscount(0)
+setManualTotal(null)
 try {
     onClose()
 } catch(e) {
@@ -320,8 +321,9 @@ try {
                                     <button
                                         key={mode}
                                         type="button"
+                                        disabled={hasManualTotal}
                                         onClick={() => setDiscountType(mode)}
-                                        className={`px-2 py-0.5 text-xs font-medium transition-colors ${
+                                        className={`px-2 py-0.5 text-xs font-medium transition-colors disabled:opacity-50 ${
                                             discountType === mode ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400'
                                         }`}
                                     >
@@ -332,9 +334,10 @@ try {
                             <input
                                 type="number"
                                 min="0"
-                                value={discount}
+                                value={hasManualTotal ? 0 : discount}
+                                disabled={hasManualTotal}
                                 onChange={e => setDiscount(e.target.value)}
-                                className="w-20 px-2 py-1 bg-gray-800 border border-gray-700 text-white rounded-lg text-xs text-end focus:outline-none focus:border-blue-500"
+                                className="w-20 px-2 py-1 bg-gray-800 border border-gray-700 text-white rounded-lg text-xs text-end focus:outline-none focus:border-blue-500 disabled:opacity-50"
                             />
                         </div>
                     </div>

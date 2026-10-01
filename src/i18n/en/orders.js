@@ -6,6 +6,7 @@ export default {
     unitPrice: 'Unit price',
     subtotal: 'Subtotal',
     discount: 'Discount',
+    manualTotal: 'Manual total',
 
     list: {
         newOrder: '+ New order',

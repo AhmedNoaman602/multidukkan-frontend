@@ -220,7 +220,8 @@ export default function CreateOrder() {
             await api.post('/orders', {
                 store_id: parseInt(storeId),
                 customer_id: parseInt(customerId),
-                discount: discountAmount,
+                discount: parseFloat(discountValue) || 0,
+                discount_type: discountType,
                 order_date:orderDate,
                 items: items.map(item => ({
                     product_id: parseInt(item.product_id),

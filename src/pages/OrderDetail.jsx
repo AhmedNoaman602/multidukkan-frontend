@@ -17,7 +17,7 @@ export default function OrderDetail() {
     const [cancelling, setCancelling] = useState(false)
     const [showConfirm, setShowConfirm] = useState(false)
     const [editMode, setEditMode] = useState(false)
-    const [editForm, setEditForm] = useState({ order_date: '', notes: '', discount: '' })
+    const [editForm, setEditForm] = useState({ order_date: '', notes: '', discount: '', manual_total: '' })
     const [editingItem, setEditingItem] = useState(null) // holds item id being edited
     const [itemForm, setItemForm] = useState({ quantity: '', unit_price: '' })
     const[showAddItem,setShowAddItem] = useState(false)
@@ -42,12 +42,16 @@ export default function OrderDetail() {
     useEffect(() => {
         if (order && !editMode) {
             setEditForm({
-                order_date: order.order_date,
-                notes:      order.notes ?? '',
-                discount:   order.discount ?? 0,
+                order_date:   order.order_date,
+                notes:        order.notes ?? '',
+                discount:     order.discount ?? 0,
+                manual_total: order.manual_total ?? '',
             })
+            setDiscountType('amount')
         }
     }, [order, editMode])
+
+    const hasManualTotal = editForm.manual_total !== '' && editForm.manual_total !== null
 
     const refetchOrder = () => queryClient.invalidateQueries({ queryKey: ['orders', id] })
 
@@ -68,15 +72,26 @@ export default function OrderDetail() {
     const handleSave = async () => {
         setSaving(true)
         try {
-            const discountAmount = discountType === 'percent'
-    ? Math.round(order.subtotal * (parseFloat(editForm.discount) || 0) / 100 * 100) / 100
-    : parseFloat(editForm.discount) || 0
-
-            const res = await api.patch(`/orders/${id}`, {
+            const payload = {
                 order_date: editForm.order_date,
                 notes:      editForm.notes,
-                discount:   discountAmount,
-            })
+            }
+            const discountValue = parseFloat(editForm.discount) || 0
+
+            if (hasManualTotal) {
+                if (parseFloat(editForm.manual_total) !== order.manual_total) {
+                    payload.manual_total = parseFloat(editForm.manual_total)
+                }
+            } else if (
+                order.manual_total != null
+                || discountType !== 'amount'
+                || discountValue !== (parseFloat(order.discount) || 0)
+            ) {
+                payload.discount = discountValue
+                payload.discount_type = discountType
+            }
+
+            const res = await api.patch(`/orders/${id}`, payload)
             queryClient.setQueryData(['orders', id], res.data)
             setEditMode(false)
             showToast(t('orders.detail.updated'), 'success')
@@ -107,9 +122,10 @@ export default function OrderDetail() {
     const handleCancelEdit = () => {
         setEditMode(false)
         setEditForm({
-            order_date: order.order_date,
-            notes:      order.notes ?? '',
-            discount:   order.discount ?? 0,
+            order_date:   order.order_date,
+            notes:        order.notes ?? '',
+            discount:     order.discount ?? 0,
+            manual_total: order.manual_total ?? '',
         })
     }
 
@@ -122,7 +138,7 @@ export default function OrderDetail() {
     : parseFloat(editForm.discount) || 0
 
 const displayTotal = editMode
-    ? Math.max(0, order.subtotal - discountPreview)
+    ? (hasManualTotal ? parseFloat(editForm.manual_total) || 0 : Math.max(0, order.subtotal - discountPreview))
     : order.total
 
     const displayAmountDue = editMode
@@ -262,10 +278,20 @@ const displayTotal = editMode
 
         <td className="py-3 text-gray-400 text-sm">
             {editingItem === item.id
-                ? <input type="number" min="0" step="0.01" value={itemForm.unit_price}
-                    onChange={e => setItemForm({...itemForm, unit_price: e.target.value})}
-                    className="w-24 px-2 py-1 bg-gray-800 border border-gray-600 text-white rounded-lg text-sm"/>
-                : formatCurrency(item.unit_price, lang)
+                ? <span className="inline-flex items-center">
+                    <input type="number" min="0" step="0.01" value={itemForm.unit_price}
+                        onChange={e => setItemForm({...itemForm, unit_price: e.target.value})}
+                        className="w-24 px-2 py-1 bg-gray-800 border border-gray-600 text-white rounded-lg text-sm"/>
+                    {item.unit_label && (
+                        <span className={`ms-1 text-xs ${item.unit_type !== 'base' ? 'text-blue-400' : 'text-gray-500'}`}>/ {item.unit_label}</span>
+                    )}
+                  </span>
+                : <>
+                    {formatCurrency(item.unit_price, lang)}
+                    {item.unit_label && (
+                        <span className={`ms-1 text-xs ${item.unit_type !== 'base' ? 'text-blue-400' : 'text-gray-500'}`}>/ {item.unit_label}</span>
+                    )}
+                  </>
             }
         </td>
         <td className="px-4 py-3 text-gray-400 text-sm">
@@ -328,8 +354,9 @@ const displayTotal = editMode
         <div className="flex rounded-lg overflow-hidden border border-gray-700">
             {['amount', 'percent'].map(dType => (
                 <button key={dType} type="button"
+                    disabled={hasManualTotal}
                     onClick={() => setDiscountType(dType)}
-                    className={`px-2 py-0.5 text-xs font-medium transition-colors ${
+                    className={`px-2 py-0.5 text-xs font-medium transition-colors disabled:opacity-50 ${
                         discountType === dType ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400'
                     }`}
                 >
@@ -341,9 +368,10 @@ const displayTotal = editMode
             type="number"
             min="0"
             max={discountType === 'percent' ? 100 : undefined}
-            value={editForm.discount}
+            value={hasManualTotal ? 0 : editForm.discount}
+            disabled={hasManualTotal}
             onChange={e => setEditForm({ ...editForm, discount: e.target.value })}
-            className="w-24 px-2 py-1 bg-gray-800 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm text-end"
+            className="w-24 px-2 py-1 bg-gray-800 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm text-end disabled:opacity-50"
         />
     </div>
 ) : (
@@ -351,6 +379,28 @@ const displayTotal = editMode
         <div className="flex justify-between text-sm text-green-400">
             <span>{t('orders.discount')}</span>
             <span>- {formatCurrency(order.discount, lang)}</span>
+        </div>
+    )
+)}
+{/* Manual total row */}
+{editMode ? (
+    <div className="flex items-center justify-between gap-2">
+        <span className="text-sm text-gray-400">{t('orders.manualTotal')}</span>
+        <input
+            type="number"
+            min="0"
+            step="0.01"
+            value={editForm.manual_total ?? ''}
+            onChange={e => setEditForm({ ...editForm, manual_total: e.target.value })}
+            placeholder={Math.max(0, order.subtotal - discountPreview).toFixed(2)}
+            className="w-24 px-2 py-1 bg-gray-800 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm text-end"
+        />
+    </div>
+) : (
+    order.manual_total != null && (
+        <div className="flex justify-between text-sm text-yellow-400">
+            <span>{t('orders.manualTotal')}</span>
+            <span>{formatCurrency(order.manual_total, lang)}</span>
         </div>
     )
 )}

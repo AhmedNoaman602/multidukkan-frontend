@@ -6,6 +6,7 @@ export default {
     unitPrice: 'سعر الوحدة',
     subtotal: 'الإجمالي الفرعي',
     discount: 'الخصم',
+    manualTotal: 'إجمالي يدوي',
 
     list: {
         newOrder: '+ طلب جديد',
