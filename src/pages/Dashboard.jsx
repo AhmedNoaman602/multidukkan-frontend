@@ -211,7 +211,7 @@ export default function Dashboard() {
                         />
                     )}
                     <StatCard
-                        label={t('dashboard.stats.newOrders')}
+                        label={activePeriod === 'Today' ? t('dashboard.stats.newOrders') : t('orders.title')}
                         value={stats.todayOrdersCount > 0 ? formatNumber(stats.todayOrdersCount) : '—'}
                         sub={stats.todayOrdersCount > 0
                             ? (canViewFinancials
