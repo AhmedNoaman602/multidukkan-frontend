@@ -249,7 +249,7 @@ const displayTotal = editMode
                 <table className="w-full">
                     <thead>
                         <tr className="border-b border-gray-800">
-                            {['common.product', 'common.quantity', 'orders.unitPrice', 'common.warehouse', 'common.total', 'common.actions'].map(key => (
+                            {['common.product', 'common.quantity', 'orders.unitPrice', 'orders.fulfilledFrom', 'common.total', 'common.actions'].map(key => (
                                 <th key={key} className="text-start text-xs text-gray-400 uppercase tracking-wider pb-3">
                                     {t(key)}
                                 </th>

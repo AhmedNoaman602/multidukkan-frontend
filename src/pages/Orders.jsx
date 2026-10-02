@@ -34,9 +34,7 @@ export default function Orders() {
     const [refundTarget, setRefundTarget] = useState(null)
     const [showQuickSale, setShowQuickSale] = useState(false)
     const [quickSaleProducts, setQuickSaleProducts] = useState([])
-    const [quickSaleWarehouses, setQuickSaleWarehouses] = useState([])
     const user = JSON.parse(localStorage.getItem('user') || '{}')
-    const [inventory, setInventory] = useState([])
     const { showToast } = useToast()
     const { t, lang, dir } = useTranslation()
 
@@ -56,14 +54,8 @@ const clearFilters = () => {
 
 const fetchQuickSaleData = async () => {
     if (quickSaleProducts.length > 0) return
-    const [productsRes, inventoryRes, warehousesRes] = await Promise.all([
-        api.get('/products?per_page=all'),
-        api.get('/inventory?per_page=all'),
-        api.get('/warehouses'),
-    ])
+    const productsRes = await api.get('/products?per_page=all')
     setQuickSaleProducts(productsRes.data.data)
-    setInventory(inventoryRes.data.data)
-    setQuickSaleWarehouses(warehousesRes.data.data)
 }
 
     const queryClient = useQueryClient()
@@ -506,8 +498,6 @@ const fetchQuickSaleData = async () => {
             queryClient.invalidateQueries({ queryKey: ['orders'] })
         }}
         products={quickSaleProducts}
-        warehouses={quickSaleWarehouses}
-         inventory={inventory} 
         storeId={user.store_id}
     />
 )}

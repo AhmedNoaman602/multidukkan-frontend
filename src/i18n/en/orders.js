@@ -7,6 +7,13 @@ export default {
     subtotal: 'Subtotal',
     discount: 'Discount',
     manualTotal: 'Manual total',
+    fulfilledFrom: 'Fulfilled from',
+
+    // Shown next to a line while ordering. Display only: the server checks stock on save.
+    availability: {
+        summary: 'Shelf {shelf} · Store {store}',
+        notEnough: 'Only {qty} in this store',
+    },
 
     list: {
         newOrder: '+ New order',

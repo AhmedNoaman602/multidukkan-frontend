@@ -7,6 +7,13 @@ export default {
     subtotal: 'الإجمالي الفرعي',
     discount: 'الخصم',
     manualTotal: 'إجمالي يدوي',
+    fulfilledFrom: 'تم الصرف من',
+
+    // بتظهر جنب السطر وقت إنشاء الطلب. للعرض فقط: الخادم بيتحقق من المخزون عند الحفظ.
+    availability: {
+        summary: 'الرف {shelf} · المتجر {store}',
+        notEnough: 'المتاح في المتجر {qty} فقط',
+    },
 
     list: {
         newOrder: '+ طلب جديد',

@@ -10,7 +10,8 @@ import CustomerSearchInput from '../components/CustomerSearchInput'
 import { useToast } from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatNumber } from '../lib/format'
-import { sortShelfFirst, shelfIdFor } from '../lib/locations'
+import StockAvailability from '../components/StockAvailability'
+import { useStoreAvailability, baseNeedsByProduct } from '../hooks/useStoreAvailability'
 const STORAGE_KEY = 'createOrderDraft'
 
 export default function CreateOrder() {
@@ -51,21 +52,17 @@ export default function CreateOrder() {
         queryKey: ['products', 'all'],
         queryFn: () => api.get('/products?per_page=all').then(res => res.data.data),
     })
-    const { data: warehouses = [], isLoading: warehousesLoading, isError: warehousesError } = useQuery({
-        queryKey: ['warehouses'],
-        queryFn: () => api.get('/warehouses').then(res => res.data.data),
-    })
-    const { data: inventory = [], isLoading: inventoryLoading, isError: inventoryError } = useQuery({
-        queryKey: ['inventory', 'all'],
-        queryFn: () => api.get('/inventory?per_page=all').then(res => res.data.data),
-    })
     const { data: stores = [], isLoading: storesLoading, isError: storesError } = useQuery({
         queryKey: ['stores'],
         queryFn: () => api.get('/stores').then(res => res.data.data),
     })
 
-    const loading = customersLoading || productsLoading || warehousesLoading || inventoryLoading || storesLoading
-    const loadError = customersError || productsError || warehousesError || inventoryError || storesError
+    const loading = customersLoading || productsLoading || storesLoading
+    const loadError = customersError || productsError || storesError
+
+    // Sales come from the store's shelf; this is only a preview of what the store holds.
+    const availability = useStoreAvailability(storeId, items.map(i => i.product_id))
+    const needs = baseNeedsByProduct(items, products)
 
     useEffect(() => {
         if (loadError) showToast(t('orders.create.loadFailed'), 'error')
@@ -111,17 +108,10 @@ export default function CreateOrder() {
         }
     }, [customerId])
 
-    // New lines default to the selected store's shelf; a line can only use its own store's locations.
-    const shelfIdRef = useRef('')
-    shelfIdRef.current = shelfIdFor(warehouses, storeId)
-
     const handleStoreChange = (id) => {
         setStoreId(id)
         localStorage.setItem('default_store_id', id)
-        setItems(prev => prev.map(i => ({ ...i, warehouse_id: String(shelfIdFor(warehouses, id)) })))
     }
-
-    const storeWarehouses = sortShelfFirst(warehouses.filter(w => !storeId || w.store_id === parseInt(storeId)))
 
     const selectedCustomer = customers.find(c => c.id === parseInt(customerId))
 
@@ -138,19 +128,6 @@ export default function CreateOrder() {
         return unitType === 'secondary' && product.conversion_factor
             ? base * product.conversion_factor
             : base
-    }
-
-    const getAvailableStock = (warehouseId, productId, currentIndex) => {
-        const inventoryRow = inventory.find(
-            inv => inv.warehouse_id === warehouseId && inv.product_id === productId
-        )
-        const available = inventoryRow ? inventoryRow.quantity : 0
-        const committed = items.reduce((sum, item, idx) => {
-            if (idx !== currentIndex && parseInt(item.product_id) === productId && parseInt(item.warehouse_id) === warehouseId)
-                return sum + (parseInt(item.quantity) || 0)
-            return sum
-        }, 0)
-        return Math.max(0, available - committed)
     }
 
     const subtotal = items.reduce((total, item) => {
@@ -178,7 +155,6 @@ export default function CreateOrder() {
             const next = [...prev, {
                 product_id: String(product.id),
                 quantity: 1,
-                warehouse_id: String(shelfIdRef.current),
                 unit_type: 'base',
                 unit_price: getPriceForCustomer(product)
             }]
@@ -201,20 +177,11 @@ export default function CreateOrder() {
         setItems(updated)
     }
 
-    // Enter on qty → focus warehouse
-    const handleQtyKeyDown = (e, index) => {
+    // Enter on qty → back to product search
+    const handleQtyKeyDown = (e) => {
         if (e.key === 'Enter') {
             e.preventDefault()
-            const wh = document.querySelector(`[data-wh="${index}"]`)
-            if (wh) wh.focus()
-        }
-    }
-
-    // After warehouse select → focus back to product search
-    const handleWhChange = (index, value) => {
-        updateItem(index, 'warehouse_id', value)
-        if (value && productSearchRef.current) {
-            setTimeout(() => productSearchRef.current?.focus(), 50)
+            productSearchRef.current?.focus()
         }
     }
 
@@ -234,7 +201,6 @@ export default function CreateOrder() {
                 items: items.map(item => ({
                     product_id: parseInt(item.product_id),
                     quantity: parseInt(item.quantity),
-                    warehouse_id: item.warehouse_id ? parseInt(item.warehouse_id) : null,
                     unit_type: item.unit_type ?? 'base',
                 }))
             })
@@ -326,7 +292,7 @@ export default function CreateOrder() {
                             <table className="w-full hidden md:table">
                                 <thead className="bg-gray-800">
                                     <tr>
-                                        {['common.product', 'common.quantity', 'common.amount', 'common.warehouse', 'orders.create.unit', 'common.total', null].map(key => (
+                                        {['common.product', 'common.quantity', 'common.amount', 'orders.create.unit', 'common.total', null].map(key => (
                                             <th key={key ?? 'actions'} className="px-2.5 py-1.5 text-start text-[11px] font-medium text-gray-400 uppercase tracking-wider">{key ? t(key) : ''}</th>
                                         ))}
                                     </tr>
@@ -343,6 +309,7 @@ export default function CreateOrder() {
                                                 <td className="px-2.5 py-1.5">
                                                     <p className="text-white text-sm leading-tight">{product?.name ?? '—'}</p>
                                                     {product?.sku && <p className="text-gray-500 text-[10px]">{product.sku}</p>}
+                                                    <StockAvailability availability={availability[product?.id]} product={product} needed={needs[product?.id]} />
                                                 </td>
                                                 <td className="px-2.5 py-1.5">
                                                     <input
@@ -352,7 +319,7 @@ export default function CreateOrder() {
                                                         data-qty={index}
                                                         value={item.quantity}
                                                         onChange={e => updateItem(index, 'quantity', e.target.value)}
-                                                        onKeyDown={e => handleQtyKeyDown(e, index)}
+                                                        onKeyDown={handleQtyKeyDown}
                                                         className="w-14 px-1.5 py-1 bg-gray-800 border border-gray-700 text-white rounded text-sm text-center focus:outline-none focus:border-blue-500"
                                                     />
                                                 </td>
@@ -366,22 +333,6 @@ export default function CreateOrder() {
           className="w-20 px-1.5 py-1 bg-gray-800 border border-gray-700 text-white rounded text-sm text-center focus:outline-none focus:border-blue-500"
     />
 </td>
-                                                <td className="px-2.5 py-1.5">
-                                                    <select
-                                                        data-wh={index}
-                                                        value={item.warehouse_id}
-                                                        onChange={e => handleWhChange(index, e.target.value)}
-                                                        required
-                                                        className="w-full px-1.5 py-1 bg-gray-800 border border-gray-700 text-white rounded text-xs focus:outline-none focus:border-blue-500"
-                                                    >
-                                                        <option value="">{t('orders.create.chooseWarehouse')}</option>
-                                                        {storeWarehouses
-                                                            .map(w => {
-                                                                const qty = getAvailableStock(w.id, parseInt(item.product_id), index)
-                                                                return <option key={w.id} value={w.id}>{w.name} ({qty})</option>
-                                                            })}
-                                                    </select>
-                                                </td>
                                                 <td className="px-2.5 py-1.5">
                                                     {product?.secondary_unit ? (
                                                         <div className="flex gap-0.5">
@@ -437,6 +388,7 @@ export default function CreateOrder() {
                                                 <div className="min-w-0">
                                                     <p className="text-white text-sm leading-tight truncate">{product?.name ?? '—'}</p>
                                                     {product?.sku && <p className="text-gray-500 text-[10px] truncate">{product.sku}</p>}
+                                                    <StockAvailability availability={availability[product?.id]} product={product} needed={needs[product?.id]} />
                                                 </div>
                                                 <button
                                                     type="button"
@@ -455,23 +407,9 @@ export default function CreateOrder() {
                                                     data-qty={index}
                                                     value={item.quantity}
                                                     onChange={e => updateItem(index, 'quantity', e.target.value)}
-                                                    onKeyDown={e => handleQtyKeyDown(e, index)}
+                                                    onKeyDown={handleQtyKeyDown}
                                                     className="w-14 shrink-0 px-1.5 py-1.5 bg-gray-800 border border-gray-700 text-white rounded text-sm text-center focus:outline-none focus:border-blue-500"
                                                 />
-                                                <select
-                                                    data-wh={index}
-                                                    value={item.warehouse_id}
-                                                    onChange={e => handleWhChange(index, e.target.value)}
-                                                    required
-                                                    className="flex-1 min-w-0 px-1.5 py-1.5 bg-gray-800 border border-gray-700 text-white rounded text-xs focus:outline-none focus:border-blue-500"
-                                                >
-                                                    <option value="">{t('orders.create.chooseWarehouse')}</option>
-                                                    {storeWarehouses
-                                                        .map(w => {
-                                                            const qty = getAvailableStock(w.id, parseInt(item.product_id), index)
-                                                            return <option key={w.id} value={w.id}>{w.name} ({qty})</option>
-                                                        })}
-                                                </select>
                                                 {product?.secondary_unit ? (
                                                     <div className="flex gap-0.5 shrink-0">
                                                         {['base', 'secondary'].map(u => (

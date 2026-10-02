@@ -1,17 +1,17 @@
 import { useState, useCallback, useRef } from "react";
+import { useQuery } from '@tanstack/react-query'
 import { useToast } from "../hooks/useToast";
 import api from '../api/axios'
 import ProductSearchInput from './ProductSearchInput'
+import StockAvailability from './StockAvailability'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatCurrency } from '../lib/format'
-import { sortShelfFirst, shelfIdFor } from '../lib/locations'
+import { useStoreAvailability, baseNeedsByProduct } from '../hooks/useStoreAvailability'
 
 export default function QuickSaleModal({
     open,
     onClose,
     products,
-    warehouses,
-    inventory,
     storeId,
 }) {
     const [items, setItems] = useState([])
@@ -19,30 +19,22 @@ export default function QuickSaleModal({
     const [manualTotal , setManualTotal] = useState(null)
     const [discount, setDiscount] = useState(0)
     const [discountType, setDiscountType] = useState('amount')
+    const [pickedStoreId, setPickedStoreId] = useState(() => localStorage.getItem('default_store_id') || '')
     const { showToast } = useToast()
     const { t, lang } = useTranslation()
     const productSearchRef = useRef(null)
 
-    // An order draws only on its own store's locations: the user's store, or (for an
-    // admin) the store of the first line's warehouse. New lines default to its shelf.
-    const storeOf = (warehouseId) => warehouses.find(w => w.id === parseInt(warehouseId))?.store_id
-    const anchorStoreId = storeId ? parseInt(storeId) : storeOf(items[0]?.warehouse_id)
-    const ownStoreWarehouses = storeId ? warehouses.filter(w => w.store_id === parseInt(storeId)) : warehouses
-    const warehouseOptions = (index) => sortShelfFirst(
-        index === 0 || !anchorStoreId ? ownStoreWarehouses : ownStoreWarehouses.filter(w => w.store_id === anchorStoreId)
-    )
-    const defaultWarehouseRef = useRef('')
-    defaultWarehouseRef.current = anchorStoreId ? shelfIdFor(warehouses, anchorStoreId) : ''
+    // The sale comes from a store's shelf: the user's own store, or the one an admin picks.
+    const { data: stores = [] } = useQuery({
+        queryKey: ['stores'],
+        queryFn: () => api.get('/stores').then(res => res.data.data),
+        enabled: open && !storeId,
+    })
+    const saleStoreId = storeId || pickedStoreId || (stores.length === 1 ? String(stores[0].id) : '')
 
-
-    const getStock = (warehouseId, productId) => {
-        if (!productId || !warehouseId) return 0
-        const inv = (inventory || []).find(i =>
-            i.warehouse_id === parseInt(warehouseId) &&
-            i.product_id === parseInt(productId)
-        )
-        return inv ? inv.quantity : 0
-    }
+    const availability = useStoreAvailability(open ? saleStoreId : null, items.map(i => i.product_id))
+    const needs = baseNeedsByProduct(items, products || [])
+    const productOf = (item) => (products || []).find(p => p.id === parseInt(item.product_id))
 
     const handleProductSelect = useCallback((product) => {
     setItems(prev => {
@@ -51,7 +43,6 @@ export default function QuickSaleModal({
             product_name: product.name,
             unit_price: product.price,
             quantity: 1,
-            warehouse_id: String(defaultWarehouseRef.current),
             unit_type: 'base',
         }]
         setTimeout(() => {
@@ -70,18 +61,10 @@ export default function QuickSaleModal({
 
     const removeItem = (index) => setItems(items.filter((_, i) => i !== index))
 
-    const handleQtyKeyDown = (e, index) => {
+    const handleQtyKeyDown = (e) => {
         if (e.key === 'Enter') {
             e.preventDefault()
-            const wh = document.querySelector(`[data-qs-wh="${index}"]`)
-            if (wh) wh.focus()
-        }
-    }
-
-    const handleWhChange = (index, value) => {
-        updateItem(index, 'warehouse_id', value)
-        if (value && productSearchRef.current) {
-            setTimeout(() => productSearchRef.current?.focus(), 50)
+            productSearchRef.current?.focus()
         }
     }
 
@@ -104,31 +87,19 @@ export default function QuickSaleModal({
         showToast(t('quickSale.walkInCustomerError'), 'error')
         return
     }
-        const resolvedStoreId = storeId || user.store_id
-
         if (items.length === 0) {
             showToast(t('orders.create.itemRequired'), 'error')
             return
         }
-        const missingWarehouse = items.some(i => !i.warehouse_id)
-        if (missingWarehouse) {
-            showToast(t('quickSale.warehouseRequiredAll'), 'error')
-            return
-        }
-        // Resolve store_id from the selected warehouse of the first item
-        const firstWarehouseId = parseInt(items[0].warehouse_id)
-        const selectedWarehouse = warehouses.find(w => w.id === firstWarehouseId)
-        const finalStoreId = resolvedStoreId || (selectedWarehouse ? selectedWarehouse.store_id : null)
-
-        if (!finalStoreId) {
-            showToast(t('quickSale.storeResolveFailed'), 'error')
+        if (!saleStoreId) {
+            showToast(t('quickSale.storeRequired'), 'error')
             return
         }
         setSaving(true)
         try {
             const res = await api.post('/orders', {
                 customer_id: user.walk_in_customer_id,
-                store_id: finalStoreId,
+                store_id: parseInt(saleStoreId),
                 order_date: new Date().toLocaleDateString('en-CA'),
                 discount: hasManualTotal ? 0 : parseFloat(discount) || 0,
                 discount_type: discountType,
@@ -138,7 +109,6 @@ export default function QuickSaleModal({
                 items: items.map(i => ({
                     product_id: parseInt(i.product_id),
                     quantity: parseInt(i.quantity),
-                    warehouse_id: parseInt(i.warehouse_id),
                     unit_type: i.unit_type ?? 'base',
                     unit_price: parseFloat(i.unit_price),
                 }))
@@ -176,6 +146,19 @@ try {
 
                 {/* Product Search */}
                 <div className="px-4 py-3 border-b border-gray-800">
+                    {!storeId && stores.length > 1 && (
+                        <select
+                            value={saleStoreId}
+                            onChange={e => {
+                                setPickedStoreId(e.target.value)
+                                localStorage.setItem('default_store_id', e.target.value)
+                            }}
+                            className="w-full mb-2 px-2 py-1.5 bg-gray-800 border border-gray-700 text-white rounded-lg text-xs focus:outline-none focus:border-blue-500"
+                        >
+                            <option value="">{t('orders.create.chooseStore')}</option>
+                            {stores.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                        </select>
+                    )}
                     <ProductSearchInput
                         products={products}
                         onSelect={handleProductSelect}
@@ -200,7 +183,7 @@ try {
                         <table className="w-full">
                             <thead className="bg-gray-800 sticky top-0">
                                 <tr>
-                                    {['common.product', 'common.quantity', 'quickSale.price', 'common.warehouse', 'common.total', ''].map(key => (
+                                    {['common.product', 'common.quantity', 'quickSale.price', 'common.total', ''].map(key => (
                                         <th key={key || 'actions'} className="px-2 py-1.5 text-start text-[10px] font-medium text-gray-500 uppercase">{key ? t(key) : ''}</th>
                                     ))}
                                 </tr>
@@ -210,6 +193,7 @@ try {
                                     <tr key={index} className="hover:bg-gray-800/30 transition-colors">
                                         <td className="px-2 py-1.5">
                                             <p className="text-white text-xs font-medium leading-tight">{item.product_name}</p>
+                                            <StockAvailability availability={availability[item.product_id]} product={productOf(item)} needed={needs[item.product_id]} />
                                         </td>
                                         <td className="px-2 py-1.5">
                                             <input
@@ -218,7 +202,7 @@ try {
                                                 data-qs-qty={index}
                                                 value={item.quantity}
                                                 onChange={e => updateItem(index, 'quantity', e.target.value)}
-                                                onKeyDown={e => handleQtyKeyDown(e, index)}
+                                                onKeyDown={handleQtyKeyDown}
                                                 className="w-12 px-1 py-1 bg-gray-800 border border-gray-700 text-white rounded text-xs text-center focus:outline-none focus:border-blue-500"
                                             />
                                         </td>
@@ -231,24 +215,6 @@ try {
                                                 onChange={e => updateItem(index, 'unit_price', e.target.value)}
                                                 className="w-16 px-1 py-1 bg-gray-800 border border-gray-700 text-white rounded text-xs text-center focus:outline-none focus:border-blue-500"
                                             />
-                                        </td>
-                                        <td className="px-2 py-1.5">
-                                            <select
-                                                data-qs-wh={index}
-                                                value={item.warehouse_id}
-                                                onChange={e => handleWhChange(index, e.target.value)}
-                                                className="w-full px-1 py-1 bg-gray-800 border border-gray-700 text-white rounded text-xs focus:outline-none focus:border-blue-500"
-                                            >
-                                                <option value="">{t('orders.create.chooseWarehouse')}</option>
-                                                {warehouseOptions(index).map(w => {
-                                                    const stock = getStock(w.id, item.product_id)
-                                                    return (
-                                                        <option key={w.id} value={w.id}>
-                                                            {w.name} ({stock})
-                                                        </option>
-                                                    )
-                                                })}
-                                            </select>
                                         </td>
                                         <td className="px-2 py-1.5 text-white text-xs font-medium whitespace-nowrap">
                                             {formatCurrency((parseFloat(item.unit_price) || 0) * (parseInt(item.quantity) || 0), lang)}
@@ -270,7 +236,10 @@ try {
                             {items.map((item, index) => (
                                 <div key={index} className="p-2.5 space-y-2">
                                     <div className="flex items-start justify-between gap-2">
-                                        <p className="text-white text-xs font-medium leading-tight truncate min-w-0">{item.product_name}</p>
+                                        <div className="min-w-0">
+                                            <p className="text-white text-xs font-medium leading-tight truncate">{item.product_name}</p>
+                                            <StockAvailability availability={availability[item.product_id]} product={productOf(item)} needed={needs[item.product_id]} />
+                                        </div>
                                         <button
                                             onClick={() => removeItem(index)}
                                             className="text-gray-600 hover:text-red-400 transition-colors text-sm shrink-0"
@@ -283,7 +252,7 @@ try {
                                             data-qs-qty={index}
                                             value={item.quantity}
                                             onChange={e => updateItem(index, 'quantity', e.target.value)}
-                                            onKeyDown={e => handleQtyKeyDown(e, index)}
+                                            onKeyDown={handleQtyKeyDown}
                                             className="w-12 shrink-0 px-1 py-1.5 bg-gray-800 border border-gray-700 text-white rounded text-xs text-center focus:outline-none focus:border-blue-500"
                                         />
                                         <input
@@ -294,22 +263,6 @@ try {
                                             onChange={e => updateItem(index, 'unit_price', e.target.value)}
                                             className="w-16 shrink-0 px-1 py-1.5 bg-gray-800 border border-gray-700 text-white rounded text-xs text-center focus:outline-none focus:border-blue-500"
                                         />
-                                        <select
-                                            data-qs-wh={index}
-                                            value={item.warehouse_id}
-                                            onChange={e => handleWhChange(index, e.target.value)}
-                                            className="flex-1 min-w-0 px-1 py-1.5 bg-gray-800 border border-gray-700 text-white rounded text-xs focus:outline-none focus:border-blue-500"
-                                        >
-                                            <option value="">{t('orders.create.chooseWarehouse')}</option>
-                                            {warehouseOptions(index).map(w => {
-                                                const stock = getStock(w.id, item.product_id)
-                                                return (
-                                                    <option key={w.id} value={w.id}>
-                                                        {w.name} ({stock})
-                                                    </option>
-                                                )
-                                            })}
-                                        </select>
                                     </div>
                                     <p className="text-end text-white text-xs font-medium">
                                         {formatCurrency((parseFloat(item.unit_price) || 0) * (parseInt(item.quantity) || 0), lang)}

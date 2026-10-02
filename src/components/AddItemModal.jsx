@@ -4,13 +4,12 @@ import {useToast} from '../hooks/useToast'
 import api from '../api/axios'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatCurrency } from '../lib/format'
-import { sortShelfFirst, shelfIdFor } from '../lib/locations'
+import StockAvailability from './StockAvailability'
+import { useStoreAvailability, baseNeedsByProduct } from '../hooks/useStoreAvailability'
 
 export default function AddItemModal({ open, onClose,orderId, storeId, onSuccess }) {
     const [selectedProduct, setSelectedProduct] = useState(null)
     const [products,setProducts] = useState([])
-    const[warehouses,setWarehouses] = useState([])
-    const [inventory, setInventory] = useState([])
     const [saving, setSaving] = useState(false)
     const [loadingData, setLoadingData] = useState(false)
     const {showToast} = useToast()
@@ -19,29 +18,20 @@ export default function AddItemModal({ open, onClose,orderId, storeId, onSuccess
     const [form, setForm] = useState({
         product_id: '',
         quantity: 1,
-        warehouse_id: '',
         unit_type: 'base',
         unit_price: '',
     })
 
     useEffect(() => {
        if (!open) return
-       Promise.all([
-        api.get('/products?per_page=all'),
-        api.get('/warehouses'),
-        api.get('/inventory?per_page=all'),
-    ])
-    .then(([productsRes, warehousesRes, inventoryRes]) => {
-        setProducts(productsRes.data.data)
-        setWarehouses(warehousesRes.data.data)
-        setInventory(inventoryRes.data.data)
-    })
+       api.get('/products?per_page=all')
+    .then(productsRes => setProducts(productsRes.data.data))
     .catch(err => showToast(err.response?.data?.message || t('orders.create.loadFailed'), 'error'))
     },[open , orderId])
 
-
-    // The added line can only use the order's own store's locations; default to its shelf.
-    const storeWarehouses = sortShelfFirst(warehouses.filter(w => w.store_id === parseInt(storeId)))
+    // The added line is sold from the order's store shelf; this only previews what the store holds.
+    const availability = useStoreAvailability(open ? storeId : null, form.product_id ? [form.product_id] : [])
+    const needed = baseNeedsByProduct(form.product_id ? [form] : [], products)[parseInt(form.product_id)]
 
     const handleProductSelect = (product) => {
         setSelectedProduct(product)
@@ -49,22 +39,12 @@ export default function AddItemModal({ open, onClose,orderId, storeId, onSuccess
             ...f,
             product_id: String(product.id),
             unit_price: product.price ?? '',
-            warehouse_id: f.warehouse_id || String(shelfIdFor(warehouses, storeId)),
         }))
-    }
-
-    const getStock = (warehouseId) => {
-        if (!form.product_id || !warehouseId) return 0
-        const inv = inventory.find(i =>
-            i.warehouse_id === warehouseId &&
-            i.product_id === parseInt(form.product_id)
-        )
-        return inv ? inv.quantity : 0
     }
 
     const handleClose = () => {
         setSelectedProduct(null)
-        setForm({ product_id: '', quantity: 1, warehouse_id: '', unit_type: 'base', unit_price: '' })
+        setForm({ product_id: '', quantity: 1, unit_type: 'base', unit_price: '' })
         onClose()
     }
 
@@ -76,7 +56,6 @@ export default function AddItemModal({ open, onClose,orderId, storeId, onSuccess
                 unit_price:form.unit_price,
                 unit_type:form.unit_type,
                 quantity:form.quantity,
-                warehouse_id:form.warehouse_id,
             })
             showToast(t('orders.addItemModal.added'), 'success')
             onSuccess()
@@ -103,7 +82,10 @@ export default function AddItemModal({ open, onClose,orderId, storeId, onSuccess
                     <label className="block text-xs text-gray-400 mb-1">{t('common.product')}</label>
                     {selectedProduct && (
                         <div className="flex items-center justify-between px-3 py-2 bg-blue-500/10 border border-blue-500/20 rounded-lg mb-2">
-                            <span className="text-white text-sm">{selectedProduct.name}</span>
+                            <div>
+                                <span className="text-white text-sm">{selectedProduct.name}</span>
+                                <StockAvailability availability={availability[selectedProduct.id]} product={selectedProduct} needed={needed} />
+                            </div>
                             <button
                                 onClick={() => {
                                     setSelectedProduct(null)
@@ -148,23 +130,6 @@ export default function AddItemModal({ open, onClose,orderId, storeId, onSuccess
                                 onChange={e => setForm({ ...form, unit_price: e.target.value })}
                                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                             />
-                        </div>
-
-                        {/* Warehouse */}
-                        <div>
-                            <label className="block text-xs text-gray-400 mb-1">{t('common.warehouse')}</label>
-                            <select
-                                value={form.warehouse_id}
-                                onChange={e => setForm({ ...form, warehouse_id: e.target.value })}
-                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
-                            >
-                                <option value="">{t('products.form.chooseWarehouse')}</option>
-                                {storeWarehouses.map(w => (
-                                    <option key={w.id} value={w.id}>
-                                        {w.name} ({getStock(w.id)})
-                                    </option>
-                                ))}
-                            </select>
                         </div>
 
                         {/* Unit type toggle */}
@@ -212,7 +177,7 @@ export default function AddItemModal({ open, onClose,orderId, storeId, onSuccess
                     </button>
                     <button
                         onClick={handleSave}
-                        disabled={saving || !form.product_id || !form.warehouse_id}
+                        disabled={saving || !form.product_id}
                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
                     >
                         {saving ? t('orders.addItemModal.adding') : t('orders.addItemModal.submit')}

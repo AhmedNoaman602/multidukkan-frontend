@@ -51,8 +51,6 @@ export default function Dashboard() {
     const [ordersFilter, setOrdersFilter] = useState('all')
     const [showQuickSale, setShowQuickSale] = useState(false)
     const [products, setProducts] = useState([])
-    const [warehouses, setWarehouses] = useState([])
-    const [inventory, setInventory] = useState([])
     const { showToast } = useToast()
     const { t, lang, dir } = useTranslation()
     const navigate = useNavigate()
@@ -113,14 +111,8 @@ export default function Dashboard() {
 
     const fetchQuickSaleData = async () => {
         if (products.length > 0) return
-        const [productsRes, inventoryRes, warehousesRes] = await Promise.all([
-            api.get('/products?per_page=all'),
-            api.get('/inventory?per_page=all'),
-            api.get('/warehouses'),
-        ])
+        const productsRes = await api.get('/products?per_page=all')
         setProducts(productsRes.data.data)
-        setInventory(inventoryRes.data.data)
-        setWarehouses(warehousesRes.data.data)
     }
 
     // 7. Effects — run on mount / dependency change
@@ -675,8 +667,6 @@ export default function Dashboard() {
         open={showQuickSale}
         onClose={() => setShowQuickSale(false)}
         products={products}
-        warehouses={warehouses}
-         inventory={inventory}
         storeId={user.store_id}
     />
 )}
