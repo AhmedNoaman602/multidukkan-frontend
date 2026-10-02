@@ -8,6 +8,7 @@ export default {
     allLocations: 'All locations',
     route: 'From → To',
     lines: 'Products',
+    forInvoice: 'Invoice {number}',
 
     modal: {
         title: 'Transfer stock',

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import StockTransferModal from '../components/StockTransferModal'
@@ -167,6 +168,14 @@ export default function StockTransfers() {
                                         <span className="mx-2 text-gray-500">{arrow}</span>
                                         <Location location={transfer.to} />
                                         {transfer.notes && <div className="text-xs text-gray-500 mt-1">{transfer.notes}</div>}
+                                        {transfer.order && (
+                                            <Link
+                                                to={`/orders/${transfer.order.id}/invoice`}
+                                                className="block text-xs text-blue-400 hover:text-blue-300 mt-1 [unicode-bidi:plaintext]"
+                                            >
+                                                {t('stockTransfers.forInvoice', { number: transfer.order.invoice_number })}
+                                            </Link>
+                                        )}
                                     </td>
                                     <td className="px-4 py-3 text-sm">
                                         {transfer.items.map(item => (

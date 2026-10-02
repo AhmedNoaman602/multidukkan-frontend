@@ -8,6 +8,7 @@ export default {
     allLocations: 'كل الأماكن',
     route: 'من ← إلى',
     lines: 'المنتجات',
+    forInvoice: 'فاتورة {number}',
 
     modal: {
         title: 'تحويل مخزون',
