@@ -7,6 +7,8 @@ import BackButton from '../components/BackButton'
 import SupplierMultiSelect from '../components/SupplierMultiSelect'
 import { useToast } from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
+import StockLocationEditor from '../components/StockLocationEditor'
+import { stockPayload } from '../lib/locations'
 
 export default function EditProduct() {
     const { id } = useParams()
@@ -33,12 +35,14 @@ export default function EditProduct() {
             api.get('/units'),
             api.get('/suppliers?per_page=all'),
             api.get(`/products/${id}/suppliers`),
-        ]).then(([productRes, warehouseRes, unitRes, supplierRes, linkedRes]) => ({
+            api.get('/stores'),
+        ]).then(([productRes, warehouseRes, unitRes, supplierRes, linkedRes, storeRes]) => ({
             product: productRes.data.data,
             warehouses: warehouseRes.data.data,
             units: unitRes.data.data,
             suppliers: supplierRes.data.data,
             linkedSupplierIds: linkedRes.data.data.map(s => s.id),
+            stores: storeRes.data.data,
         })),
     })
 
@@ -71,11 +75,13 @@ export default function EditProduct() {
 
         setSupplierIds(data.linkedSupplierIds)
 
-        // Load existing warehouse stocks
+        // Existing stock loads in base units; the user may re-enter it in the secondary unit.
         setStocks(p.stocks.map(s => ({
             warehouse_id:   s.warehouse_id,
             warehouse_name: s.warehouse_name,
+            warehouse_type: s.warehouse_type,
             quantity:       s.quantity,
+            unit_type:      'base',
             threshold:      s.threshold,
             isNew:          false,
         })))
@@ -84,25 +90,8 @@ export default function EditProduct() {
     const warehouses = data?.warehouses || []
     const units = data?.units || []
     const suppliers = data?.suppliers || []
-
-    const usedWarehouseIds = stocks.map(s => parseInt(s.warehouse_id)).filter(Boolean)
-
-    const addStock = () => setStocks([
-        ...stocks,
-        { warehouse_id: '', warehouse_name: '', quantity: 0, threshold: 10, isNew: true }
-    ])
-
-    const removeStock = (i) => {
-        // Only allow removing new (unassigned) warehouse rows
-        if (!stocks[i].isNew) return
-        setStocks(stocks.filter((_, idx) => idx !== i))
-    }
-
-    const updateStock = (i, field, value) => {
-        const updated = [...stocks]
-        updated[i][field] = value
-        setStocks(updated)
-    }
+    const stores = data?.stores || []
+    const hasSecondaryUnit = !!form.secondary_unit && Number(form.conversion_factor) > 1
 
     const handleGenerateDescription = async () => {
         if (!form.name || !form.price || !form.unit) {
@@ -143,13 +132,7 @@ export default function EditProduct() {
                 cost_price:        form.cost_price ? parseFloat(form.cost_price) :null,
                 conversion_factor: form.conversion_factor ? parseInt(form.conversion_factor) : null,
                 supplier_ids:      supplierIds,
-                stocks: stocks
-                    .filter(s => s.warehouse_id)
-                    .map(s => ({
-                        warehouse_id: parseInt(s.warehouse_id),
-                        quantity:     parseInt(s.quantity) || 0,
-                        threshold:    parseInt(s.threshold) || 10,
-                    }))
+                stocks:            stockPayload(stocks, hasSecondaryUnit),
             })
             showToast(t('products.edit.updated'), 'success')
             navigate('/products')
@@ -304,82 +287,17 @@ export default function EditProduct() {
                         )}
                     </div>
 
-                    {/* Warehouse Stock */}
+                    {/* Stock by location — set to the amount entered; the server converts and logs the difference */}
                     <div className="col-span-2">
-                        <div className="flex items-center justify-between mb-3">
-                            <label className="text-sm text-gray-400">{t('products.form.warehouseStock')}</label>
-                            <button
-                                type="button"
-                                onClick={addStock}
-                                className="px-3 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors"
-                            >
-                                {t('products.form.addWarehouse')}
-                            </button>
-                        </div>
-
-                        <div className="space-y-3">
-                            {stocks.map((stock, i) => (
-                                <div key={i} className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 items-end bg-gray-800 p-3 rounded-lg">
-
-                                    <div className="col-span-3">
-                                        <label className="block text-xs text-gray-400 mb-1">{t('common.warehouse')}</label>
-                                        {stock.isNew ? (
-                                            <select
-                                                value={stock.warehouse_id}
-                                                onChange={(e) => updateStock(i, 'warehouse_id', e.target.value)}
-                                                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
-                                            >
-                                                <option value="">{t('products.form.chooseWarehouse')}</option>
-                                                {warehouses
-                                                    .filter(w => !usedWarehouseIds.includes(w.id) || w.id === parseInt(stock.warehouse_id))
-                                                    .map(w => (
-                                                        <option key={w.id} value={w.id}>{w.name}</option>
-                                                    ))
-                                                }
-                                            </select>
-                                        ) : (
-                                            <div className="px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg text-sm">
-                                                {stock.warehouse_name}
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="col-span-2">
-                                        <label className="block text-xs text-gray-400 mb-1">{t('common.quantity')}</label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            value={stock.quantity}
-                                            onChange={(e) => updateStock(i, 'quantity', e.target.value)}
-                                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
-                                        />
-                                    </div>
-
-                                    <div className="col-span-1">
-                                        <label className="block text-xs text-gray-400 mb-1">{t('products.form.threshold')}</label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            value={stock.threshold}
-                                            onChange={(e) => updateStock(i, 'threshold', e.target.value)}
-                                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
-                                        />
-                                    </div>
-
-                                    <div className="col-span-1 flex justify-end">
-                                        {stock.isNew && (
-                                            <button
-                                                type="button"
-                                                onClick={() => removeStock(i)}
-                                                className="px-3 py-2 text-red-400 hover:text-red-300 text-sm transition-colors"
-                                            >
-                                                ✕
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                        <StockLocationEditor
+                            rows={stocks}
+                            onChange={setStocks}
+                            warehouses={warehouses}
+                            stores={stores}
+                            unit={form.unit}
+                            secondaryUnit={form.secondary_unit}
+                            conversionFactor={form.conversion_factor}
+                        />
                     </div>
 
                     <div className="col-span-2 pt-2">

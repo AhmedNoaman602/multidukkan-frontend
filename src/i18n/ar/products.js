@@ -21,9 +21,6 @@ export default {
         supplierSearchPlaceholder: 'ابحث عن مورد...',
         allSuppliersLinked: 'تم ربط كل الموردين',
         // كانت "Opening Quantity" إنجليزي بالغلط — بقت "الكمية الافتتاحية".
-        openingQuantity: 'الكمية الافتتاحية',
-        openingQuantityPlaceholder: 'الكمية الموجودة حالياً',
-        openingStockValue: 'قيمة المخزون الافتتاحي: {amount}',
         costPricePlaceholder: 'اللي دفعته فيه',
         unit: 'الوحدة',
         newUnit: '+ جديدة',
@@ -38,8 +35,8 @@ export default {
         conversionFactor: 'معامل التحويل',
         conversionFactorPlaceholder: 'مثال: 12',
         conversionPreview: '1 {secondary} = {factor} {base}',
-        warehouseStock: 'مخزون المخازن',
-        addWarehouse: '+ إضافة مخزن',
+        warehouseStock: 'المخزون حسب المكان',
+        addWarehouse: '+ إضافة مكان',
         chooseWarehouse: 'اختر المخزن',
         threshold: 'حد التنبيه',
         aiFieldsRequired: 'من فضلك املا الاسم والسعر والوحدة الأول.',
@@ -56,7 +53,7 @@ export default {
         createFailed: 'حصلت مشكلة في إنشاء المنتج',
         warehouseRequired: 'من فضلك اختر المخزن لكل صفوف المخزون، أو امسح الصفوف الفاضية.',
         quantityInvalid: 'اكتب كمية أكبر من 0 لكل صفوف المخازن.',
-        openingStockRequired: 'لازم تضيف كمية افتتاحية أو مخزون لما تحدد سعر التكلفة.',
+        openingStockRequired: 'لازم تضيف مخزون لمكان واحد على الأقل لما تحدد سعر التكلفة.',
     },
 
     edit: {

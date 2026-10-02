@@ -4,7 +4,8 @@ import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import BackButton from '../components/BackButton'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatCurrency, formatDate } from '../lib/format'
+import { formatCurrency, formatDate, formatUnitBreakdown } from '../lib/format'
+import { isShelf, sortShelfFirst } from '../lib/locations'
 import { canViewCostData } from '../lib/permissions'
 
 export default function ProductDetail() {
@@ -127,9 +128,14 @@ export default function ProductDetail() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-800">
-                        {product.stocks?.map(s => (
+                        {sortShelfFirst((product.stocks ?? []).map(s => ({ ...s, type: s.warehouse_type }))).map(s => (
                             <tr key={s.warehouse_id} className="hover:bg-gray-800/50">
-                                <td className="px-4 py-3 text-white text-sm">{s.warehouse_name}</td>
+                                <td className="px-4 py-3 text-white text-sm">
+                                    {s.warehouse_name}
+                                    {isShelf(s) && (
+                                        <span className="ms-2 px-1.5 py-0.5 bg-blue-500/15 text-blue-400 text-xs rounded">{t('common.shelf')}</span>
+                                    )}
+                                </td>
                                 <td className="px-4 py-3">
                                     <span className={`px-2 py-1 rounded text-xs font-medium ${
                                         s.quantity > s.threshold
@@ -138,7 +144,7 @@ export default function ProductDetail() {
                                             ? 'bg-yellow-500/20 text-yellow-400'
                                             : 'bg-red-500/20 text-red-400'
                                     }`}>
-                                        {s.quantity} {product.unit}
+                                        {formatUnitBreakdown(s.quantity, product)}
                                     </span>
                                 </td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">{s.threshold}</td>

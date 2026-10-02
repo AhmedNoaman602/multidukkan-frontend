@@ -105,7 +105,7 @@ export default function Onboarding() {
                         price: parseFloat(productForm.price),
                         cost_price: productForm.cost_price ? parseFloat(productForm.cost_price) : null,
                         stocks: createdShelfId && parseInt(productForm.quantity) > 0
-                            ? [{ warehouse_id: parseInt(createdShelfId), quantity: parseInt(productForm.quantity) || 0, threshold: 10 }]
+                            ? [{ warehouse_id: parseInt(createdShelfId), quantity: parseInt(productForm.quantity) || 0, unit_type: 'base', threshold: 10 }]
                             : []
                     })
                     setProductCreated(true)
