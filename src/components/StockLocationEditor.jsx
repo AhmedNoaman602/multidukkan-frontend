@@ -52,19 +52,22 @@ export default function StockLocationEditor({ rows, onChange, warehouses, stores
     const cell = 'px-2 py-1.5 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm'
 
     return (
-        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
+        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
             <div className="px-4 py-2.5 border-b border-gray-800 flex items-center justify-between">
                 <h3 className="text-white text-sm font-semibold">
                     {t('products.form.warehouseStock')}
                     {rows.length > 0 && <span className="ms-1.5 text-gray-500 font-normal">({rows.length})</span>}
                 </h3>
-                <button type="button" onClick={add} className="px-3 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors">
-                    {t('products.form.addWarehouse')}
-                </button>
+                {rows.length < warehouses.length && (
+                    <button type="button" onClick={add} className="px-3 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors">
+                        {t('products.form.addWarehouse')}
+                    </button>
+                )}
             </div>
 
+            <div className="overflow-auto max-h-80">
             <table className="w-full">
-                <thead className="bg-gray-800">
+                <thead className="bg-gray-800 sticky top-0 z-10">
                     <tr>
                         {['common.warehouse', 'common.quantity', 'products.form.threshold', null].map(key => (
                             <th key={key ?? 'actions'} className="px-3 py-2 text-start text-[11px] font-medium text-gray-400 uppercase tracking-wider">{key ? t(key) : ''}</th>
@@ -155,6 +158,7 @@ export default function StockLocationEditor({ rows, onChange, warehouses, stores
                     })}
                 </tbody>
             </table>
+            </div>
         </div>
     )
 }
