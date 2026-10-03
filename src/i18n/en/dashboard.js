@@ -66,9 +66,7 @@ export default {
     ai: {
         last30Days: 'Last 30 days',
         updated: '✓ Up to date',
-        analyzing: 'Analyzing…',
-        refresh: '🔄 Refresh',
-        analyzeSales: '✨ Analyze sales',
+        failed: 'Could not analyze sales right now. Please try again.',
         emptyTitle: 'Smart analysis of your sales',
         emptyBody: 'Tap "Analyze sales" for insights tailored to your store.',
         analyzeNow: '✨ Analyze sales now',

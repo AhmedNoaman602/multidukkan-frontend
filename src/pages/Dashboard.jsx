@@ -96,14 +96,13 @@ export default function Dashboard() {
 
     // 6. Event handlers — triggered by user interaction (buttons, clicks)
     const fetchInsights = async () => {
-        if (insightsFetched) return
         setLoadingInsights(true)
         try {
             const res = await api.get('/ai/insights')
             setInsights(res.data)
             setInsightsFetched(true)
-        } catch {
-            setInsights(null)
+        } catch (err) {
+            showToast(err.response?.data?.message || t('dashboard.ai.failed'), 'error')
         } finally {
             setLoadingInsights(false)
         }
@@ -327,22 +326,6 @@ export default function Dashboard() {
                     <span className="text-xs px-2 py-0.5 bg-green-500/15 text-green-400 rounded-full">{t('dashboard.ai.updated')}</span>
                 )}
             </div>
-            <button
-                onClick={fetchInsights}
-                disabled={loadingInsights}
-                className="flex items-center gap-2 px-4 py-2 bg-purple-600/20 border border-purple-500/30 text-purple-400 hover:bg-purple-600/30 disabled:opacity-40 text-xs font-medium rounded-lg transition-colors"
-            >
-                {loadingInsights ? (
-                    <>
-                        <span className="w-3 h-3 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
-                        {t('dashboard.ai.analyzing')}
-                    </>
-                ) : insightsFetched ? (
-                    t('dashboard.ai.refresh')
-                ) : (
-                    t('dashboard.ai.analyzeSales')
-                )}
-            </button>
         </div>
 
         <div className="bg-gray-900 border border-purple-500/20 rounded-2xl overflow-hidden">
@@ -426,7 +409,7 @@ export default function Dashboard() {
         <div className="mt-4 pt-4 border-t border-gray-800 flex items-center justify-between">
             <p className="text-gray-600 text-xs">{t('dashboard.ai.footer')}</p>
             <button
-                onClick={() => { setInsightsFetched(false); setInsights(null); fetchInsights() }}
+                onClick={fetchInsights}
                 className="text-purple-400 hover:text-purple-300 text-xs transition-colors"
             >
                 {t('dashboard.ai.refreshAnalysis')}
