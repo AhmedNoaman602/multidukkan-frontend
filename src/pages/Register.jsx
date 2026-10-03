@@ -10,7 +10,8 @@ export default function Register() {
         name: '',
         email: '',
         password: '',
-        password_confirmation: ''
+        password_confirmation: '',
+        invite_code: ''
     })
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
@@ -66,6 +67,20 @@ export default function Register() {
                     )}
 
                     <form onSubmit={handleSubmit} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                                {t('auth.register.inviteCode')}
+                            </label>
+                            <input
+                                value={form.invite_code}
+                                onChange={(e) => setForm({ ...form, invite_code: e.target.value })}
+                                required
+                                autoComplete="off"
+                                placeholder={t('auth.register.inviteCodePlaceholder')}
+                                className="w-full px-4 py-2.5 bg-white/[0.04] border border-slate-700/60 text-white rounded-lg focus:outline-none focus:border-blue-500/60 focus:ring-1 focus:ring-blue-500/40 placeholder-slate-500 transition-all duration-200"
+                            />
+                        </div>
+
                         <div>
                             <label className="block text-sm font-medium text-slate-300 mb-1.5">
                                 {t('auth.register.businessName')}

@@ -22,6 +22,8 @@ export default {
 
     register: {
         tagline: 'Create your business account',
+        inviteCode: 'Invitation code',
+        inviteCodePlaceholder: 'Enter your invitation code',
         businessName: 'Business name',
         businessNamePlaceholder: "e.g. Ahmed's Shop",
         yourName: 'Your name',

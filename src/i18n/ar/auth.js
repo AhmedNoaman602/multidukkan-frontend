@@ -20,6 +20,8 @@ export default {
 
     register: {
         tagline: 'أنشئ حساب نشاطك',
+        inviteCode: 'رمز الدعوة',
+        inviteCodePlaceholder: 'اكتب رمز الدعوة',
         businessName: 'اسم النشاط',
         businessNamePlaceholder: 'مثال: محل أحمد',
         yourName: 'اسمك',
