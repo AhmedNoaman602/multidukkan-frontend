@@ -19,9 +19,11 @@ export default function StockLocationEditor({ rows, onChange, warehouses, stores
     const product = { unit, secondary_unit: secondaryUnit, conversion_factor: factor }
 
     const usedIds = rows.map(r => parseInt(r.warehouse_id)).filter(Boolean)
+    // A shelf already named "Shelf" / "الرف" doesn't need the tag repeated next to it.
+    const needsShelfTag = (name) => name !== t('common.shelf')
     const locationLabel = (w) => {
         const store = stores.length > 1 ? stores.find(s => s.id === w.store_id)?.name : null
-        return [w.name, isShelf(w) ? `(${t('common.shelf')})` : null, store ? `· ${store}` : null].filter(Boolean).join(' ')
+        return [w.name, isShelf(w) && needsShelfTag(w.name) ? `(${t('common.shelf')})` : null, store ? `· ${store}` : null].filter(Boolean).join(' ')
     }
 
     const update = (i, changes) => onChange(rows.map((r, idx) => (idx === i ? { ...r, ...changes } : r)))
@@ -85,7 +87,7 @@ export default function StockLocationEditor({ rows, onChange, warehouses, stores
                                     ) : (
                                         <div className="px-2 py-1.5 text-white text-sm">
                                             {row.warehouse_name ?? location?.name}
-                                            {(row.warehouse_type === 'shelf' || isShelf(location)) && <ShelfBadge />}
+                                            {(row.warehouse_type === 'shelf' || isShelf(location)) && needsShelfTag(row.warehouse_name ?? location?.name) && <ShelfBadge />}
                                         </div>
                                     )}
                                 </td>
