@@ -4,9 +4,9 @@ import { STORAGE_KEY, DEFAULT_LANG, LANGUAGES } from '../i18n/translate'
 // Create a single axios instance used by every page in the app.
 // Configuring it once here means we don't repeat baseURL or headers everywhere.
 const api = axios.create({
-    // All requests will be prefixed with this URL.
-    // api.get('/products') → http://multidukkan.test/api/products
-    baseURL: 'http://multidukkan.test/api',
+    // All requests will be prefixed with this URL, set per mode in
+    // .env.development (npm run dev) and .env.production (npm run build).
+    baseURL: import.meta.env.VITE_API_URL,
     withCredentials: true,
     headers: {
         // Tells the backend we're sending JSON data
