@@ -95,7 +95,7 @@ export default function StockLocationEditor({ rows, onChange, warehouses, stores
                                         min="0"
                                         step="1"
                                         value={row.quantity}
-                                        onChange={e => update(i, { quantity: e.target.value })}
+                                        onChange={e => update(i, { quantity: e.target.value, quantityEdited: true })}
                                         className={`w-24 text-center ${cell}`}
                                     />
                                     {hasSecondary && (
@@ -120,7 +120,7 @@ export default function StockLocationEditor({ rows, onChange, warehouses, stores
                                                         min="0"
                                                         step="1"
                                                         value={row.loose_quantity ?? ''}
-                                                        onChange={e => update(i, { loose_quantity: e.target.value })}
+                                                        onChange={e => update(i, { loose_quantity: e.target.value, quantityEdited: true })}
                                                         placeholder="0"
                                                         aria-label={unit}
                                                         className="w-14 px-1.5 py-0.5 bg-gray-800 border border-gray-700 text-white rounded text-xs text-center focus:outline-none focus:border-blue-500"

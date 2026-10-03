@@ -12,15 +12,20 @@ export const shelfIdFor = (warehouses, storeId) =>
 
 // Product stock rows as the API expects them: the entered quantity and its unit (plus loose
 // base units on a secondary row), never a converted amount — the server converts.
+// An existing row whose quantity wasn't typed in sends no quantity, so the server leaves its
+// stock alone instead of restoring the amount loaded when the page opened.
 export const stockPayload = (rows, hasSecondary) => rows
     .filter(r => r.warehouse_id)
     .map(r => {
         const secondary = hasSecondary && r.unit_type === 'secondary'
+        const sendQuantity = r.isNew !== false || r.quantityEdited
         return {
             warehouse_id: parseInt(r.warehouse_id),
-            quantity: parseInt(r.quantity) || 0,
-            unit_type: secondary ? 'secondary' : 'base',
-            ...(secondary && parseInt(r.loose_quantity) > 0 && { loose_quantity: parseInt(r.loose_quantity) }),
+            ...(sendQuantity && {
+                quantity: parseInt(r.quantity) || 0,
+                unit_type: secondary ? 'secondary' : 'base',
+                ...(secondary && parseInt(r.loose_quantity) > 0 && { loose_quantity: parseInt(r.loose_quantity) }),
+            }),
             threshold: parseInt(r.threshold) || 10,
         }
     })
