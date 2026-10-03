@@ -17,7 +17,7 @@ export default {
         chooseLocation: 'اختر مكاناً',
         unit: 'الوحدة',
         notesPlaceholder: 'مثال: تعبئة الرف الأمامي',
-        preview: 'معاينة: سيتم نقل {qty}. الخادم يؤكد الكمية النهائية.',
+        preview: 'معاينة: سيتم نقل {qty}.',
         sameLocation: 'اختر وجهة مختلفة عن المصدر.',
         submit: 'تحويل',
         success: 'تم تحويل المخزون',

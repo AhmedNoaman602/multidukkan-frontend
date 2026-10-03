@@ -25,10 +25,7 @@ function Location({ location }) {
     if (!location) return <span>—</span>
     return (
         <span className="whitespace-nowrap [unicode-bidi:isolate]">
-            {location.name}
-            {isShelf(location) && (
-                <span className="ms-1.5 px-1.5 py-0.5 bg-blue-500/15 text-blue-400 text-xs rounded">{t('common.shelf')}</span>
-            )}
+            {isShelf(location) ? t('common.shelf') : location.name}
         </span>
     )
 }

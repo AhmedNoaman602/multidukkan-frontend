@@ -17,7 +17,7 @@ export default {
         chooseLocation: 'Choose a location',
         unit: 'Unit',
         notesPlaceholder: 'e.g. Restock the front shelf',
-        preview: 'Preview: {qty} will move. The server confirms the final amount.',
+        preview: 'Preview: {qty} will move.',
         sameLocation: 'Choose a destination different from the source.',
         submit: 'Transfer',
         success: 'Stock transferred',
