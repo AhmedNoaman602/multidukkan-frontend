@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <title>MultiDukkan</title>
+    <script>
+      // Apply the saved language before first paint so the page never flashes
+      // in the wrong direction. React takes over from here (see src/i18n).
+      // The static lang/dir on <html> above is the no-JS default (Arabic).
+      (function () {
+        try {
+          var lang = localStorage.getItem('lang')
+          if (lang !== 'en' && lang !== 'ar') return
+          document.documentElement.lang = lang
+          document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
+        } catch (e) {}
+      })()
+    </script>
+    <script type="module" crossorigin src="/assets/index-SgdBeU39.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-D6q8GLLo.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
