@@ -20,6 +20,7 @@ export default {
     settings: 'الإعدادات',
 
     logout: 'تسجيل الخروج',
+    earlyAccess: 'وصول مبكر',
     openMenu: 'فتح القائمة',
     switchToEnglish: 'التبديل للإنجليزية',
     switchToArabic: 'التبديل للعربية',

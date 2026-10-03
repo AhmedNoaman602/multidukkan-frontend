@@ -9,6 +9,12 @@ export default {
         store_staff: 'موظف',
     },
 
+    plan: {
+        starter: 'STARTER',
+        pro: 'PRO',
+        max: 'MAX',
+    },
+
     paymentMethod: {
         cash: 'نقدي',
         bank_transfer: 'تحويل بنكي',

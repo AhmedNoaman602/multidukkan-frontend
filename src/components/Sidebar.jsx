@@ -69,6 +69,12 @@ function UserFooter({ user, onLogout }) {
                 </div>
                 <div className="min-w-0">
                     <p className="text-sm font-medium text-white truncate">{user.business_name}</p>
+                    {user.plan && (
+                        <span className="inline-block mt-0.5 px-1.5 py-px rounded text-[10px] font-semibold bg-blue-500/15 text-blue-300 truncate max-w-full">
+                            {t(`enums.plan.${user.plan}`)}
+                            {user.early_access && ` — ${t('navigation.earlyAccess')}`}
+                        </span>
+                    )}
                     <p className="text-xs text-gray-400 truncate">
                         {user.name} · <span className="text-blue-400">{roleLabel}</span>
                     </p>

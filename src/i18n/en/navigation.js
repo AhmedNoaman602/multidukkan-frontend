@@ -20,6 +20,7 @@ export default {
     settings: 'Settings',
 
     logout: 'Log out',
+    earlyAccess: 'Early Access',
     openMenu: 'Open menu',
     switchToEnglish: 'Switch to English',
     switchToArabic: 'Switch to Arabic',

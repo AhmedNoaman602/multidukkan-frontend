@@ -9,6 +9,12 @@ export default {
         store_staff: 'Staff',
     },
 
+    plan: {
+        starter: 'STARTER',
+        pro: 'PRO',
+        max: 'MAX',
+    },
+
     paymentMethod: {
         cash: 'Cash',
         bank_transfer: 'Bank Transfer',
