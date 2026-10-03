@@ -45,10 +45,8 @@ export default {
         unitRequired: 'الوحدة *',
         newUnitButton: '+ جديد',
         newUnitPlaceholder: 'مثال: كرتونة',
-        quantityLabel: 'الكمية الأولية',
         unitAdded: 'تم إضافة الوحدة',
         unitAddFailed: 'فشل في حفظ الوحدة',
-        quantityInvalid: 'الكمية يجب أن تكون 1 على الأقل',
     },
 
     customer: {

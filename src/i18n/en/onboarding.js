@@ -45,10 +45,8 @@ export default {
         unitRequired: 'Unit *',
         newUnitButton: '+ New',
         newUnitPlaceholder: 'e.g. box',
-        quantityLabel: 'Opening quantity',
         unitAdded: 'Unit added',
         unitAddFailed: 'Failed to save the unit',
-        quantityInvalid: 'Quantity must be at least 1',
     },
 
     customer: {

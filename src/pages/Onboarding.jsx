@@ -5,6 +5,8 @@ import api from '../api/axios'
 import { useToast } from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import StockLocationEditor from '../components/StockLocationEditor'
+import { stockPayload } from '../lib/locations'
 
 export default function Onboarding() {
     const navigate = useNavigate()
@@ -39,13 +41,20 @@ export default function Onboarding() {
 
     const [storeForm, setStoreForm] = useState({ name: '', address: '', phone: '' })
     const [warehouseForm, setWarehouseForm] = useState({ name: '', address: '' })
-    const [productForm, setProductForm] = useState({ name: '', sku: '', price: '', cost_price: '', unit: '', quantity: 1 })
+    const [productForm, setProductForm] = useState({ name: '', sku: '', price: '', cost_price: '', unit: '', secondary_unit: '', conversion_factor: '' })
+    const [stocks, setStocks] = useState([])
     const [customerForm, setCustomerForm] = useState({ name: '', phone: '', price_tier: '' })
     const [teamForm, setTeamForm] = useState({ name: '', email: '', password: '', role: 'store_manager' })
 
     const { data: units = [] } = useQuery({
         queryKey: ['units'],
         queryFn: () => api.get('/units').then(res => res.data.data),
+    })
+
+    const { data: warehouses = [] } = useQuery({
+        queryKey: ['warehouses', createdStoreId, createdWarehouseId],
+        queryFn: () => api.get('/warehouses').then(res => res.data.data),
+        enabled: step === 4,
     })
 
     const defaultUnitSet = useRef(false)
@@ -55,6 +64,19 @@ export default function Onboarding() {
             setProductForm(f => ({ ...f, unit: units[0].name }))
         }
     }, [units])
+
+    // The first product's stock can go on the new store's shelf and in the warehouse just created.
+    const stocksInitialized = useRef(false)
+    const initStocks = (warehouseId) => {
+        if (stocksInitialized.current) return
+        stocksInitialized.current = true
+        setStocks([
+            ...(createdShelfId ? [{ warehouse_id: String(createdShelfId), quantity: 1, loose_quantity: '', unit_type: 'base', threshold: 10, isNew: true }] : []),
+            ...(warehouseId ? [{ warehouse_id: String(warehouseId), quantity: '', loose_quantity: '', unit_type: 'base', threshold: 10, isNew: true }] : []),
+        ])
+    }
+
+    const hasSecondaryUnit = !!productForm.secondary_unit && Number(productForm.conversion_factor) > 1
 
     const handleSaveUnit = async () => {
         if (!newUnit.trim()) return
@@ -87,26 +109,24 @@ export default function Onboarding() {
                 }
                 setStep(3)
             } else if (step === 3) {
-                if (!createdWarehouseId) {
+                let warehouseId = createdWarehouseId
+                if (!warehouseId) {
                     const res = await api.post('/warehouses', { ...warehouseForm, store_id: createdStoreId })
-                    setCreatedWarehouseId(res.data.data.id)
+                    warehouseId = res.data.data.id
+                    setCreatedWarehouseId(warehouseId)
                 }
+                initStocks(warehouseId)
                 setStep(4)
             } else if (step === 4) {
                 if (!productCreated) {
-                    const qty = parseInt(productForm.quantity);
-                    if (isNaN(qty) || qty < 1) {
-                        showToast(t('onboarding.product.quantityInvalid'), 'error');
-                        setLoading(false);
-                        return;
-                    }
+                    const stocked = stocks.filter(s => (parseInt(s.quantity) || 0) + (parseInt(s.loose_quantity) || 0) > 0)
                     await api.post('/products', {
                         ...productForm,
                         price: parseFloat(productForm.price),
                         cost_price: productForm.cost_price ? parseFloat(productForm.cost_price) : null,
-                        stocks: createdShelfId && parseInt(productForm.quantity) > 0
-                            ? [{ warehouse_id: parseInt(createdShelfId), quantity: parseInt(productForm.quantity) || 0, unit_type: 'base', threshold: 10 }]
-                            : []
+                        secondary_unit: productForm.secondary_unit || null,
+                        conversion_factor: parseInt(productForm.conversion_factor) || null,
+                        stocks: stockPayload(stocked, hasSecondaryUnit),
                     })
                     setProductCreated(true)
                 }
@@ -136,7 +156,10 @@ export default function Onboarding() {
         }
     }
 
-    const handleSkip = () => setStep(step + 1)
+    const handleSkip = () => {
+        if (step === 3) initStocks(createdWarehouseId)
+        setStep(step + 1)
+    }
     const handleBack = () => setStep(step - 1)
 
     const canSubmit = () => {
@@ -293,9 +316,30 @@ export default function Onboarding() {
                                 )}
                             </div>
                             <div>
-                                <label className={lbl}>{t('onboarding.product.quantityLabel')}</label>
-                                <input type="number" min="1" value={productForm.quantity} onChange={e => setProductForm({ ...productForm, quantity: e.target.value })} placeholder="0" className={inp} />
+                                <label className={lbl}>{t('products.form.secondaryUnit')} <span className="text-gray-600">({t('common.optional')})</span></label>
+                                <input value={productForm.secondary_unit} onChange={e => setProductForm({ ...productForm, secondary_unit: e.target.value })} placeholder={t('products.form.secondaryUnitPlaceholder')} className={inp} />
                             </div>
+                            {productForm.secondary_unit && (
+                                <div>
+                                    <label className={lbl}>{t('products.form.conversionFactor')}</label>
+                                    <input type="number" min="2" value={productForm.conversion_factor} onChange={e => setProductForm({ ...productForm, conversion_factor: e.target.value })} placeholder={t('products.form.conversionFactorPlaceholder')} className={inp} />
+                                    {productForm.conversion_factor && (
+                                        <p className="text-xs text-purple-400 mt-1">
+                                            {t('products.form.conversionPreview', { secondary: productForm.secondary_unit, factor: productForm.conversion_factor, base: productForm.unit })}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                        <div className="mt-4">
+                            <StockLocationEditor
+                                rows={stocks}
+                                onChange={setStocks}
+                                warehouses={warehouses}
+                                unit={productForm.unit}
+                                secondaryUnit={productForm.secondary_unit}
+                                conversionFactor={productForm.conversion_factor}
+                            />
                         </div>
                     </div>
                 )
