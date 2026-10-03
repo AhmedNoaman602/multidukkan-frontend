@@ -61,6 +61,7 @@ export default {
         addCustomer: 'Add customer',
         addProduct: 'Add product',
         viewReports: 'View reports',
+        shortcutsHint: 'Shortcuts: Ctrl + K to search everything · N for a new order',
     },
 
     ai: {

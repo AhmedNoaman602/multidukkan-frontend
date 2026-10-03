@@ -62,6 +62,7 @@ export default {
         addCustomer: 'إضافة عميل',
         addProduct: 'إضافة منتج',
         viewReports: 'عرض التقارير',
+        shortcutsHint: 'اختصارات: Ctrl + K للبحث في كل شيء · N لطلب جديد',
     },
 
     ai: {

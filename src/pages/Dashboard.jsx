@@ -313,6 +313,7 @@ export default function Dashboard() {
                         {t('common.quickSale')}
                     </button>
                 </div>
+                <p className="mt-2 text-xs text-gray-500">{t('dashboard.actions.shortcutsHint')}</p>
             </div>
 {/* AI Insights */}
  {user.role === 'tenant_admin' && (
