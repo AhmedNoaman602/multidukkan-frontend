@@ -73,7 +73,7 @@ export default function ProductDetail() {
                             <div>
                                 <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">{t('products.profitMargin')}</p>
                                 <p className="text-blue-400 text-lg font-semibold">
-                                    {product.profit_margin ? `${product.profit_margin}%` : '—'}
+                                    {product.profit_margin != null ? `${product.profit_margin}%` : '—'}
                                 </p>
                             </div>
                         </>
