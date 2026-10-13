@@ -431,14 +431,13 @@ const displayTotal = editMode
             <div>
                 <p className="text-gray-500 text-xs mb-1">{t('orders.detail.cost')}</p>
                 <p className="text-white font-semibold">
-                    {formatCurrency(order.items.reduce((sum, i) => sum + ((i.cost_price ?? 0) * i.quantity), 0), lang)}
+                    {formatCurrency(order.cost, lang)}
                 </p>
             </div>
             <div>
                 <p className="text-gray-500 text-xs mb-1">{t('orders.detail.totalProfit')}</p>
                 {(() => {
-                    const cost = order.items.reduce((sum, i) => sum + ((i.cost_price ?? 0) * i.quantity), 0)
-                    const profit = order.total - cost
+                    const profit = order.gross_profit
                     const margin = order.total > 0 ? ((profit / order.total) * 100).toFixed(1) : 0
                     return (
                         <p className={`font-semibold ${profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
