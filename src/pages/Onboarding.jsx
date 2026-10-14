@@ -7,6 +7,8 @@ import { useTranslation } from '../i18n/useTranslation'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import StockLocationEditor from '../components/StockLocationEditor'
 import { stockPayload } from '../lib/locations'
+import NumberInput from '../components/NumberInput'
+import { reportInvalidNumberInput } from '../lib/number'
 
 export default function Onboarding() {
     const navigate = useNavigate()
@@ -97,6 +99,7 @@ export default function Onboarding() {
     }
 
     const handleNext = async () => {
+        if (reportInvalidNumberInput()) return
         setLoading(true)
         try {
             if (step === 1) {
@@ -290,11 +293,11 @@ export default function Onboarding() {
                             </div>
                             <div>
                                 <label className={lbl}>{t('onboarding.product.priceRequired')}</label>
-                                <input type="number" value={productForm.price} onChange={e => setProductForm({ ...productForm, price: e.target.value })} placeholder="0.00" className={inp} />
+                                <NumberInput value={productForm.price} onChange={e => setProductForm({ ...productForm, price: e.target.value })} placeholder="0.00" className={inp} />
                             </div>
                             <div>
                                 <label className={lbl}>{t('onboarding.product.costPriceOptional')} <span className="text-gray-600">({t('common.optional')})</span></label>
-                                <input type="number" value={productForm.cost_price} onChange={e => setProductForm({ ...productForm, cost_price: e.target.value })} placeholder={t('onboarding.product.costPricePlaceholder')} className={inp} />
+                                <NumberInput value={productForm.cost_price} onChange={e => setProductForm({ ...productForm, cost_price: e.target.value })} placeholder={t('onboarding.product.costPricePlaceholder')} className={inp} />
                             </div>
                             <div>
                                 <label className={lbl}>{t('onboarding.product.unitRequired')}</label>
@@ -322,7 +325,7 @@ export default function Onboarding() {
                             {productForm.secondary_unit && (
                                 <div>
                                     <label className={lbl}>{t('products.form.conversionFactor')}</label>
-                                    <input type="number" min="2" value={productForm.conversion_factor} onChange={e => setProductForm({ ...productForm, conversion_factor: e.target.value })} placeholder={t('products.form.conversionFactorPlaceholder')} className={inp} />
+                                    <NumberInput decimals={0} min="2" value={productForm.conversion_factor} onChange={e => setProductForm({ ...productForm, conversion_factor: e.target.value })} placeholder={t('products.form.conversionFactorPlaceholder')} className={inp} />
                                     {productForm.conversion_factor && (
                                         <p className="text-xs text-purple-400 mt-1">
                                             {t('products.form.conversionPreview', { secondary: productForm.secondary_unit, factor: productForm.conversion_factor, base: productForm.unit })}

@@ -6,6 +6,8 @@ import { useTranslation } from '../i18n/useTranslation'
 import { formatCurrency } from '../lib/format'
 import StockAvailability from './StockAvailability'
 import { useStoreAvailability, baseNeedsByProduct } from '../hooks/useStoreAvailability'
+import NumberInput from './NumberInput'
+import { reportInvalidNumberInput } from '../lib/number'
 
 export default function AddItemModal({ open, onClose,orderId, storeId, onSuccess }) {
     const [selectedProduct, setSelectedProduct] = useState(null)
@@ -49,6 +51,7 @@ export default function AddItemModal({ open, onClose,orderId, storeId, onSuccess
     }
 
     const handleSave = async() => {
+        if (reportInvalidNumberInput()) return
         setSaving(true)
         try{
             await api.post(`/orders/${orderId}/items` , {
@@ -110,8 +113,7 @@ export default function AddItemModal({ open, onClose,orderId, storeId, onSuccess
                         {/* Quantity */}
                         <div>
                             <label className="block text-xs text-gray-400 mb-1">{t('common.quantity')}</label>
-                            <input
-                                type="number"
+                            <NumberInput decimals={0}
                                 min="1"
                                 value={form.quantity}
                                 onChange={e => setForm({ ...form, quantity: e.target.value })}
@@ -122,10 +124,8 @@ export default function AddItemModal({ open, onClose,orderId, storeId, onSuccess
                         {/* Unit Price */}
                         <div>
                             <label className="block text-xs text-gray-400 mb-1">{t('orders.unitPrice')}</label>
-                            <input
-                                type="number"
+                            <NumberInput
                                 min="0"
-                                step="0.01"
                                 value={form.unit_price}
                                 onChange={e => setForm({ ...form, unit_price: e.target.value })}
                                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"

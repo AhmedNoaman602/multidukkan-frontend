@@ -6,7 +6,9 @@ import ProductSearchInput from './ProductSearchInput'
 import StockAvailability from './StockAvailability'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatCurrency } from '../lib/format'
+import { parseNumber, reportInvalidNumberInput } from '../lib/number'
 import { useStoreAvailability, baseNeedsByProduct } from '../hooks/useStoreAvailability'
+import NumberInput from './NumberInput'
 
 export default function QuickSaleModal({
     open,
@@ -81,6 +83,7 @@ export default function QuickSaleModal({
     const hasManualTotal = manualTotal !== null && manualTotal !== ''
 
     const handleSubmit = async () => {
+           if (reportInvalidNumberInput()) return
            const user = JSON.parse(localStorage.getItem('user') || '{}')
 
     if (!user.walk_in_customer_id) {
@@ -95,13 +98,18 @@ export default function QuickSaleModal({
             showToast(t('quickSale.storeRequired'), 'error')
             return
         }
+        const discountAmount = parseNumber(discount)
+        if (!hasManualTotal && Number.isNaN(discountAmount)) {
+            showToast(t('common.numberInput.invalid'), 'error')
+            return
+        }
         setSaving(true)
         try {
             const res = await api.post('/orders', {
                 customer_id: user.walk_in_customer_id,
                 store_id: parseInt(saleStoreId),
                 order_date: new Date().toLocaleDateString('en-CA'),
-                discount: hasManualTotal ? 0 : parseFloat(discount) || 0,
+                discount: hasManualTotal ? 0 : discountAmount ?? 0,
                 discount_type: discountType,
                 ...(hasManualTotal && { manual_total: parseFloat(manualTotal) }),
                 pay_immediately: true,
@@ -196,8 +204,7 @@ try {
                                             <StockAvailability availability={availability[item.product_id]} product={productOf(item)} needed={needs[item.product_id]} />
                                         </td>
                                         <td className="px-2 py-1.5">
-                                            <input
-                                                type="number"
+                                            <NumberInput decimals={0}
                                                 min="1"
                                                 data-qs-qty={index}
                                                 value={item.quantity}
@@ -207,10 +214,8 @@ try {
                                             />
                                         </td>
                                         <td className="px-2 py-1.5">
-                                            <input
-                                                type="number"
+                                            <NumberInput
                                                 min="0"
-                                                step="0.01"
                                                 value={item.unit_price}
                                                 onChange={e => updateItem(index, 'unit_price', e.target.value)}
                                                 className="w-16 px-1 py-1 bg-gray-800 border border-gray-700 text-white rounded text-xs text-center focus:outline-none focus:border-blue-500"
@@ -246,8 +251,7 @@ try {
                                         >✕</button>
                                     </div>
                                     <div className="flex items-center gap-1.5">
-                                        <input
-                                            type="number"
+                                        <NumberInput decimals={0}
                                             min="1"
                                             data-qs-qty={index}
                                             value={item.quantity}
@@ -255,10 +259,8 @@ try {
                                             onKeyDown={handleQtyKeyDown}
                                             className="w-12 shrink-0 px-1 py-1.5 bg-gray-800 border border-gray-700 text-white rounded text-xs text-center focus:outline-none focus:border-blue-500"
                                         />
-                                        <input
-                                            type="number"
+                                        <NumberInput
                                             min="0"
-                                            step="0.01"
                                             value={item.unit_price}
                                             onChange={e => updateItem(index, 'unit_price', e.target.value)}
                                             className="w-16 shrink-0 px-1 py-1.5 bg-gray-800 border border-gray-700 text-white rounded text-xs text-center focus:outline-none focus:border-blue-500"
@@ -296,8 +298,7 @@ try {
                                     </button>
                                 ))}
                             </div>
-                            <input
-                                type="number"
+                            <NumberInput
                                 min="0"
                                 value={hasManualTotal ? 0 : discount}
                                 disabled={hasManualTotal}
@@ -310,10 +311,8 @@ try {
                <div className="flex justify-between items-center">
     <span className="text-gray-400 text-sm">{t('common.total')}</span>
     <div className="text-end">
-        <input
-            type="number"
+        <NumberInput
             min="0"
-            step="0.01"
             value={manualTotal ?? ''}
             onChange={e => setManualTotal(e.target.value)}
             placeholder={grandTotal.toFixed(2)}

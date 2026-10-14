@@ -11,6 +11,7 @@ import StatBoxes from "../components/StatBoxes";
 import { useToast } from "../hooks/useToast";
 import { useTranslation } from "../i18n/useTranslation";
 import { formatCurrency, formatDate, formatNumber } from "../lib/format";
+import NumberInput from '../components/NumberInput';
 
 const PAY_METHODS = ["cash", "bank_transfer", "check"];
 
@@ -454,10 +455,8 @@ export default function PurchaseOrders() {
           <form onSubmit={handlePay} className="space-y-4">
             <div>
               <label className="block text-sm text-gray-400 mb-1">{t("common.amount")}</label>
-              <input
-                type="number"
+              <NumberInput
                 min="0.01"
-                step="0.01"
                 value={payForm.amount}
                 onChange={(e) =>
                   setPayForm({ ...payForm, amount: e.target.value })

@@ -8,6 +8,7 @@ import {useToast} from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
 import StockLocationEditor from '../components/StockLocationEditor'
 import { isShelf, shelfIdFor, stockPayload } from '../lib/locations'
+import NumberInput from '../components/NumberInput'
 
 export default function CreateProduct() {
     const [supplierIds, setSupplierIds] = useState([])
@@ -187,8 +188,7 @@ export default function CreateProduct() {
 
                         <div>
                             <label className="block text-sm text-gray-400 mb-1">{t('products.defaultPrice')}</label>
-                            <input
-                                type="number"
+                            <NumberInput
                                 value={form.price}
                                 onChange={(e) => setForm({ ...form, price: e.target.value })}
                                 required
@@ -199,8 +199,7 @@ export default function CreateProduct() {
     <label className="block text-sm text-gray-400 mb-1">
         {t('products.costPrice')} <span className="text-gray-600">({t('common.optional')})</span>
     </label>
-    <input
-        type="number"
+    <NumberInput
         value={form.cost_price}
         onChange={(e) => setForm({ ...form, cost_price: e.target.value })}
         placeholder={t('products.form.costPricePlaceholder')}
@@ -271,8 +270,7 @@ export default function CreateProduct() {
                         {['a', 'b', 'c', 'd', 'e'].map(tier => (
                             <div key={tier}>
                                 <label className="block text-sm text-gray-400 mb-1">{t(`enums.priceTier.${tier}`)}</label>
-                                <input
-                                    type="number"
+                                <NumberInput
                                     value={form[`price_${tier}`]}
                                     onChange={(e) => setForm({ ...form, [`price_${tier}`]: e.target.value })}
                                     placeholder={t('common.optional')}
@@ -298,8 +296,7 @@ export default function CreateProduct() {
                         </div>
                         <div>
                             <label className="block text-sm text-gray-400 mb-1">{t('products.form.conversionFactor')}</label>
-                            <input
-                                type="number"
+                            <NumberInput decimals={0}
                                 value={form.conversion_factor}
                                 onChange={(e) => setForm({ ...form, conversion_factor: e.target.value })}
                                 placeholder={t('products.form.conversionFactorPlaceholder')}

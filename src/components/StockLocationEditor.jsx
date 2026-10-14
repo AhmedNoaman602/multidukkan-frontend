@@ -1,6 +1,7 @@
 import { useTranslation } from '../i18n/useTranslation'
 import { formatUnitBreakdown } from '../lib/format'
 import { isShelf, sortShelfFirst } from '../lib/locations'
+import NumberInput from './NumberInput'
 
 const ShelfBadge = () => {
     const { t } = useTranslation()
@@ -95,10 +96,10 @@ export default function StockLocationEditor({ rows, onChange, warehouses, stores
                                     )}
                                 </td>
                                 <td className="px-3 py-2">
-                                    <input
-                                        type="number"
+                                    <NumberInput decimals={0}
+
                                         min="0"
-                                        step="1"
+
                                         value={row.quantity}
                                         onChange={e => update(i, { quantity: e.target.value, quantityEdited: true })}
                                         className={`w-24 text-center ${cell}`}
@@ -120,10 +121,10 @@ export default function StockLocationEditor({ rows, onChange, warehouses, stores
                                             {row.unit_type === 'secondary' && (
                                                 <>
                                                     <span className="text-xs text-gray-500 ms-1">+</span>
-                                                    <input
-                                                        type="number"
+                                                    <NumberInput decimals={0}
+
                                                         min="0"
-                                                        step="1"
+
                                                         value={row.loose_quantity ?? ''}
                                                         onChange={e => update(i, { loose_quantity: e.target.value, quantityEdited: true })}
                                                         placeholder="0"
@@ -140,8 +141,8 @@ export default function StockLocationEditor({ rows, onChange, warehouses, stores
                                     )}
                                 </td>
                                 <td className="px-3 py-2">
-                                    <input
-                                        type="number"
+                                    <NumberInput decimals={0}
+
                                         min="0"
                                         value={row.threshold}
                                         onChange={e => update(i, { threshold: e.target.value })}

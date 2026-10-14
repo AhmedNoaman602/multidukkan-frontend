@@ -10,6 +10,7 @@ import RefundModal from '../components/RefundModal'
 import AddCreditModal from '../components/AddCreditModal'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatCurrency, formatDate } from '../lib/format'
+import NumberInput from '../components/NumberInput'
 
 const typeStyles = {
         ORDER_CHARGE:    'bg-red-500/20 text-red-400',
@@ -340,9 +341,9 @@ export default function CustomerBalance() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm text-gray-400 mb-1">{t('common.amount')}</label>
-                                <input type="number" value={autoForm.amount}
+                                <NumberInput value={autoForm.amount}
                                     onChange={e => setAutoForm({ ...autoForm, amount: e.target.value })}
-                                    required min="0.01" step="0.01"
+                                    required min="0.01"
                                     className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-purple-500 text-sm"
                                     placeholder="e.g. 500" />
                             </div>
@@ -392,9 +393,9 @@ export default function CustomerBalance() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm text-gray-400 mb-1">{t('common.amount')}</label>
-                                <input type="number" value={editForm.amount}
+                                <NumberInput value={editForm.amount}
                                     onChange={e => setEditForm({ ...editForm, amount: e.target.value })}
-                                    required min="0.01" step="0.01"
+                                    required min="0.01"
                                     className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-purple-500 text-sm"
                                     placeholder="e.g. 500" />
                             </div>

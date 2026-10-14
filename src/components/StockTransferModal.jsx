@@ -7,6 +7,7 @@ import { useToast } from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatUnitBreakdown } from '../lib/format'
 import { isShelf, sortShelfFirst, shelfIdFor } from '../lib/locations'
+import NumberInput from './NumberInput'
 
 // Moving stock *out of* storage defaults to the store's shelf; anything else waits for a choice.
 const defaultDestination = (warehouses, fromId) => {
@@ -164,10 +165,8 @@ export default function StockTransferModal({ open, onClose, onSuccess, initialFr
 
                 <div>
                     <label className="block text-sm text-gray-400 mb-1">{t('common.quantity')}</label>
-                    <input
-                        type="number"
+                    <NumberInput decimals={0}
                         min="1"
-                        step="1"
                         value={quantity}
                         onChange={e => setQuantity(e.target.value)}
                         className={selectClass}

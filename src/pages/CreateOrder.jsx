@@ -10,8 +10,10 @@ import CustomerSearchInput from '../components/CustomerSearchInput'
 import { useToast } from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatNumber } from '../lib/format'
+import { parseNumber } from '../lib/number'
 import StockAvailability from '../components/StockAvailability'
 import { useStoreAvailability, baseNeedsByProduct } from '../hooks/useStoreAvailability'
+import NumberInput from '../components/NumberInput'
 const STORAGE_KEY = 'createOrderDraft'
 
 export default function CreateOrder() {
@@ -190,12 +192,14 @@ export default function CreateOrder() {
         if (items.length === 0) { showToast(t('orders.create.itemRequired'), 'error'); return }
         if (!storeId) { showToast(t('orders.create.storeRequired'), 'error'); return }
         if (!customerId) { showToast(t('orders.create.customerRequired'), 'error'); return }
+        const discount = parseNumber(discountValue)
+        if (Number.isNaN(discount)) { showToast(t('common.numberInput.invalid'), 'error'); return }
         setSaving(true)
         try {
             await api.post('/orders', {
                 store_id: parseInt(storeId),
                 customer_id: parseInt(customerId),
-                discount: parseFloat(discountValue) || 0,
+                discount: discount ?? 0,
                 discount_type: discountType,
                 order_date:orderDate,
                 items: items.map(item => ({
@@ -312,10 +316,8 @@ export default function CreateOrder() {
                                                     <StockAvailability availability={availability[product?.id]} product={product} needed={needs[product?.id]} />
                                                 </td>
                                                 <td className="px-2.5 py-1.5">
-                                                    <input
-                                                        type="number"
+                                                    <NumberInput decimals={0}
                                                         min="1"
-                                                        step="1"
                                                         data-qty={index}
                                                         value={item.quantity}
                                                         onChange={e => updateItem(index, 'quantity', e.target.value)}
@@ -324,10 +326,8 @@ export default function CreateOrder() {
                                                     />
                                                 </td>
                                                 <td className="px-2.5 py-1.5">
-    <input
-        type="number"
+    <NumberInput
         min="0"
-          step="0.01"
            value={item.unit_price}
            onChange={e => updateItem(index, 'unit_price', e.target.value)}
           className="w-20 px-1.5 py-1 bg-gray-800 border border-gray-700 text-white rounded text-sm text-center focus:outline-none focus:border-blue-500"
@@ -400,10 +400,8 @@ export default function CreateOrder() {
                                             </div>
 
                                             <div className="flex items-center gap-2">
-                                                <input
-                                                    type="number"
+                                                <NumberInput decimals={0}
                                                     min="1"
-                                                    step="1"
                                                     data-qty={index}
                                                     value={item.quantity}
                                                     onChange={e => updateItem(index, 'quantity', e.target.value)}
@@ -495,8 +493,7 @@ export default function CreateOrder() {
                                     </div>
                                 </div>
                                 <div className="relative">
-                                    <input
-                                        type="number"
+                                    <NumberInput
                                         min="0"
                                         max={discountType === 'percent' ? 100 : undefined}
                                         value={discountValue}

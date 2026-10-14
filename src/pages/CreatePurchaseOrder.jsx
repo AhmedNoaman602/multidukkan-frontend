@@ -10,6 +10,8 @@ import SupplierSearchInput from '../components/SupplierSearchInput'
 import { useToast } from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatNumber } from '../lib/format'
+import { parseNumber } from '../lib/number'
+import NumberInput from '../components/NumberInput'
 const STORAGE_KEY = 'createPurchaseOrderDraft'
 
 export default function CreatePurchaseOrder() {
@@ -232,7 +234,7 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
                     quantity: parseInt(item.quantity),
                     warehouse_id: item.warehouse_id ? parseInt(item.warehouse_id) : null,
                     unit_type: item.unit_type ?? 'base',
-                    unit_price:parseFloat(item.unit_price) || 0
+                    unit_price: parseNumber(item.unit_price)
                 }))
             })
             sessionStorage.removeItem(STORAGE_KEY)
@@ -356,10 +358,8 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
                                                     {product?.sku && <p className="text-gray-500 text-[10px]">{product.sku}</p>}
                                                 </td>
                                                 <td className="px-2.5 py-1.5">
-                                                    <input
-                                                        type="number"
+                                                    <NumberInput decimals={0}
                                                         min="1"
-                                                        step="1"
                                                         data-qty={index}
                                                         value={item.quantity}
                                                         onChange={e => updateItem(index, 'quantity', e.target.value)}
@@ -368,10 +368,8 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
                                                     />
                                                 </td>
                                                 <td className="px-2.5 py-1.5">
-    <input
-        type="number"
+    <NumberInput
         min="0"
-        step="0.01"
         value={item.unit_price}
         onChange={e => updateItem(index, 'unit_price', e.target.value)}
         className="w-20 px-1.5 py-1 bg-gray-800 border border-gray-700 text-white rounded text-sm text-center focus:outline-none focus:border-blue-500"
@@ -456,20 +454,16 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
                                             </div>
 
                                             <div className="flex items-center gap-2">
-                                                <input
-                                                    type="number"
+                                                <NumberInput decimals={0}
                                                     min="1"
-                                                    step="1"
                                                     data-qty={index}
                                                     value={item.quantity}
                                                     onChange={e => updateItem(index, 'quantity', e.target.value)}
                                                     onKeyDown={e => handleQtyKeyDown(e, index)}
                                                     className="w-14 shrink-0 px-1.5 py-1.5 bg-gray-800 border border-gray-700 text-white rounded text-sm text-center focus:outline-none focus:border-blue-500"
                                                 />
-                                                <input
-                                                    type="number"
+                                                <NumberInput
                                                     min="0"
-                                                    step="0.01"
                                                     value={item.unit_price}
                                                     onChange={e => updateItem(index, 'unit_price', e.target.value)}
                                                     className="w-16 shrink-0 px-1.5 py-1.5 bg-gray-800 border border-gray-700 text-white rounded text-sm text-center focus:outline-none focus:border-blue-500"

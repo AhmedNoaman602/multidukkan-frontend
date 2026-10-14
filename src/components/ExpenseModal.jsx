@@ -4,6 +4,7 @@ import Modal from './Modal'
 import { useToast } from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
 import { EXPENSE_CATEGORIES } from '../lib/enums'
+import NumberInput from './NumberInput'
 
 const todayStr = () => new Date().toLocaleDateString('en-CA')
 
@@ -83,10 +84,8 @@ export default function ExpenseModal({ expense, stores, isAdmin, onClose, onSucc
 
                 <div>
                     <label className="text-gray-400 text-sm">{t('expenses.amountWithCurrency')}</label>
-                    <input
-                        type="number"
+                    <NumberInput
                         min="0"
-                        step="0.01"
                         value={form.amount}
                         onChange={e => setForm({ ...form, amount: e.target.value })}
                         className="w-full mt-1 bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 text-sm"

@@ -12,6 +12,7 @@ import { formatUnitBreakdown } from '../lib/format'
 import { isShelf, sortShelfFirst } from '../lib/locations'
 import { canTransferStock } from '../lib/permissions'
 import StockTransferModal from '../components/StockTransferModal'
+import NumberInput from '../components/NumberInput'
 
 export default function Inventory() {
     const [selectedStore, setSelectedStore] = useState('')
@@ -361,8 +362,7 @@ export default function Inventory() {
                                 <label className="block text-sm text-gray-400 mb-1">
                                     {adjustDirection === 'in' ? t('inventory.adjust.quantityToAdd') : t('inventory.adjust.quantityToRemove')}
                                 </label>
-                                <input
-                                    type="number"
+                                <NumberInput decimals={0}
                                     min="1"
                                     value={adjustQty}
                                     onChange={(e) => setAdjustQty(e.target.value)}

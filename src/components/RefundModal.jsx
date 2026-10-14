@@ -5,6 +5,7 @@ import api from '../api/axios'
 import { useToast } from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatCurrency } from '../lib/format'
+import NumberInput from './NumberInput'
 
 const REFUND_METHODS = ['cash', 'bank_transfer', 'check']
 
@@ -142,11 +143,11 @@ export default function RefundModal({
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm text-gray-400 mb-1">{t('common.amount')}</label>
-                                <input
-                                    type="number"
+                                <NumberInput
+
                                     value={refundForm.amount}
                                     onChange={e => setRefundForm({ ...refundForm, amount: e.target.value })}
-                                    required min="0.01" step="0.01"
+                                    required min="0.01"
                                     className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-orange-500 text-sm"
                                     placeholder="e.g. 150"
                                 />

@@ -10,6 +10,8 @@ import ReverseSupplierPaymentModal from '../components/ReverseSupplierPaymentMod
 import { useToast } from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatCurrency, formatDate } from '../lib/format'
+import NumberInput from '../components/NumberInput'
+import { reportInvalidNumberInput } from '../lib/number'
 
 const PAYMENT_METHODS = ['cash', 'bank_transfer', 'check']
 
@@ -81,6 +83,7 @@ export default function SupplierBalance() {
     }
 
 const handleBulkAttach = async () => {
+    if (reportInvalidNumberInput()) return
     if (cart.length === 0) return
     setSaving(true)
     try {
@@ -104,6 +107,7 @@ const handleBulkAttach = async () => {
 }
 
 const handleEdit = async () => {
+    if (reportInvalidNumberInput()) return
     if (!selectedProduct) return
     setSaving(true)
     try {
@@ -474,13 +478,13 @@ const updateCartItem = (productId, field, value) => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm text-gray-400 mb-1">{t('common.amount')}</label>
-                                <input
-                                    type="number"
+                                <NumberInput
+
                                     value={payForm.amount}
                                     onChange={(e) => setPayForm({ ...payForm, amount: e.target.value })}
                                     required
                                     min="0.01"
-                                    step="0.01"
+
                                     className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-purple-500 text-sm"
                                     placeholder="e.g. 500"
                                 />
@@ -549,11 +553,11 @@ const updateCartItem = (productId, field, value) => {
         <span className="text-white text-sm font-medium flex-1">{item.name}</span>
         <div className="flex flex-col gap-1">
     <span className="text-gray-500 text-[10px]">{t('suppliers.balance.supplierCost')}</span>
-    <input
-        type="number"
+    <NumberInput
+
         value={item.cost_price}
         onChange={e => updateCartItem(item.id, 'cost_price', e.target.value)}
-        step="0.01"
+
         min="0"
         className="w-28 px-2 py-1 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-purple-500 text-sm"
         placeholder="0.00"
@@ -612,11 +616,11 @@ const updateCartItem = (productId, field, value) => {
                 {t('suppliers.balance.supplierCost')} ({t('common.currency')})
                 <span className="text-gray-600 text-xs ms-1 block mt-0.5">{t('suppliers.balance.costPriceHint')}</span>
             </label>
-            <input
-                type="number"
+            <NumberInput
+
                 value={pivotForm.cost_price}
                 onChange={e => setPivotForm(f => ({ ...f, cost_price: e.target.value }))}
-                step="0.01"
+
                 min="0"
                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-purple-500 text-sm"
             />

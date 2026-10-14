@@ -9,7 +9,9 @@ import AddItemModal from '../components/AddItemModal'
 import DeleteModal from '../components/DeleteModal'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatCurrency, formatDate } from '../lib/format'
+import { parseNumber, reportInvalidNumberInput } from '../lib/number'
 import { canViewCostData } from '../lib/permissions'
+import NumberInput from '../components/NumberInput'
 
 export default function OrderDetail() {
     const { id } = useParams()
@@ -70,13 +72,19 @@ export default function OrderDetail() {
     }
 
     const handleSave = async () => {
+        if (reportInvalidNumberInput()) return
         setSaving(true)
         try {
             const payload = {
                 order_date: editForm.order_date,
                 notes:      editForm.notes,
             }
-            const discountValue = parseFloat(editForm.discount) || 0
+            const parsedDiscount = parseNumber(editForm.discount)
+            if (!hasManualTotal && Number.isNaN(parsedDiscount)) {
+                showToast(t('common.numberInput.invalid'), 'error')
+                return
+            }
+            const discountValue = parsedDiscount ?? 0
 
             if (hasManualTotal) {
                 if (parseFloat(editForm.manual_total) !== order.manual_total) {
@@ -103,6 +111,7 @@ export default function OrderDetail() {
     }
 
     const handleSaveItem = async (item) => {
+        if (reportInvalidNumberInput()) return
         setSaving(true)
         try{
             await api.patch(`/orders/${id}/items/${item.id}` , {
@@ -264,7 +273,7 @@ const displayTotal = editMode
         
       <td className="py-3 text-gray-400 text-sm">
     {editingItem === item.id
-        ? <input type="number" min="1" value={itemForm.quantity}
+        ? <NumberInput decimals={0} min="1" value={itemForm.quantity}
             onChange={e => setItemForm({...itemForm, quantity: e.target.value})}
             className="w-20 px-2 py-1 bg-gray-800 border border-gray-600 text-white rounded-lg text-sm"/>
         : <>
@@ -279,7 +288,7 @@ const displayTotal = editMode
         <td className="py-3 text-gray-400 text-sm">
             {editingItem === item.id
                 ? <span className="inline-flex items-center">
-                    <input type="number" min="0" step="0.01" value={itemForm.unit_price}
+                    <NumberInput min="0" value={itemForm.unit_price}
                         onChange={e => setItemForm({...itemForm, unit_price: e.target.value})}
                         className="w-24 px-2 py-1 bg-gray-800 border border-gray-600 text-white rounded-lg text-sm"/>
                     {item.unit_label && (
@@ -364,8 +373,7 @@ const displayTotal = editMode
                 </button>
             ))}
         </div>
-        <input
-            type="number"
+        <NumberInput
             min="0"
             max={discountType === 'percent' ? 100 : undefined}
             value={hasManualTotal ? 0 : editForm.discount}
@@ -386,10 +394,8 @@ const displayTotal = editMode
 {editMode ? (
     <div className="flex items-center justify-between gap-2">
         <span className="text-sm text-gray-400">{t('orders.manualTotal')}</span>
-        <input
-            type="number"
+        <NumberInput
             min="0"
-            step="0.01"
             value={editForm.manual_total ?? ''}
             onChange={e => setEditForm({ ...editForm, manual_total: e.target.value })}
             placeholder={Math.max(0, order.subtotal - discountPreview).toFixed(2)}

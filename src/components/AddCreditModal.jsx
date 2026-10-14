@@ -3,6 +3,8 @@ import api from '../api/axios'
 import Modal from './Modal'
 import { useToast } from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
+import NumberInput from './NumberInput'
+import { reportInvalidNumberInput } from '../lib/number'
 
 export default function AddCreditModal({ customer, onClose, onSuccess }) {
     const [amount, setAmount]           = useState('')
@@ -11,6 +13,7 @@ export default function AddCreditModal({ customer, onClose, onSuccess }) {
     const {showToast} = useToast();
     const { t } = useTranslation()
     const handleSubmit = async () => {
+        if (reportInvalidNumberInput()) return
         if (!amount || parseFloat(amount) <= 0) {
             showToast(t('customers.balance.invalidAmount'), 'error')
             return
@@ -35,10 +38,10 @@ export default function AddCreditModal({ customer, onClose, onSuccess }) {
             <div className="space-y-3">
                 <div>
                     <label className="text-gray-400 text-sm">{t('common.amount')} ({t('common.currency')})</label>
-                    <input
-                        type="number"
+                    <NumberInput
+
                         min="0"
-                        step="0.01"
+
                         value={amount}
                         onChange={e => setAmount(e.target.value)}
                         className="w-full mt-1 bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 text-sm"

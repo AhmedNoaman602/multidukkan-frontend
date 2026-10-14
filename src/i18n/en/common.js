@@ -78,6 +78,19 @@ export default {
         'July', 'August', 'September', 'October', 'November', 'December',
     ],
 
+    // Number inputs
+    numberInput: {
+        comma: 'Use a dot (.) for decimals, and no thousands separators',
+        thousands: 'Thousands separators aren’t needed — type the number without them',
+        spaces: 'Remove the spaces from the number',
+        invalid: 'Enter digits only',
+        incomplete: 'Finish typing the number',
+        integer: 'Enter a whole number',
+        decimals: 'Up to {count} decimal places',
+        min: 'Must be at least {min}',
+        max: 'Must be at most {max}',
+    },
+
     // Formatting
     currency: 'EGP',
 }
