@@ -143,6 +143,7 @@ const addToCart = (product) => {
     setCart(c => [...c, {
         id: product.id,
         name: product.name,
+        unit: product.unit,
         cost_price: product.cost_price ?? '',
         is_preferred: false,
         notes: ''
@@ -261,11 +262,13 @@ const updateCartItem = (productId, field, value) => {
                         <td className="px-4 py-3 text-white text-sm font-medium">{product.name}</td>
                         <td className="px-4 py-3 text-white text-sm">
                           {(product.cost_price ?? product.last_purchase_price)
-                            ? formatCurrency(product.cost_price ?? product.last_purchase_price, lang)
+                            ? <>{formatCurrency(product.cost_price ?? product.last_purchase_price, lang)} <span className="text-gray-500 text-xs">{t('purchaseOrders.create.pricePerUnit', { unit: product.unit })}</span></>
                             : '—'}
                         </td>
                         <td className="px-4 py-3 text-gray-400 text-sm">
-                             {product.last_purchase_price ? formatCurrency(product.last_purchase_price, lang) : '—'}
+                             {product.last_purchase_price
+                                ? <>{formatCurrency(product.last_purchase_price, lang)} <span className="text-gray-500 text-xs">{t('purchaseOrders.create.pricePerUnit', { unit: product.unit })}</span></>
+                                : '—'}
                         </td>
                         <td className="px-4 py-3 text-gray-400 text-sm">
                             {product.last_purchased_at
@@ -548,7 +551,7 @@ const updateCartItem = (productId, field, value) => {
     <div key={item.id} className="bg-gray-800 rounded-lg px-3 py-2 flex items-center gap-3">
         <span className="text-white text-sm font-medium flex-1">{item.name}</span>
         <div className="flex flex-col gap-1">
-    <span className="text-gray-500 text-[10px]">{t('suppliers.balance.supplierCost')}</span>
+    <span className="text-gray-500 text-[10px]">{t('suppliers.balance.supplierCostPerUnit', { unit: item.unit })}</span>
     <input
         type="number"
         value={item.cost_price}
@@ -609,8 +612,8 @@ const updateCartItem = (productId, field, value) => {
     <div className="space-y-4">
         <div>
             <label className="block text-sm text-gray-400 mb-1">
-                {t('suppliers.balance.supplierCost')} ({t('common.currency')})
-                <span className="text-gray-600 text-xs ms-1 block mt-0.5">{t('suppliers.balance.costPriceHint')}</span>
+                {t('suppliers.balance.supplierCostPerUnit', { unit: selectedProduct?.unit })} ({t('common.currency')})
+                <span className="text-gray-600 text-xs ms-1 block mt-0.5">{t('suppliers.balance.costPriceHint', { unit: selectedProduct?.unit })}</span>
             </label>
             <input
                 type="number"

@@ -10,7 +10,50 @@ import SupplierSearchInput from '../components/SupplierSearchInput'
 import { useToast } from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatNumber } from '../lib/format'
+import { changeLinePrice, changeLineUnit, confirmLinePrice, convertLinePrice, convertedPrice, needsPriceReview, newLine } from '../lib/purchaseLine'
 const STORAGE_KEY = 'createPurchaseOrderDraft'
+
+const unitNameOf = (item, product) => (item.unit_type === 'secondary' ? product?.secondary_unit : product?.unit) ?? ''
+
+const priceText = (value) => formatNumber(value, { maximumFractionDigits: 2 })
+
+function PriceReviewNotice({ item, product, onKeep, onConvert, t }) {
+    const unit = unitNameOf(item, product)
+    const converted = convertedPrice(item, product?.conversion_factor)
+    return (
+        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-yellow-400">
+            <span>⚠ {t('purchaseOrders.create.priceReview', { unit })}</span>
+            <button type="button" onClick={onKeep} className="underline hover:text-yellow-300">
+                {t('purchaseOrders.create.keepPrice', { price: priceText(item.unit_price), unit })}
+            </button>
+            {converted !== null && (
+                <button type="button" onClick={onConvert} className="underline hover:text-yellow-300">
+                    {t('purchaseOrders.create.convertPrice', { price: priceText(converted), unit })}
+                </button>
+            )}
+        </div>
+    )
+}
+
+function UnitToggle({ item, product, onChange, className }) {
+    if (!product?.secondary_unit) return <span className="text-gray-500 text-xs shrink-0">{product?.unit ?? '—'}</span>
+    return (
+        <div className="flex gap-0.5 shrink-0">
+            {['base', 'secondary'].map(u => (
+                <button
+                    key={u}
+                    type="button"
+                    onClick={() => onChange(u)}
+                    className={`px-1.5 ${className} rounded text-[11px] font-medium transition-colors ${
+                        item.unit_type === u ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400'
+                    }`}
+                >
+                    {u === 'base' ? product.unit : product.secondary_unit}
+                </button>
+            ))}
+        </div>
+    )
+}
 
 export default function CreatePurchaseOrder() {
     const [saving, setSaving] = useState(false)
@@ -165,13 +208,7 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
 
     const handleProductSelect = useCallback((product) => {
         setItems(prev => {
-            const next = [...prev, {
-                product_id: String(product.id),
-                quantity: 1,
-                warehouse_id: '',
-                unit_type: 'base',
-                unit_price:getCostPrice(product),
-            }]
+            const next = [...prev, newLine(product, getCostPrice(product))]
             setFlashIndex(next.length - 1)
             // Focus the qty input of the new row after render
             setTimeout(() => {
@@ -200,6 +237,12 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
         setItems(updated)
     }
 
+    const setLine = (index, change) => setItems(prev => prev.map((line, i) => (i === index ? change(line) : line)))
+    const changeUnit = (index, unitType, product) => setLine(index, line => changeLineUnit(line, unitType, product?.conversion_factor))
+    const changePrice = (index, value) => setLine(index, line => changeLinePrice(line, value))
+    const keepPrice = (index) => setLine(index, confirmLinePrice)
+    const convertPrice = (index, product) => setLine(index, line => convertLinePrice(line, product?.conversion_factor))
+
     // Enter on qty → focus warehouse
     const handleQtyKeyDown = (e, index) => {
         if (e.key === 'Enter') {
@@ -221,6 +264,7 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
         e.preventDefault()
         if (items.length === 0) { showToast(t('purchaseOrders.create.itemRequired'), 'error'); return }
         if (!storeId) { showToast(t('purchaseOrders.create.storeRequired'), 'error'); return }
+        if (items.some(needsPriceReview)) { showToast(t('purchaseOrders.create.reviewPricesFirst'), 'error'); return }
         setSaving(true)
         try {
             await api.post('/purchase-orders', {
@@ -337,7 +381,7 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
                             <table className="w-full hidden md:table">
                                 <thead className="bg-gray-800">
                                     <tr>
-                                        {['common.product', 'common.quantity', 'orders.unitPrice', 'common.warehouse', 'orders.create.unit', 'common.total', null].map(key => (
+                                        {['common.product', 'common.quantity', 'orders.create.unit', 'orders.unitPrice', 'common.warehouse', 'common.total', null].map(key => (
                                             <th key={key ?? 'actions'} className="px-2.5 py-1.5 text-start text-[11px] font-medium text-gray-400 uppercase tracking-wider">{key ? t(key) : ''}</th>
                                         ))}
                                     </tr>
@@ -368,14 +412,23 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
                                                     />
                                                 </td>
                                                 <td className="px-2.5 py-1.5">
-    <input
-        type="number"
-        min="0"
-        step="0.01"
-        value={item.unit_price}
-        onChange={e => updateItem(index, 'unit_price', e.target.value)}
-        className="w-20 px-1.5 py-1 bg-gray-800 border border-gray-700 text-white rounded text-sm text-center focus:outline-none focus:border-blue-500"
-    />
+                                                    <UnitToggle item={item} product={product} onChange={u => changeUnit(index, u, product)} className="py-0.5" />
+                                                </td>
+                                                <td className="px-2.5 py-1.5">
+    <div className="flex items-center gap-1">
+        <input
+            type="number"
+            min="0"
+            step="0.01"
+            value={item.unit_price}
+            onChange={e => changePrice(index, e.target.value)}
+            className={`w-20 px-1.5 py-1 bg-gray-800 border ${needsPriceReview(item) ? 'border-yellow-500' : 'border-gray-700'} text-white rounded text-sm text-center focus:outline-none focus:border-blue-500`}
+        />
+        <span className="text-gray-500 text-[10px] whitespace-nowrap">{t('purchaseOrders.create.pricePerUnit', { unit: unitNameOf(item, product) })}</span>
+    </div>
+    {needsPriceReview(item) && (
+        <PriceReviewNotice item={item} product={product} onKeep={() => keepPrice(index)} onConvert={() => convertPrice(index, product)} t={t} />
+    )}
 </td>
                                                 <td className="px-2.5 py-1.5">
                                                     <select
@@ -392,26 +445,6 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
         <option key={w.id} value={w.id}>{w.name}</option>
     ))}
                                                     </select>
-                                                </td>
-                                                <td className="px-2.5 py-1.5">
-                                                    {product?.secondary_unit ? (
-                                                        <div className="flex gap-0.5">
-                                                            {['base', 'secondary'].map(u => (
-                                                                <button
-                                                                    key={u}
-                                                                    type="button"
-                                                                    onClick={() => updateItem(index, 'unit_type', u)}
-                                                                    className={`px-1.5 py-0.5 rounded text-[11px] font-medium transition-colors ${
-                                                                        item.unit_type === u ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400'
-                                                                    }`}
-                                                                >
-                                                                    {u === 'base' ? product.unit : product.secondary_unit}
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    ) : (
-                                                        <span className="text-gray-500 text-xs">{product?.unit ?? '—'}</span>
-                                                    )}
                                                 </td>
                                                 <td className="px-2.5 py-1.5 text-white text-sm font-medium whitespace-nowrap">
                                                     {formatNumber(lineTotal, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-gray-500 text-[10px]">{t('common.currency')}</span>
@@ -466,14 +499,16 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
                                                     onKeyDown={e => handleQtyKeyDown(e, index)}
                                                     className="w-14 shrink-0 px-1.5 py-1.5 bg-gray-800 border border-gray-700 text-white rounded text-sm text-center focus:outline-none focus:border-blue-500"
                                                 />
+                                                <UnitToggle item={item} product={product} onChange={u => changeUnit(index, u, product)} className="py-1" />
                                                 <input
                                                     type="number"
                                                     min="0"
                                                     step="0.01"
                                                     value={item.unit_price}
-                                                    onChange={e => updateItem(index, 'unit_price', e.target.value)}
-                                                    className="w-16 shrink-0 px-1.5 py-1.5 bg-gray-800 border border-gray-700 text-white rounded text-sm text-center focus:outline-none focus:border-blue-500"
+                                                    onChange={e => changePrice(index, e.target.value)}
+                                                    className={`w-16 shrink-0 px-1.5 py-1.5 bg-gray-800 border ${needsPriceReview(item) ? 'border-yellow-500' : 'border-gray-700'} text-white rounded text-sm text-center focus:outline-none focus:border-blue-500`}
                                                 />
+                                                <span className="text-gray-500 text-[10px] whitespace-nowrap shrink-0">{t('purchaseOrders.create.pricePerUnit', { unit: unitNameOf(item, product) })}</span>
                                                 <select
                                                     data-wh={index}
                                                     value={item.warehouse_id}
@@ -488,25 +523,10 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
                                                             <option key={w.id} value={w.id}>{w.name}</option>
                                                         ))}
                                                 </select>
-                                                {product?.secondary_unit ? (
-                                                    <div className="flex gap-0.5 shrink-0">
-                                                        {['base', 'secondary'].map(u => (
-                                                            <button
-                                                                key={u}
-                                                                type="button"
-                                                                onClick={() => updateItem(index, 'unit_type', u)}
-                                                                className={`px-1.5 py-1 rounded text-[11px] font-medium transition-colors ${
-                                                                    item.unit_type === u ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400'
-                                                                }`}
-                                                            >
-                                                                {u === 'base' ? product.unit : product.secondary_unit}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-gray-500 text-xs shrink-0">{product?.unit ?? '—'}</span>
-                                                )}
                                             </div>
+                                            {needsPriceReview(item) && (
+                                                <PriceReviewNotice item={item} product={product} onKeep={() => keepPrice(index)} onConvert={() => convertPrice(index, product)} t={t} />
+                                            )}
 
                                             <p className="text-end text-white text-sm font-medium">
                                                 {formatNumber(lineTotal, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-gray-500 text-[10px]">{t('common.currency')}</span>

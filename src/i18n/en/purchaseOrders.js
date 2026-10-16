@@ -22,6 +22,11 @@ export default {
         itemRequired: 'Add at least one item.',
         storeRequired: 'Please choose a store.',
         createFailed: 'Something went wrong creating the order.',
+        pricePerUnit: 'per {unit}',
+        priceReview: 'Price is now per {unit} — check it',
+        keepPrice: 'Keep {price} per {unit}',
+        convertPrice: 'Convert → {price} per {unit}',
+        reviewPricesFirst: 'Check the prices marked in yellow before creating the order.',
     },
 
     detail: {

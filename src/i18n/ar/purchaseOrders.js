@@ -22,6 +22,11 @@ export default {
         itemRequired: 'ضيف صنف واحد على الأقل.',
         storeRequired: 'من فضلك اختر المتجر.',
         createFailed: 'حصلت مشكلة في إنشاء الأمر',
+        pricePerUnit: 'لكل {unit}',
+        priceReview: 'السعر دلوقتي لكل {unit} — راجعه',
+        keepPrice: 'سيبه {price} لكل {unit}',
+        convertPrice: 'حوّله ← {price} لكل {unit}',
+        reviewPricesFirst: 'راجع الأسعار المعلّمة بالأصفر قبل ما تنشئ الأمر.',
     },
 
     detail: {
