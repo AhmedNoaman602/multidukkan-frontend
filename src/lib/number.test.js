@@ -133,6 +133,27 @@ test('count fields (quantities, factors, thresholds) allow whole numbers only', 
     assert.equal(norm('١٫٥', 0).error, 'integer')
 })
 
+test('extra trailing zeros beyond a money field\'s limit are dropped, since they do not change the value', () => {
+    assert.deepEqual(norm('130.000', 2), { text: '130.00', error: null })
+    assert.deepEqual(norm('3351.760', 2), { text: '3351.76', error: null })
+    assert.deepEqual(norm('12.340', 2), { text: '12.34', error: null })
+    assert.deepEqual(norm('١٣٠٫٠٠٠', 2), { text: '130.00', error: null })
+    assert.deepEqual(typed('130.000', 2), { text: '130.00', error: null })
+    assert.equal(parseNumber('3351.760'), 3351.76)
+})
+
+test('a non-zero digit beyond a money field\'s limit is still rejected', () => {
+    assert.equal(norm('12.345', 2).error, 'decimals')
+    assert.equal(norm('12.3450', 2).error, 'decimals')
+})
+
+test('a count field accepts a whole number written with zero decimals, nothing else', () => {
+    assert.deepEqual(norm('3.000', 0), { text: '3', error: null })
+    assert.deepEqual(norm('٣٫٠', 0), { text: '3', error: null })
+    assert.equal(norm('3.500', 0).error, 'integer')
+    assert.equal(norm('3.005', 0).error, 'integer')
+})
+
 test('parseNumber returns the numeric value', () => {
     assert.equal(parseNumber('0'), 0)
     assert.equal(parseNumber('150.00'), 150)

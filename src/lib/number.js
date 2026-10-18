@@ -39,6 +39,12 @@ export function normalizeNumberText(raw, { decimals = 2, typing = false } = {}) 
     if (text === '.') return { text: null, error: typing ? 'incomplete' : 'invalid' }
     if (text.startsWith('.')) text = `0${text}`
 
+    const [whole, digits] = text.split('.')
+    if (digits !== undefined && digits.length > decimals && /^0*$/.test(digits.slice(decimals))) {
+        const kept = digits.slice(0, decimals)
+        text = kept ? `${whole}.${kept}` : whole
+    }
+
     const fraction = text.split('.')[1]
     if (fraction !== undefined && decimals === 0) return { text: null, error: 'integer' }
     if (fraction !== undefined && fraction.length > decimals) return { text: null, error: 'decimals' }
