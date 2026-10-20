@@ -9,6 +9,7 @@ import { useTranslation } from '../i18n/useTranslation'
 import StockLocationEditor from '../components/StockLocationEditor'
 import { isShelf, shelfIdFor, stockPayload } from '../lib/locations'
 import NumberInput from '../components/NumberInput'
+import { upperCaseInput } from '../lib/upperCaseInput'
 
 export default function CreateProduct() {
     const [supplierIds, setSupplierIds] = useState([])
@@ -168,9 +169,10 @@ export default function CreateProduct() {
                             <label className="block text-sm text-gray-400 mb-1">{t('products.form.productCode')}</label>
                             <input
                                 value={form.sku}
-                                onChange={(e) => setForm({ ...form, sku: e.target.value })}
+                                onChange={(e) => setForm({ ...form, sku: upperCaseInput(e.target) })}
                                 required
-                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
+                                dir="ltr"
+                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm rtl:text-right"
                             />
                         </div>
                         <div className="col-span-2">

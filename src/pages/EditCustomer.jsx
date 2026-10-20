@@ -6,6 +6,7 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import BackButton from '../components/BackButton'
 import { useToast } from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
+import { upperCaseInput } from '../lib/upperCaseInput'
 
 export default function EditCustomer() {
     const { id } = useParams()
@@ -72,8 +73,9 @@ export default function EditCustomer() {
                         <label className="block text-sm text-gray-400 mb-1">{t('common.code')}</label>
                         <input
                             value={form.code}
-                            onChange={(e) => setForm({ ...form, code: e.target.value })}
-                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
+                            onChange={(e) => setForm({ ...form, code: upperCaseInput(e.target) })}
+                            dir="ltr"
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm rtl:text-right"
                         />
                     </div>
                     <div>

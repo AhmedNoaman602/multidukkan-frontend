@@ -4,6 +4,7 @@ import api from '../api/axios'
 import BackButton from '../components/BackButton'
 import {useToast} from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
+import { upperCaseInput } from '../lib/upperCaseInput'
 
 export default function CreateCustomer() {
     const [saving, setSaving] = useState(false)
@@ -51,9 +52,10 @@ const { t } = useTranslation()
                             <label className="block text-sm text-gray-400 mb-1.5">{t('common.code')}</label>
                             <input
                                 value={form.code}
-                                onChange={e => setForm({ ...form, code: e.target.value })}
+                                onChange={e => setForm({ ...form, code: upperCaseInput(e.target) })}
                                 placeholder={t('customers.form.codePlaceholder')}
-                                className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
+                                dir="ltr"
+                                className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm rtl:text-right"
                             />
                             <p className="text-gray-500 text-xs mt-1">{t('customers.form.codeHint')}</p>
                         </div>

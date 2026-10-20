@@ -9,6 +9,7 @@ import StockLocationEditor from '../components/StockLocationEditor'
 import { stockPayload } from '../lib/locations'
 import NumberInput from '../components/NumberInput'
 import { reportInvalidNumberInput } from '../lib/number'
+import { upperCaseInput } from '../lib/upperCaseInput'
 
 export default function Onboarding() {
     const navigate = useNavigate()
@@ -289,7 +290,7 @@ export default function Onboarding() {
                             </div>
                             <div>
                                 <label className={lbl}>{t('onboarding.product.skuRequired')}</label>
-                                <input value={productForm.sku} onChange={e => setProductForm({ ...productForm, sku: e.target.value })} placeholder={t('onboarding.product.skuPlaceholder')} className={inp} />
+                                <input value={productForm.sku} onChange={e => setProductForm({ ...productForm, sku: upperCaseInput(e.target) })} placeholder={t('onboarding.product.skuPlaceholder')} dir="ltr" className={`${inp} rtl:text-right`} />
                             </div>
                             <div>
                                 <label className={lbl}>{t('onboarding.product.priceRequired')}</label>
