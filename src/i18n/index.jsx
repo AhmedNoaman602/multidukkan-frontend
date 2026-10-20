@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { LanguageContext } from './useTranslation'
 import { STORAGE_KEY, LANGUAGES, readStoredLang, titles, translate } from './translate'
+import { setDisplayLanguage } from '../lib/format'
 
 // Owns the active language and keeps <html lang/dir> and the document title in
 // sync with it. Mounted once in main.jsx, above everything else, so changing
@@ -9,6 +10,9 @@ export function LanguageProvider({ children }) {
     const [lang, setLangState] = useState(readStoredLang)
 
     const dir = lang === 'ar' ? 'rtl' : 'ltr'
+
+    // Set during render, not in an effect: the children below format numbers in this same pass.
+    setDisplayLanguage(lang)
 
     useEffect(() => {
         document.documentElement.lang = lang
