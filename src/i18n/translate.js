@@ -5,6 +5,7 @@
 
 import en from './en'
 import ar from './ar'
+import { interpolate } from './interpolate'
 
 const bundles = { en, ar }
 
@@ -29,14 +30,6 @@ export function readStoredLang() {
 const lookup = (bundle, key) =>
     key.split('.').reduce((node, part) => (node == null ? undefined : node[part]), bundle)
 
-// Replace {name} placeholders. React escapes the result on render.
-const interpolate = (template, params) =>
-    params
-        ? template.replace(/\{(\w+)\}/g, (match, name) =>
-              params[name] === undefined ? match : String(params[name]),
-          )
-        : template
-
 export function translate(lang, key, params) {
     const value = lookup(bundles[lang], key)
 
@@ -48,5 +41,5 @@ export function translate(lang, key, params) {
         return key
     }
 
-    return interpolate(value, params)
+    return interpolate(value, params, lang)
 }

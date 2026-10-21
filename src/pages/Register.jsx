@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import api from '../api/axios'
 import { useTranslation } from '../i18n/useTranslation'
 import LanguageSwitcher from '../components/LanguageSwitcher'
+import { toDisplayDigits } from '../lib/format'
 
 export default function Register() {
     const [form, setForm] = useState({
@@ -167,7 +168,7 @@ export default function Register() {
                 </div>
 
                 <p className="text-center text-slate-500 text-xs mt-6">
-                    {t('auth.copyright', { year: new Date().getFullYear() })}
+                    {t('auth.copyright', { year: toDisplayDigits(new Date().getFullYear()) })}
                 </p>
             </div>
         </div>

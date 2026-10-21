@@ -13,7 +13,7 @@ export default {
     empty: 'مفيش سجلات مخزون.',
     loadFailed: 'حصلت مشكلة في تحميل المخزون',
     adjustFailed: 'حصلت مشكلة في تعديل المخزون',
-    quantityInvalid: 'اكتب كمية 1 أو أكتر.',
+    quantityInvalid: 'اكتب كمية ١ أو أكتر.',
     reasonRequired: 'من فضلك اكتب سبب التعديل ده.',
 
     adjust: {

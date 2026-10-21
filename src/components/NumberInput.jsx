@@ -23,8 +23,8 @@ export default function NumberInput({ value, onChange, decimals = 2, min, max, c
         if (error) return t(`common.numberInput.${error}`, { count: decimals })
         if (text === '') return ''
         const number = Number(text)
-        if (min != null && min !== '' && number < Number(min)) return t('common.numberInput.min', { min })
-        if (max != null && max !== '' && number > Number(max)) return t('common.numberInput.max', { max })
+        if (min != null && min !== '' && number < Number(min)) return t('common.numberInput.min', { min: Number(min) })
+        if (max != null && max !== '' && number > Number(max)) return t('common.numberInput.max', { max: Number(max) })
         return ''
     }
 

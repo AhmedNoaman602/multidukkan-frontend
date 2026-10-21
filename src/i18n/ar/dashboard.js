@@ -66,7 +66,7 @@ export default {
     },
 
     ai: {
-        last30Days: 'آخر 30 يوم',
+        last30Days: 'آخر ٣٠ يوم',
         updated: '✓ محدّث',
         failed: 'تعذّر تحليل المبيعات الآن. حاول مرة أخرى.',
         emptyTitle: 'تحليل ذكي لمبيعاتك',

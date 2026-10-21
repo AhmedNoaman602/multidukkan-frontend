@@ -308,7 +308,7 @@ export default function CreateProduct() {
                                 <p className="text-xs text-blue-400 mt-1">
                                     {t('products.form.conversionPreview', {
                                         secondary: form.secondary_unit,
-                                        factor: form.conversion_factor,
+                                        factor: Number(form.conversion_factor),
                                         base: form.unit,
                                     })}
                                 </p>

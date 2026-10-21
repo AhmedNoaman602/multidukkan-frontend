@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import api from '../api/axios'
 import { useTranslation } from '../i18n/useTranslation'
 import LanguageSwitcher from '../components/LanguageSwitcher'
+import { toDisplayDigits } from '../lib/format'
 
 export default function Login() {
     const [email, setEmail] = useState('')
@@ -146,7 +147,7 @@ export default function Login() {
                 </div>
 
                 <p className="text-center text-slate-500 text-xs mt-6">
-                    {t('auth.copyright', { year: new Date().getFullYear() })}
+                    {t('auth.copyright', { year: toDisplayDigits(new Date().getFullYear()) })}
                 </p>
             </div>
         </div>

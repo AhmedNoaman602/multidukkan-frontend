@@ -2,7 +2,7 @@ export default {
     title: 'التقارير',
     printButton: '🖨️ طباعة',
     viewReport: 'عرض التقرير',
-    last7Days: 'آخر 7 أيام',
+    last7Days: 'آخر ٧ أيام',
     thisMonth: 'الشهر ده',
     revenueByDay: 'الإيرادات باليوم',
     topProductsSold: 'أكتر المنتجات مبيعاً',

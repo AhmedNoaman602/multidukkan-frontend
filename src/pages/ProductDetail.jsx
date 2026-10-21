@@ -88,7 +88,7 @@ export default function ProductDetail() {
                             <p className="text-white text-sm">
                                 {t('products.form.conversionPreview', {
                                     secondary: product.secondary_unit,
-                                    factor: product.conversion_factor,
+                                    factor: Number(product.conversion_factor),
                                     base: product.unit,
                                 })}
                             </p>

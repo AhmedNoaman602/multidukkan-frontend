@@ -329,7 +329,7 @@ export default function Onboarding() {
                                     <NumberInput decimals={0} min="2" value={productForm.conversion_factor} onChange={e => setProductForm({ ...productForm, conversion_factor: e.target.value })} placeholder={t('products.form.conversionFactorPlaceholder')} className={inp} />
                                     {productForm.conversion_factor && (
                                         <p className="text-xs text-purple-400 mt-1">
-                                            {t('products.form.conversionPreview', { secondary: productForm.secondary_unit, factor: productForm.conversion_factor, base: productForm.unit })}
+                                            {t('products.form.conversionPreview', { secondary: productForm.secondary_unit, factor: Number(productForm.conversion_factor), base: productForm.unit })}
                                         </p>
                                     )}
                                 </div>
