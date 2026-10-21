@@ -54,6 +54,14 @@ export function normalizeNumberText(raw, { decimals = 2, typing = false } = {}) 
     return { text, error: null }
 }
 
+// Free text typed or pasted into a code, phone or search box, made plain: "INV-٢٠٢٦" → "INV-2026".
+// Only digits change; letters, spaces and punctuation stay as they are. The invisible direction
+// marks that formatIdentifier adds are removed too, so a copied invoice number pastes cleanly.
+export function toWesternDigits(text) {
+    if (text === null || text === undefined) return ''
+    return String(text).replace(DIRECTION_MARKS, '').replace(/[٠-٩۰-۹]/g, toWesternDigit)
+}
+
 // The other direction, for showing a normalized value in the box: "12.5" → "١٢٫٥" on Arabic
 // screens, unchanged in English. One character for one, so a cursor position stays valid.
 export function toDisplayNumberText(text, lang) {

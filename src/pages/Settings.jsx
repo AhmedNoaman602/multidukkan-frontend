@@ -7,6 +7,7 @@ import { useToast } from '../hooks/useToast'
 import DeleteModal from '../components/DeleteModal'
 import Modal from '../components/Modal'
 import { useTranslation } from '../i18n/useTranslation'
+import { displayIdentifier, phoneInput } from '../lib/identifierInput'
 import { formatIdentifier } from '../lib/format'
 import { isShelf, sortShelfFirst } from '../lib/locations'
 
@@ -392,7 +393,7 @@ const handleDeleteUnit = async () => {
                                 </div>
                                 <div>
                                     <label className="block text-sm text-gray-400 mb-1">{t('common.phone')}</label>
-                                    <input value={storeForm.phone} onChange={(e) => setStoreForm({ ...storeForm, phone: e.target.value })} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
+                                    <input value={displayIdentifier(storeForm.phone)} onChange={(e) => setStoreForm({ ...storeForm, phone: phoneInput(e.target) })} dir="ltr" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm rtl:text-right [unicode-bidi:bidi-override]" />
                                 </div>
                                 <div className="col-span-2">
                                     <label className="block text-sm text-gray-400 mb-1">{t('common.address')}</label>

@@ -71,13 +71,19 @@ test('toDisplayDigits accepts numbers and leaves empty values empty', () => {
     assert.equal(toDisplayDigits(undefined, 'ar'), '')
 })
 
-const START = '\u2066\u202D'
-const END = '\u202C\u2069'
+const ISOLATE = '\u2066'
+const POP = '\u2069'
+const LRM = '\u200E'
 
-test('formatIdentifier gives Arabic digits kept left to right in Arabic', () => {
-    assert.equal(formatIdentifier('2026-001', 'ar'), `${START}٢٠٢٦-٠٠١${END}`)
-    assert.equal(formatIdentifier('TN-1000', 'ar'), `${START}TN-١٠٠٠${END}`)
-    assert.equal(formatIdentifier('#12', 'ar'), `${START}#١٢${END}`)
+test('formatIdentifier gives Arabic digits and pins each separator left to right', () => {
+    assert.equal(formatIdentifier('2026-001', 'ar'), `${ISOLATE}٢٠٢٦${LRM}-${LRM}٠٠١${POP}`)
+    assert.equal(formatIdentifier('TN-1000', 'ar'), `${ISOLATE}TN${LRM}-${LRM}١٠٠٠${POP}`)
+    assert.equal(formatIdentifier('#12', 'ar'), `${ISOLATE}${LRM}#${LRM}١٢${POP}`)
+    assert.equal(formatIdentifier('010 1234', 'ar'), `${ISOLATE}٠١٠${LRM} ${LRM}١٢٣٤${POP}`)
+})
+
+test('an Arabic word inside a code is left as it is, not forced left to right', () => {
+    assert.equal(formatIdentifier('مسمار-12', 'ar'), `${ISOLATE}مسمار${LRM}-${LRM}١٢${POP}`)
 })
 
 test('formatIdentifier leaves English exactly as it was, and empty values empty', () => {

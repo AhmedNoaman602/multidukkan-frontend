@@ -6,7 +6,7 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import BackButton from '../components/BackButton'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatIdentifier } from '../lib/format'
-import { upperCaseInput } from '../lib/upperCaseInput'
+import { codeBoxClass, codeInput, displayIdentifier, phoneInput } from '../lib/identifierInput'
 
 export default function EditSupplier() {
     const { id } = useParams()
@@ -114,10 +114,10 @@ export default function EditSupplier() {
                     <div className="col-span-2">
                         <label className="block text-sm text-gray-400 mb-1">{t('common.code')}</label>
                         <input
-                            value={form.code}
-                            onChange={(e) => setForm({ ...form, code: upperCaseInput(e.target) })}
+                            value={displayIdentifier(form.code)}
+                            onChange={(e) => setForm({ ...form, code: codeInput(e.target) })}
                             dir="ltr"
-                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm rtl:text-right"
+                            className={`w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm rtl:text-right ${codeBoxClass(form.code)}`}
                         />
                     </div>
                     <div>
@@ -132,10 +132,11 @@ export default function EditSupplier() {
                     <div>
                         <label className="block text-sm text-gray-400 mb-1">{t('common.phone')}</label>
                         <input
-                            value={form.phone}
-                            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                            value={displayIdentifier(form.phone)}
+                            onChange={(e) => setForm({ ...form, phone: phoneInput(e.target) })}
                             required
-                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
+                            dir="ltr"
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm rtl:text-right [unicode-bidi:bidi-override]"
                         />
                     </div>
                     <div className="col-span-2">

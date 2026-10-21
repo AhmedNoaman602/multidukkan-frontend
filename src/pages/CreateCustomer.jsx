@@ -4,7 +4,7 @@ import api from '../api/axios'
 import BackButton from '../components/BackButton'
 import {useToast} from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
-import { upperCaseInput } from '../lib/upperCaseInput'
+import { codeBoxClass, codeInput, displayIdentifier, phoneInput } from '../lib/identifierInput'
 
 export default function CreateCustomer() {
     const [saving, setSaving] = useState(false)
@@ -51,11 +51,11 @@ const { t } = useTranslation()
                         <div>
                             <label className="block text-sm text-gray-400 mb-1.5">{t('common.code')}</label>
                             <input
-                                value={form.code}
-                                onChange={e => setForm({ ...form, code: upperCaseInput(e.target) })}
+                                value={displayIdentifier(form.code)}
+                                onChange={e => setForm({ ...form, code: codeInput(e.target) })}
                                 placeholder={t('customers.form.codePlaceholder')}
                                 dir="ltr"
-                                className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm rtl:text-right"
+                                className={`w-full px-3 py-2.5 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm rtl:text-right ${codeBoxClass(form.code)}`}
                             />
                             <p className="text-gray-500 text-xs mt-1">{t('customers.form.codeHint')}</p>
                         </div>
@@ -81,11 +81,12 @@ const { t } = useTranslation()
                                 {t('common.phone')} <span className="text-red-400">*</span>
                             </label>
                             <input
-                                value={form.phone}
-                                onChange={e => setForm({ ...form, phone: e.target.value })}
+                                value={displayIdentifier(form.phone)}
+                                onChange={e => setForm({ ...form, phone: phoneInput(e.target) })}
                                 required
                                 placeholder={t('customers.form.phonePlaceholder')}
-                                className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
+                                dir="ltr"
+                                className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm rtl:text-right [unicode-bidi:bidi-override]"
                             />
                         </div>
 

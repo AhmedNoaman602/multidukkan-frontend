@@ -9,7 +9,7 @@ import StockLocationEditor from '../components/StockLocationEditor'
 import { stockPayload } from '../lib/locations'
 import NumberInput from '../components/NumberInput'
 import { reportInvalidNumberInput } from '../lib/number'
-import { upperCaseInput } from '../lib/upperCaseInput'
+import { codeBoxClass, codeInput, displayIdentifier, phoneInput } from '../lib/identifierInput'
 
 export default function Onboarding() {
     const navigate = useNavigate()
@@ -251,7 +251,7 @@ export default function Onboarding() {
                                 </div>
                                 <div>
                                     <label className={lbl}>{t('onboarding.store.phoneLabel')}</label>
-                                    <input value={storeForm.phone} onChange={e => setStoreForm({ ...storeForm, phone: e.target.value })} placeholder={t('onboarding.store.phonePlaceholder')} className={inp} />
+                                    <input value={displayIdentifier(storeForm.phone)} onChange={e => setStoreForm({ ...storeForm, phone: phoneInput(e.target) })} placeholder={t('onboarding.store.phonePlaceholder')} dir="ltr" className={`${inp} rtl:text-right [unicode-bidi:bidi-override]`} />
                                 </div>
                             </div>
                         </div>
@@ -290,7 +290,7 @@ export default function Onboarding() {
                             </div>
                             <div>
                                 <label className={lbl}>{t('onboarding.product.skuRequired')}</label>
-                                <input value={productForm.sku} onChange={e => setProductForm({ ...productForm, sku: upperCaseInput(e.target) })} placeholder={t('onboarding.product.skuPlaceholder')} dir="ltr" className={`${inp} rtl:text-right`} />
+                                <input value={displayIdentifier(productForm.sku)} onChange={e => setProductForm({ ...productForm, sku: codeInput(e.target) })} placeholder={t('onboarding.product.skuPlaceholder')} dir="ltr" className={`${inp} rtl:text-right ${codeBoxClass(productForm.sku)}`} />
                             </div>
                             <div>
                                 <label className={lbl}>{t('onboarding.product.priceRequired')}</label>
@@ -362,7 +362,7 @@ export default function Onboarding() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label className={lbl}>{t('onboarding.customer.phoneRequired')}</label>
-                                    <input value={customerForm.phone} onChange={e => setCustomerForm({ ...customerForm, phone: e.target.value })} placeholder={t('onboarding.customer.phonePlaceholder')} className={inp} />
+                                    <input value={displayIdentifier(customerForm.phone)} onChange={e => setCustomerForm({ ...customerForm, phone: phoneInput(e.target) })} placeholder={t('onboarding.customer.phonePlaceholder')} dir="ltr" className={`${inp} rtl:text-right [unicode-bidi:bidi-override]`} />
                                 </div>
                                 <div>
                                     <label className={lbl}>{t('onboarding.customer.priceTierLabel')}</label>

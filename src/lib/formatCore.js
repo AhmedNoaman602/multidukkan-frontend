@@ -44,20 +44,24 @@ export function toDisplayDigits(text, lang = displayLanguage) {
     return lang === 'ar' ? value.replace(/[0-9]/g, (d) => ARABIC_DIGITS[d]) : value
 }
 
-// Invisible direction marks. Once an identifier's digits are Arabic, the browser treats a "-"
-// between two digit groups as right-to-left and swaps them: ٢٠٢٦-٠٠١ shows as ٠٠١-٢٠٢٦. The
-// override (U+202D … U+202C) shows the characters in their stored order, left to right; the
-// isolate (U+2066 … U+2069) around it keeps the Arabic text outside from moving it. Plain
-// characters, not markup, so this also works in <option>, template strings and t() values.
-const LTR_START = '\u2066\u202D'
-const LTR_END = '\u202C\u2069'
+// Invisible direction marks. Once an identifier's digits are Arabic, the browser treats a "-",
+// space or "#" between two digit groups as right-to-left and swaps the groups: ٢٠٢٦-٠٠١ shows as
+// ٠٠١-٢٠٢٦. A left-to-right mark (U+200E) on each side of every separator keeps the groups in
+// order, while an Arabic word inside a code (مسمار-١٢) keeps its own direction. The isolate
+// (U+2066 … U+2069) keeps the text around the identifier from moving it. Plain characters,
+// not markup, so this also works in <option>, template strings and t() values.
+const LRM = '\u200E'
+const LTR_ISOLATE = '\u2066'
+const POP_ISOLATE = '\u2069'
+const SEPARATORS = /[^\p{L}\p{N}]+/gu
 
 // Invoice numbers, SKUs, customer and supplier codes, phones, payment references.
 // Empty values give '' so callers keep their own fallback ('—', '#12').
 export function formatIdentifier(value, lang = displayLanguage) {
     if (value === null || value === undefined || value === '') return ''
     const text = toDisplayDigits(value, lang)
-    return lang === 'ar' ? `${LTR_START}${text}${LTR_END}` : text
+    if (lang !== 'ar') return text
+    return `${LTR_ISOLATE}${text.replace(SEPARATORS, (s) => `${LRM}${s}${LRM}`)}${POP_ISOLATE}`
 }
 
 // Values arrive as percentages already (40 means 40%). Arabic uses its own percent sign: ٤٠٪.

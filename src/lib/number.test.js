@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { normalizeNumberText, parseNumber, toDisplayNumberText } from './number.js'
+import { normalizeNumberText, parseNumber, toDisplayNumberText, toWesternDigits } from './number.js'
+import { formatIdentifier } from './formatCore.js'
 
 // norm() is the final parse; typed() is a field being edited.
 const norm = (raw, decimals = 2) => normalizeNumberText(raw, { decimals })
@@ -172,5 +173,20 @@ test('a shown value reads back to exactly the value it came from, at the same le
         const shown = toDisplayNumberText(value, 'ar')
         assert.equal(shown.length, value.length, value)
         assert.equal(typed(shown).text, value, value)
+    }
+})
+
+test('toWesternDigits turns Arabic and Persian digits into Western ones and leaves the rest', () => {
+    assert.equal(toWesternDigits('INV-٢٠٢٦'), 'INV-2026')
+    assert.equal(toWesternDigits('۱۲'), '12')
+    assert.equal(toWesternDigits('محمد ٠١٠'), 'محمد 010')
+    assert.equal(toWesternDigits('abc 123'), 'abc 123')
+    assert.equal(toWesternDigits(null), '')
+    assert.equal(toWesternDigits(undefined), '')
+})
+
+test('an identifier copied from the screen reads back to exactly the stored value', () => {
+    for (const value of ['2026-001', '#2026-001', 'TN-1000', 'مسمار-12', '010 1234 5678']) {
+        assert.equal(toWesternDigits(formatIdentifier(value, 'ar')), value, value)
     }
 })
