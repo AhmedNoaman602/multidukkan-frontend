@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { normalizeNumberText, parseNumber } from './number.js'
+import { normalizeNumberText, parseNumber, toDisplayNumberText } from './number.js'
 
 // norm() is the final parse; typed() is a field being edited.
 const norm = (raw, decimals = 2) => normalizeNumberText(raw, { decimals })
@@ -157,4 +157,20 @@ test('a count field accepts a whole number written with zero decimals, nothing e
 test('parseNumber returns the numeric value', () => {
     assert.equal(parseNumber('0'), 0)
     assert.equal(parseNumber('150.00'), 150)
+})
+
+test('toDisplayNumberText shows Arabic digits and the Arabic decimal mark in Arabic only', () => {
+    assert.equal(toDisplayNumberText('12.5', 'ar'), '١٢٫٥')
+    assert.equal(toDisplayNumberText('130.00', 'ar'), '١٣٠٫٠٠')
+    assert.equal(toDisplayNumberText('12.', 'ar'), '١٢٫')
+    assert.equal(toDisplayNumberText('', 'ar'), '')
+    assert.equal(toDisplayNumberText('12.5', 'en'), '12.5')
+})
+
+test('a shown value reads back to exactly the value it came from, at the same length', () => {
+    for (const value of ['0', '7', '12.5', '1250', '0.05', '130.00', '12.']) {
+        const shown = toDisplayNumberText(value, 'ar')
+        assert.equal(shown.length, value.length, value)
+        assert.equal(typed(shown).text, value, value)
+    }
 })

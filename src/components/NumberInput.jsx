@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from '../i18n/useTranslation'
-import { normalizeNumberText } from '../lib/number'
+import { normalizeNumberText, toDisplayNumberText } from '../lib/number'
 
 const ALIGNMENT = /\btext-(left|right|center|start|end)\b/
 
@@ -9,14 +9,17 @@ const ALIGNMENT = /\btext-(left|right|center|start|end)\b/
 // stays on screen exactly as typed, marked invalid, and is never passed up — so a form can't
 // submit it and screens without a form check reportInvalidNumberInput() before saving.
 // `decimals` is the field's own limit: 2 for money, 0 for counts.
+//
+// On Arabic screens the box shows Arabic digits ("١٢٫٥") while the parent still receives the
+// plain value ("12.5"), the same display-only rule as the rest of the app.
 export default function NumberInput({ value, onChange, decimals = 2, min, max, className = '', ...rest }) {
-    const { t, dir } = useTranslation()
+    const { t, dir, lang } = useTranslation()
     const ref = useRef(null)
     // The unreadable text being shown, tied to the value it was typed over; a new value from
     // the parent (a reset, a removed row) replaces it.
     const [draft, setDraft] = useState(null)
     const isDraft = Boolean(draft) && Object.is(draft.base, value)
-    const shown = isDraft ? draft.raw : String(value ?? '')
+    const shown = isDraft ? draft.raw : toDisplayNumberText(String(value ?? ''), lang)
 
     const messageFor = (raw) => {
         const { text, error } = normalizeNumberText(raw, { decimals, typing: true })
@@ -45,13 +48,16 @@ export default function NumberInput({ value, onChange, decimals = 2, min, max, c
         }
 
         setDraft(null)
-        if (text !== input.value) {
-            const caret = Math.max(0, Math.min(text.length, input.selectionStart + text.length - input.value.length))
-            input.value = text
+        const display = toDisplayNumberText(text, lang)
+        if (display !== input.value) {
+            const caret = Math.max(0, Math.min(display.length, input.selectionStart + display.length - input.value.length))
+            input.value = display
             input.setSelectionRange(caret, caret)
         }
         input.setCustomValidity(messageFor(text))
-        onChange?.(e)
+        // The box now holds the display text, so the parent gets the plain value in an event of
+        // its own. Every caller reads only e.target.value; this one never changes afterwards.
+        onChange?.({ target: { value: text, name: input.name } })
     }
 
     // dir="ltr" keeps "12." from showing as ".12" on Arabic screens. It also flips what

@@ -3,6 +3,8 @@
 // Non-negative only: every field using this (money, quantities, factors, thresholds) has a
 // floor of 0 or more, so "-" is rejected. A signed field would need its own rule.
 
+import { toDisplayDigits } from './formatCore.js'
+
 const ARABIC_DECIMAL = '٫'   // ٫
 const ARABIC_THOUSANDS = '٬' // ٬
 
@@ -50,6 +52,13 @@ export function normalizeNumberText(raw, { decimals = 2, typing = false } = {}) 
     if (fraction !== undefined && fraction.length > decimals) return { text: null, error: 'decimals' }
 
     return { text, error: null }
+}
+
+// The other direction, for showing a normalized value in the box: "12.5" → "١٢٫٥" on Arabic
+// screens, unchanged in English. One character for one, so a cursor position stays valid.
+export function toDisplayNumberText(text, lang) {
+    if (lang !== 'ar') return text
+    return toDisplayDigits(text, lang).replaceAll('.', ARABIC_DECIMAL)
 }
 
 // Screens without a <form> get no native submit check, so they call this before saving.
