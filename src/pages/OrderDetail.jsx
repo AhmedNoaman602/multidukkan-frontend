@@ -8,7 +8,7 @@ import { useToast } from '../hooks/useToast'
 import AddItemModal from '../components/AddItemModal'
 import DeleteModal from '../components/DeleteModal'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatCurrency, formatDate } from '../lib/format'
+import { formatCurrency, formatDate, formatIdentifier, formatNumber, formatPercent } from '../lib/format'
 import { parseNumber, reportInvalidNumberInput } from '../lib/number'
 import { canViewCostData } from '../lib/permissions'
 import NumberInput from '../components/NumberInput'
@@ -210,7 +210,7 @@ const displayTotal = editMode
                 <div className="flex items-start justify-between">
                     <div>
                         <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">{t('common.invoice')}</p>
-                        <p className="text-white text-2xl font-bold font-mono">{order.invoice_number}</p>
+                        <p className="text-white text-2xl font-bold font-mono">{formatIdentifier(order.invoice_number)}</p>
                     </div>
                     <span className={`px-3 py-1 rounded-lg text-sm font-medium ${
                         order.status === 'paid'
@@ -226,7 +226,7 @@ const displayTotal = editMode
                         <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">{t('common.customer')}</p>
                         <p className="text-white text-sm font-medium">{order.customer_name}</p>
                         {order.customer_phone && (
-                            <p className="text-gray-400 text-sm">{order.customer_phone}</p>
+                            <p className="text-gray-400 text-sm">{formatIdentifier(order.customer_phone)}</p>
                         )}
                     </div>
                     <div>
@@ -277,7 +277,7 @@ const displayTotal = editMode
             onChange={e => setItemForm({...itemForm, quantity: e.target.value})}
             className="w-20 px-2 py-1 bg-gray-800 border border-gray-600 text-white rounded-lg text-sm"/>
         : <>
-            {item.quantity}
+            {formatNumber(item.quantity)}
             {item.unit_label && (
                 <span className={`ms-1 text-xs ${item.unit_type !== 'base' ? 'text-blue-400' : 'text-gray-500'}`}>{item.unit_label}</span>
             )}
@@ -398,7 +398,7 @@ const displayTotal = editMode
             min="0"
             value={editForm.manual_total ?? ''}
             onChange={e => setEditForm({ ...editForm, manual_total: e.target.value })}
-            placeholder={Math.max(0, order.subtotal - discountPreview).toFixed(2)}
+            placeholder={formatNumber(Math.max(0, order.subtotal - discountPreview), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             className="w-24 px-2 py-1 bg-gray-800 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm text-end"
         />
     </div>
@@ -444,10 +444,10 @@ const displayTotal = editMode
                 <p className="text-gray-500 text-xs mb-1">{t('orders.detail.totalProfit')}</p>
                 {(() => {
                     const profit = order.gross_profit
-                    const margin = order.total > 0 ? ((profit / order.total) * 100).toFixed(1) : 0
+                    const margin = order.total > 0 ? (profit / order.total) * 100 : 0
                     return (
                         <p className={`font-semibold ${profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                            {formatCurrency(profit, lang)} <span className="text-xs text-gray-500">({margin}%)</span>
+                            {formatCurrency(profit, lang)} <span className="text-xs text-gray-500">({formatPercent(margin, lang, 1)})</span>
                         </p>
                     )
                 })()}
@@ -478,7 +478,7 @@ const displayTotal = editMode
             onConfirm={handleCancel}
             deleting={cancelling}
             title={t('orders.detail.cancelOrderTitle')}
-            name={t('orders.detail.cancelOrderName', { invoice: order.invoice_number })}
+            name={t('orders.detail.cancelOrderName', { invoice: formatIdentifier(order.invoice_number) })}
             warning={t('orders.detail.cancelOrderWarning')}
            />
             

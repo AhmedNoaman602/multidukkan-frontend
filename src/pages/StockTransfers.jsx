@@ -7,7 +7,7 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import StockTransferModal from '../components/StockTransferModal'
 import { useToast } from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatDateTime, formatNumber } from '../lib/format'
+import { formatDateTime, formatIdentifier, formatNumber } from '../lib/format'
 import { isShelf, sortShelfFirst } from '../lib/locations'
 import { canTransferStock } from '../lib/permissions'
 
@@ -170,7 +170,7 @@ export default function StockTransfers() {
                                                 to={`/orders/${transfer.order.id}/invoice`}
                                                 className="block text-xs text-blue-400 hover:text-blue-300 mt-1 [unicode-bidi:plaintext]"
                                             >
-                                                {t('stockTransfers.forInvoice', { number: transfer.order.invoice_number })}
+                                                {t('stockTransfers.forInvoice', { number: formatIdentifier(transfer.order.invoice_number) })}
                                             </Link>
                                         )}
                                     </td>

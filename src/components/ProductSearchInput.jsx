@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatNumber } from '../lib/format'
+import { formatIdentifier, formatNumber } from '../lib/format'
 
 export default function ProductSearchInput({ products, onSelect, showCostPrice = false, placeholder, inputRef: externalRef, disabled = false }) {
     const { t } = useTranslation()
@@ -108,7 +108,7 @@ export default function ProductSearchInput({ products, onSelect, showCostPrice =
                                     </div>
                                     {product.sku && (
                                         <div className={`text-xs mt-0.5 ${i === highlighted ? 'text-blue-200' : 'text-gray-500'}`}>
-                                            {t('search.product.skuLabel', { sku: product.sku })}
+                                            {t('search.product.skuLabel', { sku: formatIdentifier(product.sku) })}
                                         </div>
                                     )}
                                 </div>
@@ -178,7 +178,7 @@ export default function ProductSearchInput({ products, onSelect, showCostPrice =
                                     <div>
                                         <p className="text-white text-sm font-medium">{product.name}</p>
                                         {product.sku && (
-                                            <p className="text-gray-500 text-xs mt-0.5">{t('search.product.skuLabel', { sku: product.sku })}</p>
+                                            <p className="text-gray-500 text-xs mt-0.5">{t('search.product.skuLabel', { sku: formatIdentifier(product.sku) })}</p>
                                         )}
                                     </div>
                                     <div className="text-end">

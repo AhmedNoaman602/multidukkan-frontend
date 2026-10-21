@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatCurrency, formatDate, formatTime } from '../lib/format'
+import { formatCurrency, formatDate, formatIdentifier, formatNumber, formatPercent, formatTime } from '../lib/format'
 
 function formatNetProfitPrint(netProfit, lang) {
     const v = netProfit ?? 0
@@ -122,7 +122,7 @@ export default function ReportPrint() {
                         {data.orders_by_customer.data.map((c, i) => (
                             <tr key={i} className="border-b border-gray-100">
                                 <td className="py-2 text-gray-900 text-sm">{c.customer_name}</td>
-                                <td className="py-2 text-center text-gray-600 text-sm">{c.orders_count}</td>
+                                <td className="py-2 text-center text-gray-600 text-sm">{formatNumber(c.orders_count)}</td>
                                 <td className="py-2 text-end text-gray-600 text-sm">{formatCurrency(c.total, lang)}</td>
                                 <td className="py-2 text-end text-gray-900 text-sm font-medium">{formatCurrency(c.collected, lang)}</td>
                             </tr>
@@ -150,7 +150,7 @@ export default function ReportPrint() {
                                         <td className="py-2 text-gray-900 text-sm">
                                             {formatDate(day.date, lang)}
                                         </td>
-                                        <td className="py-2 text-center text-gray-600 text-sm">{day.orders}</td>
+                                        <td className="py-2 text-center text-gray-600 text-sm">{formatNumber(day.orders)}</td>
                                         <td className="py-2 text-end text-gray-900 text-sm font-medium">{formatCurrency(day.revenue, lang)}</td>
                                     </tr>
                                 ))}
@@ -176,12 +176,12 @@ export default function ReportPrint() {
     <tbody>
         {data.profit_by_order.data.map((o, i) => (
             <tr key={i} className="border-b border-gray-100">
-                <td className="py-2 text-gray-500 text-sm font-mono">{o.invoice_number}</td>
+                <td className="py-2 text-gray-500 text-sm font-mono">{formatIdentifier(o.invoice_number)}</td>
                 <td className="py-2 text-gray-900 text-sm">{o.customer_name}</td>
                 <td className="py-2 text-end text-gray-600 text-sm">{formatCurrency(o.revenue, lang)}</td>
                 <td className="py-2 text-end text-gray-600 text-sm">{formatCurrency(o.cost, lang)}</td>
                 <td className="py-2 text-end text-gray-900 text-sm font-medium">{formatCurrency(o.profit, lang)}</td>
-                <td className="py-2 text-end text-sm font-medium">{o.margin}%</td>
+                <td className="py-2 text-end text-sm font-medium">{formatPercent(o.margin)}</td>
             </tr>
         ))}
     </tbody>
@@ -229,7 +229,7 @@ export default function ReportPrint() {
     <tbody>
         {data.payments_history.data.map((p, i) => (
             <tr key={i} className="border-b border-gray-100">
-                <td className="py-2 text-gray-500 text-sm font-mono">{p.invoice_number}</td>
+                <td className="py-2 text-gray-500 text-sm font-mono">{formatIdentifier(p.invoice_number)}</td>
                 <td className="py-2 text-gray-900 text-sm">{p.customer_name}</td>
                 <td className="py-2 text-end text-gray-900 text-sm font-medium">{formatCurrency(p.amount, lang)}</td>
                 <td className="py-2 text-end text-gray-600 text-sm">{t(`enums.paymentMethod.${p.method}`)}</td>

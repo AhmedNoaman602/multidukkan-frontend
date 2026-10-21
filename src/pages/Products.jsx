@@ -8,7 +8,7 @@ import SearchInput from '../components/SearchInput'
 import {useToast} from '../hooks/useToast'
 import DeleteModal from '../components/DeleteModal'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatCurrency } from '../lib/format'
+import { formatCurrency, formatIdentifier, formatNumber, formatPercent } from '../lib/format'
 import { canViewCostData } from '../lib/permissions'
 
 export default function Products() {
@@ -103,12 +103,12 @@ export default function Products() {
                         {products.map(product => (
                             <tr key={product.id} onClick={() => navigate(`/products/${product.id}`)} className="hover:bg-gray-800/50 transition-colors cursor-pointer">
                                 <td className="px-4 py-3 text-white text-sm">{product.name}</td>
-                                <td className="px-4 py-3 text-gray-400 text-sm">{product.sku}</td>
+                                <td className="px-4 py-3 text-gray-400 text-sm">{formatIdentifier(product.sku)}</td>
                                 <td className="px-4 py-3 text-white text-sm">{formatCurrency(product.price, lang)}</td>
                                {['a', 'b', 'c', 'd', 'e'].map(tier => (
     <td key={tier} className="px-4 py-3 text-sm">
         <div className="text-gray-300">
-            {product[`price_${tier}`] ?? '—'}
+            {product[`price_${tier}`] != null ? formatNumber(product[`price_${tier}`], { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—'}
         </div>
         {showCost && product[`price_${tier}`] && product[`profit_margin_${tier}`] != null && (
             <div className={`text-xs ${
@@ -116,7 +116,7 @@ export default function Products() {
                     ? 'text-green-400'
                     : 'text-red-400'
             }`}>
-                {product[`profit_margin_${tier}`]}%
+                {formatPercent(product[`profit_margin_${tier}`])}
             </div>
         )}
     </td>
@@ -132,7 +132,7 @@ export default function Products() {
             product.profit_margin == null ? 'text-gray-500' :
             product.profit_margin >= 0 ? 'text-green-400' : 'text-red-400'
             }`}>
-            {product.profit_margin != null ? `${product.profit_margin}%` : '—'}
+            {formatPercent(product.profit_margin)}
             </td>
         </>
     )}

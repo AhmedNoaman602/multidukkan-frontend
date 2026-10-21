@@ -5,7 +5,7 @@ import api from '../api/axios'
 import ProductSearchInput from './ProductSearchInput'
 import StockAvailability from './StockAvailability'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatCurrency } from '../lib/format'
+import { formatCurrency, formatNumber } from '../lib/format'
 import { parseNumber, reportInvalidNumberInput } from '../lib/number'
 import { useStoreAvailability, baseNeedsByProduct } from '../hooks/useStoreAvailability'
 import NumberInput from './NumberInput'
@@ -315,7 +315,7 @@ try {
             min="0"
             value={manualTotal ?? ''}
             onChange={e => setManualTotal(e.target.value)}
-            placeholder={grandTotal.toFixed(2)}
+            placeholder={formatNumber(grandTotal, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             className="w-24 px-2 py-1 bg-gray-800 border border-gray-700 text-white rounded-lg text-sm text-end focus:outline-none focus:border-blue-500"
         />
         <p className="text-gray-500 text-[10px] mt-0.5">

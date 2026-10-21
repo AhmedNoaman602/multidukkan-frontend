@@ -9,7 +9,7 @@ import Modal from '../components/Modal'
 import ReverseSupplierPaymentModal from '../components/ReverseSupplierPaymentModal'
 import { useToast } from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatCurrency, formatDate } from '../lib/format'
+import { formatCurrency, formatDate, formatIdentifier, formatNumber } from '../lib/format'
 import NumberInput from '../components/NumberInput'
 import { reportInvalidNumberInput } from '../lib/number'
 
@@ -342,7 +342,7 @@ const updateCartItem = (productId, field, value) => {
                                     className="hover:bg-gray-800/50 transition-colors cursor-pointer"
                                 >
                                     <td className="px-4 py-3 text-gray-400 text-sm font-mono">
-                                        {order.invoice_number}
+                                        {formatIdentifier(order.invoice_number)}
                                     </td>
                                     <td className="px-4 py-3 text-white text-sm">{formatCurrency(order.total, lang)}</td>
                                     <td className="px-4 py-3 text-green-400 text-sm">{formatCurrency(paid, lang)}</td>
@@ -384,7 +384,7 @@ const updateCartItem = (productId, field, value) => {
                         {payments.map(p => (
                             <tr key={p.id}
                                 className="hover:bg-gray-800/50 transition-colors">
-                                <td className="px-4 py-3 text-gray-400 text-sm font-mono">{p.invoice_number}</td>
+                                <td className="px-4 py-3 text-gray-400 text-sm font-mono">{formatIdentifier(p.invoice_number)}</td>
                                 <td className="px-4 py-3 text-white text-sm">{formatCurrency(p.amount, lang)}</td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">{t(`enums.paymentMethod.${p.method}`)}</td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">
@@ -449,7 +449,7 @@ const updateCartItem = (productId, field, value) => {
                         <div className="space-y-1">
                             {unpaidOrders.map((o, i) => (
                                 <div key={o.id} className="flex justify-between text-xs text-gray-400 bg-gray-800 px-3 py-2 rounded-lg">
-                                    <span>#{i + 1} — {o.invoice_number}</span>
+                                    <span>#{formatNumber(i + 1)} — {formatIdentifier(o.invoice_number)}</span>
                                     <span>{formatCurrency(o.amount_remaining ?? o.total, lang)}</span>
                                 </div>
                             ))}
@@ -471,7 +471,7 @@ const updateCartItem = (productId, field, value) => {
                                     <option value="">{t('customers.balance.autoPayOldest')}</option>
                                     {unpaidOrders.map(o => (
                                         <option key={o.id} value={o.id}>
-                                            {o.invoice_number} — {formatCurrency(o.amount_remaining ?? o.total, lang)}
+                                            {formatIdentifier(o.invoice_number)} — {formatCurrency(o.amount_remaining ?? o.total, lang)}
                                         </option>
                                     ))}
                                 </select>

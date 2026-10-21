@@ -463,7 +463,7 @@ export default function Dashboard() {
                                         <span className={`tabular-nums ${
                                             ordersFilter === tab.value ? 'text-gray-500' : 'text-gray-600'
                                         }`}>
-                                            {tab.count}
+                                            {formatNumber(tab.count)}
                                         </span>
                                     </button>
                                 ))}
@@ -537,7 +537,7 @@ export default function Dashboard() {
                                                     </div>
                                                 </td>
                                                 <td className="px-2 py-3 text-gray-400 text-sm text-end tabular-nums">
-                                                    {order.items_count}
+                                                    {formatNumber(order.items_count)}
                                                 </td>
                                                 <td className="px-2 py-3 text-white text-sm font-medium text-end tabular-nums">
                                                     {formatNumber(order.total)} <span className="text-gray-500 text-xs font-normal">{t('common.currency')}</span>

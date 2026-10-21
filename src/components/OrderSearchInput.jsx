@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatCurrency } from '../lib/format'
+import { formatCurrency, formatIdentifier } from '../lib/format'
 
 export default function OrderSearchInput({
     orders,
@@ -84,7 +84,7 @@ export default function OrderSearchInput({
         return (
             <div className="flex items-center justify-between px-3 py-2.5 bg-gray-800 border border-gray-700 rounded-lg">
                 <div className="min-w-0">
-                    <span className="text-white text-sm font-medium font-mono">{selectedOrder.invoice_number}</span>
+                    <span className="text-white text-sm font-medium font-mono">{formatIdentifier(selectedOrder.invoice_number)}</span>
                     <span className="text-gray-400 text-sm ms-2">{effectiveRenderMeta(selectedOrder)}</span>
                 </div>
                 <button
@@ -124,7 +124,7 @@ export default function OrderSearchInput({
                                     }`}
                                 >
                                     <div className="flex justify-between items-center">
-                                        <span className="font-medium font-mono">{order.invoice_number}</span>
+                                        <span className="font-medium font-mono">{formatIdentifier(order.invoice_number)}</span>
                                         <span className={`text-xs ${i === highlighted ? 'text-blue-200' : 'text-gray-400'}`}>
                                             {effectiveRenderMeta(order)}
                                         </span>
@@ -191,7 +191,7 @@ export default function OrderSearchInput({
                                     onClick={() => handleBrowseSelect(order)}
                                     className="flex items-center justify-between px-4 py-3 hover:bg-gray-800 cursor-pointer transition-colors border-b border-gray-800/50"
                                 >
-                                    <span className="text-white text-sm font-medium font-mono">{order.invoice_number}</span>
+                                    <span className="text-white text-sm font-medium font-mono">{formatIdentifier(order.invoice_number)}</span>
                                     <span className="text-gray-400 text-sm">{effectiveRenderMeta(order)}</span>
                                 </div>
                             ))}

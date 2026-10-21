@@ -44,6 +44,30 @@ export function toDisplayDigits(text, lang = displayLanguage) {
     return lang === 'ar' ? value.replace(/[0-9]/g, (d) => ARABIC_DIGITS[d]) : value
 }
 
+// Invisible direction marks. Once an identifier's digits are Arabic, the browser treats a "-"
+// between two digit groups as right-to-left and swaps them: ٢٠٢٦-٠٠١ shows as ٠٠١-٢٠٢٦. The
+// override (U+202D … U+202C) shows the characters in their stored order, left to right; the
+// isolate (U+2066 … U+2069) around it keeps the Arabic text outside from moving it. Plain
+// characters, not markup, so this also works in <option>, template strings and t() values.
+const LTR_START = '\u2066\u202D'
+const LTR_END = '\u202C\u2069'
+
+// Invoice numbers, SKUs, customer and supplier codes, phones, payment references.
+// Empty values give '' so callers keep their own fallback ('—', '#12').
+export function formatIdentifier(value, lang = displayLanguage) {
+    if (value === null || value === undefined || value === '') return ''
+    const text = toDisplayDigits(value, lang)
+    return lang === 'ar' ? `${LTR_START}${text}${LTR_END}` : text
+}
+
+// Values arrive as percentages already (40 means 40%). Arabic uses its own percent sign: ٤٠٪.
+export function formatPercent(value, lang = displayLanguage, maximumFractionDigits = 2) {
+    if (value === null || value === undefined || value === '') return '—'
+    const num = Number(value)
+    if (!Number.isFinite(num)) return '—'
+    return (num / 100).toLocaleString(numberLocale(lang), { style: 'percent', maximumFractionDigits })
+}
+
 // Base-unit stock in readable form: 44 with a 12-piece box → "44 pcs (3 box + 8 pcs)".
 // Display only — the backend stores and moves base units.
 export function formatUnitBreakdown(quantity, { unit, secondary_unit, conversion_factor } = {}) {

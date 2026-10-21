@@ -5,6 +5,7 @@ import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import BackButton from '../components/BackButton'
 import { useTranslation } from '../i18n/useTranslation'
+import { formatIdentifier } from '../lib/format'
 import { upperCaseInput } from '../lib/upperCaseInput'
 
 export default function EditSupplier() {
@@ -197,7 +198,7 @@ export default function EditSupplier() {
                                 >
                                     <div>
                                         <p className="text-sm text-white">{product.name}</p>
-                                        <p className="text-xs text-gray-500">{product.sku}</p>
+                                        <p className="text-xs text-gray-500">{formatIdentifier(product.sku)}</p>
                                     </div>
                                     <button
                                         onClick={() => toggleProduct(product.id)}

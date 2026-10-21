@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import api from '../api/axios'
 import { useToast } from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatCurrency } from '../lib/format'
+import { formatCurrency, formatIdentifier } from '../lib/format'
 
 export default function ReverseSupplierPaymentModal({
     open,
@@ -111,7 +111,7 @@ export default function ReverseSupplierPaymentModal({
                             <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                                 <p className="text-blue-400 text-sm">
                                     {t('suppliers.balance.reverseConfirmPrefix')} <span className="font-bold">{formatCurrency(selected.amount, lang)}</span>{' '}
-                                    {t('suppliers.balance.reverseConfirmSuffix', { invoice: selected.invoice_number })}
+                                    {t('suppliers.balance.reverseConfirmSuffix', { invoice: formatIdentifier(selected.invoice_number) })}
                                     <span className="text-blue-600 text-xs ms-1">{t('suppliers.balance.reverseNote')}</span>
                                 </p>
                             </div>

@@ -9,7 +9,7 @@ import { useToast } from '../hooks/useToast'
 import RefundModal from '../components/RefundModal'
 import AddCreditModal from '../components/AddCreditModal'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatCurrency, formatDate } from '../lib/format'
+import { formatCurrency, formatDate, formatIdentifier, formatNumber } from '../lib/format'
 import NumberInput from '../components/NumberInput'
 
 const typeStyles = {
@@ -157,12 +157,12 @@ export default function CustomerBalance() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-800">
                     <div>
                         <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">{t('orders.list.totalOrders')}</p>
-                        <p className="text-white text-xl font-bold">{data.stats.total_orders}</p>
+                        <p className="text-white text-xl font-bold">{formatNumber(data.stats.total_orders)}</p>
                     </div>
                     <div>
                         <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">{t('customers.balance.unpaidOrdersCount')}</p>
                         <p className={`text-xl font-bold ${data.stats.unpaid_orders > 0 ? 'text-red-400' : 'text-gray-400'}`}>
-                            {data.stats.unpaid_orders}
+                            {formatNumber(data.stats.unpaid_orders)}
                         </p>
                     </div>
                     <div>
@@ -190,7 +190,7 @@ export default function CustomerBalance() {
                                 className={order.can_view === false
                                     ? 'cursor-default'
                                     : 'hover:bg-gray-800/50 transition-colors cursor-pointer'}>
-                                <td className="px-4 py-3 text-gray-400 text-sm font-mono">{order.invoice_number}</td>
+                                <td className="px-4 py-3 text-gray-400 text-sm font-mono">{formatIdentifier(order.invoice_number)}</td>
                                 <td className="px-4 py-3 text-white text-sm">{formatCurrency(order.total, lang)}</td>
                                 <td className="px-4 py-3 text-green-400 text-sm">{formatCurrency(order.paid, lang)}</td>
                                 <td className="px-4 py-3 text-red-400 text-sm">{formatCurrency(order.amount_remaining, lang)}</td>
@@ -230,7 +230,7 @@ export default function CustomerBalance() {
                         {visiblePayments.map(p => (
                             <tr key={p.id}
                                 className="hover:bg-gray-800/50 transition-colors">
-                                <td className="px-4 py-3 text-gray-400 text-sm font-mono">{p.invoice_number}</td>
+                                <td className="px-4 py-3 text-gray-400 text-sm font-mono">{formatIdentifier(p.invoice_number)}</td>
                                 <td className="px-4 py-3 text-white text-sm">{formatCurrency(p.amount, lang)}</td>
                                 <td className="px-4 py-3 text-orange-400 text-sm">
                                     {p.refunded_amount > 0 ? formatCurrency(p.refunded_amount, lang) : '—'}
@@ -238,7 +238,7 @@ export default function CustomerBalance() {
                                 <td className="px-4 py-3 text-green-400 text-sm">{formatCurrency(p.net_amount, lang)}</td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">{t(`enums.paymentMethod.${p.method}`)}</td>
                                     <td className="px-4 py-3 text-gray-400 text-sm">
-    {p.payment_reference ? p.payment_reference : '—'}
+    {p.payment_reference ? formatIdentifier(p.payment_reference) : '—'}
 </td>
 
                                 <td className="px-4 py-3 text-gray-400 text-sm">
@@ -313,7 +313,7 @@ export default function CustomerBalance() {
                         <div className="space-y-1">
                             {unpaidOrders.map((o, i) => (
                                 <div key={o.id} className="flex justify-between text-xs text-gray-400 bg-gray-800 px-3 py-2 rounded-lg">
-                                    <span>#{i + 1} — {o.invoice_number}</span>
+                                    <span>#{formatNumber(i + 1)} — {formatIdentifier(o.invoice_number)}</span>
                                     <span>{formatCurrency(o.amount_remaining, lang)}</span>
                                 </div>
                             ))}
@@ -332,7 +332,7 @@ export default function CustomerBalance() {
                                     <option value="">{t('customers.balance.autoPayOldest')}</option>
                                     {unpaidOrders.map(o => (
                                         <option key={o.id} value={o.id}>
-                                            {o.invoice_number} — {formatCurrency(o.amount_remaining, lang)}
+                                            {formatIdentifier(o.invoice_number)} — {formatCurrency(o.amount_remaining, lang)}
                                         </option>
                                     ))}
                                 </select>

@@ -1,6 +1,14 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { formatDate, formatNumber, formatUnitBreakdown, setDisplayLanguage, toDisplayDigits } from './formatCore.js'
+import {
+    formatDate,
+    formatIdentifier,
+    formatNumber,
+    formatPercent,
+    formatUnitBreakdown,
+    setDisplayLanguage,
+    toDisplayDigits,
+} from './formatCore.js'
 
 const MONEY = { minimumFractionDigits: 2, maximumFractionDigits: 2 }
 const WESTERN_DIGIT = /[0-9]/
@@ -61,4 +69,34 @@ test('toDisplayDigits accepts numbers and leaves empty values empty', () => {
     assert.equal(toDisplayDigits(42, 'ar'), '٤٢')
     assert.equal(toDisplayDigits(null, 'ar'), '')
     assert.equal(toDisplayDigits(undefined, 'ar'), '')
+})
+
+const START = '\u2066\u202D'
+const END = '\u202C\u2069'
+
+test('formatIdentifier gives Arabic digits kept left to right in Arabic', () => {
+    assert.equal(formatIdentifier('2026-001', 'ar'), `${START}٢٠٢٦-٠٠١${END}`)
+    assert.equal(formatIdentifier('TN-1000', 'ar'), `${START}TN-١٠٠٠${END}`)
+    assert.equal(formatIdentifier('#12', 'ar'), `${START}#١٢${END}`)
+})
+
+test('formatIdentifier leaves English exactly as it was, and empty values empty', () => {
+    assert.equal(formatIdentifier('2026-001', 'en'), '2026-001')
+    assert.equal(formatIdentifier(null, 'ar'), '')
+    assert.equal(formatIdentifier(undefined, 'ar'), '')
+    assert.equal(formatIdentifier('', 'ar'), '')
+})
+
+test('formatPercent uses the Arabic percent sign in Arabic', () => {
+    assert.ok(formatPercent(40, 'ar').startsWith('٤٠٪'), formatPercent(40, 'ar'))
+    assert.ok(formatPercent(33.33, 'ar').startsWith('٣٣٫٣٣٪'), formatPercent(33.33, 'ar'))
+    assert.equal(formatPercent(40, 'en'), '40%')
+    assert.equal(formatPercent('12.5', 'en'), '12.5%')
+    assert.equal(formatPercent(33.333, 'en', 1), '33.3%')
+})
+
+test('formatPercent shows a dash for missing values instead of 0%', () => {
+    assert.equal(formatPercent(null, 'ar'), '—')
+    assert.equal(formatPercent(undefined, 'en'), '—')
+    assert.equal(formatPercent('abc', 'en'), '—')
 })

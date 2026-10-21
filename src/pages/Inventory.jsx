@@ -8,7 +8,7 @@ import SearchInput from '../components/SearchInput'
 import { useToast } from '../hooks/useToast'
 import { useLocation } from 'react-router-dom'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatUnitBreakdown } from '../lib/format'
+import { formatNumber, formatUnitBreakdown } from '../lib/format'
 import { isShelf, sortShelfFirst } from '../lib/locations'
 import { canTransferStock } from '../lib/permissions'
 import StockTransferModal from '../components/StockTransferModal'
@@ -267,7 +267,7 @@ export default function Inventory() {
                                     })}
                                 </td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">
-                                    {item.threshold}
+                                    {formatNumber(item.threshold)}
                                 </td>
                                 <td className="px-4 py-3">
                                     {item.low_stock ? (

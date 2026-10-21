@@ -4,7 +4,7 @@ import api from "../api/axios";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useToast } from "../hooks/useToast";
 import { useTranslation } from "../i18n/useTranslation";
-import { formatCurrency, formatDate, formatTime } from "../lib/format";
+import { formatCurrency, formatDate, formatIdentifier, formatNumber, formatPercent, formatTime } from "../lib/format";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   LineChart,
@@ -199,7 +199,7 @@ export default function Reports() {
               },
               {
                 label: t('reports.print.ordersCount'),
-                value: data.summary.order_count,
+                value: formatNumber(data.summary.order_count),
                 color: "text-white",
               },
               {
@@ -240,7 +240,7 @@ export default function Reports() {
                       tick={{ fill: "#9ca3af", fontSize: 11 }}
                       tickFormatter={(d) => formatDate(d, lang, { day: '2-digit', month: '2-digit' })}
                     />
-                    <YAxis tick={{ fill: "#9ca3af", fontSize: 11 }} />
+                    <YAxis tick={{ fill: "#9ca3af", fontSize: 11 }} tickFormatter={(v) => formatNumber(v)} />
                     <Tooltip
                       contentStyle={{
                         backgroundColor: "#1f2937",
@@ -281,7 +281,7 @@ export default function Reports() {
                         name.length > 10 ? name.substring(0, 10) + "..." : name
                       }
                     />
-                    <YAxis tick={{ fill: "#9ca3af", fontSize: 11 }} />
+                    <YAxis tick={{ fill: "#9ca3af", fontSize: 11 }} tickFormatter={(v) => formatNumber(v)} />
                     <Tooltip
                       contentStyle={{
                         backgroundColor: "#1f2937",
@@ -290,7 +290,7 @@ export default function Reports() {
                       }}
                       labelStyle={{ color: "#fff" }}
                       itemStyle={{ color: "#10b981" }}
-                      formatter={(value) => [`${value}`, t('reports.unitsSold')]}
+                      formatter={(value) => [formatNumber(value), t('reports.unitsSold')]}
                     />
                     <Bar
                       dataKey="units_sold"
@@ -379,7 +379,7 @@ export default function Reports() {
                       className="hover:bg-gray-800/50 transition-colors"
                     >
                       <td className="px-4 py-2 text-gray-400 text-sm font-mono">
-                        {o.invoice_number}
+                        {formatIdentifier(o.invoice_number)}
                       </td>
                       <td className="px-4 py-2 text-white text-sm">
                         {o.customer_name}
@@ -403,7 +403,7 @@ export default function Reports() {
                                 : "bg-red-500/20 text-red-400"
                           }`}
                         >
-                          {o.margin}%
+                          {formatPercent(o.margin)}
                         </span>
                       </td>
                     </tr>
@@ -477,7 +477,7 @@ export default function Reports() {
                         {c.customer_name}
                       </td>
                       <td className="px-4 py-2 text-gray-400 text-sm">
-                        {c.orders_count}
+                        {formatNumber(c.orders_count)}
                       </td>
                       <td className="px-4 py-2 text-white text-sm">
                         {formatCurrency(c.total, lang)}
@@ -555,7 +555,7 @@ export default function Reports() {
                     className="hover:bg-gray-800/50 transition-colors"
                   >
                     <td className="px-4 py-2 text-gray-400 text-sm font-mono">
-                      {p.invoice_number}
+                      {formatIdentifier(p.invoice_number)}
                     </td>
                     <td className="px-4 py-2 text-white text-sm">
                       {p.customer_name}
@@ -645,7 +645,7 @@ export default function Reports() {
                         {formatDate(day.date, lang)}
                       </td>
                       <td className="px-4 py-3 text-white text-sm">
-                        {day.orders}
+                        {formatNumber(day.orders)}
                       </td>
                       <td className="px-4 py-3 text-white text-sm font-semibold">
                         {formatCurrency(day.revenue, lang)}

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from '../i18n/useTranslation'
+import { formatIdentifier } from '../lib/format'
 
 export default function CustomerSearchInput({ customers, value, onSelect, placeholder, autoFocus = false }) {
     const { t } = useTranslation()
@@ -83,9 +84,9 @@ export default function CustomerSearchInput({ customers, value, onSelect, placeh
                     </div>
                     <div className="min-w-0">
                         <span className="text-white text-sm font-medium">{selectedCustomer.name}</span>
-                        <span className="text-gray-400 text-sm ms-2">{selectedCustomer.phone}</span>
+                        <span className="text-gray-400 text-sm ms-2">{formatIdentifier(selectedCustomer.phone)}</span>
                         {selectedCustomer.code && (
-                            <span className="text-gray-500 text-xs ms-2">{selectedCustomer.code}</span>
+                            <span className="text-gray-500 text-xs ms-2">{formatIdentifier(selectedCustomer.code)}</span>
                         )}
                     </div>
                 </div>
@@ -128,10 +129,10 @@ export default function CustomerSearchInput({ customers, value, onSelect, placeh
                                 >
                                     <div className="flex justify-between items-center">
                                         <span className="font-medium">{customer.name}</span>
-                                        <span className={`text-xs ${i === highlighted ? 'text-blue-200' : 'text-gray-400'}`}>{customer.phone}</span>
+                                        <span className={`text-xs ${i === highlighted ? 'text-blue-200' : 'text-gray-400'}`}>{formatIdentifier(customer.phone)}</span>
                                     </div>
                                     {customer.code && (
-                                        <div className={`text-xs mt-0.5 ${i === highlighted ? 'text-blue-200' : 'text-gray-500'}`}>{customer.code}</div>
+                                        <div className={`text-xs mt-0.5 ${i === highlighted ? 'text-blue-200' : 'text-gray-500'}`}>{formatIdentifier(customer.code)}</div>
                                     )}
                                 </div>
                             ))}
@@ -203,11 +204,11 @@ export default function CustomerSearchInput({ customers, value, onSelect, placeh
                                         <div>
                                             <p className="text-white text-sm font-medium">{customer.name}</p>
                                             {customer.code && (
-                                                <p className="text-gray-500 text-xs mt-0.5">{customer.code}</p>
+                                                <p className="text-gray-500 text-xs mt-0.5">{formatIdentifier(customer.code)}</p>
                                             )}
                                         </div>
                                     </div>
-                                    <p className="text-gray-400 text-sm">{customer.phone}</p>
+                                    <p className="text-gray-400 text-sm">{formatIdentifier(customer.phone)}</p>
                                 </div>
                             ))}
                             {browseFiltered.length === 0 && (

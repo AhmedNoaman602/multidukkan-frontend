@@ -5,7 +5,7 @@ import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import BackButton from '../components/BackButton'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatCurrency, formatDate } from '../lib/format'
+import { formatCurrency, formatDate, formatIdentifier, formatNumber } from '../lib/format'
 
 export default function PurchaseOrderDetail() {
     const { id } = useParams()
@@ -71,7 +71,7 @@ export default function PurchaseOrderDetail() {
                 <div className="flex items-start justify-between">
                     <div>
                         <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">{t('common.invoice')}</p>
-                        <p className="text-white text-2xl font-bold font-mono">{order.invoice_number}</p>
+                        <p className="text-white text-2xl font-bold font-mono">{formatIdentifier(order.invoice_number)}</p>
                     </div>
                     <span className={`px-3 py-1 rounded-lg text-sm font-medium ${
                         order.status === 'paid'
@@ -87,7 +87,7 @@ export default function PurchaseOrderDetail() {
                         <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">{t('common.supplier')}</p>
                         <p className="text-white text-sm font-medium">{order.supplier_name}</p>
                         {order.supplier_phone && (
-                            <p className="text-gray-400 text-sm">{order.supplier_phone}</p>
+                            <p className="text-gray-400 text-sm">{formatIdentifier(order.supplier_phone)}</p>
                         )}
                     </div>
                     <div>
@@ -118,7 +118,7 @@ export default function PurchaseOrderDetail() {
                             <tr key={index}>
                                 <td className="py-3 text-white text-sm">{item.product_name}</td>
                                 <td className="py-3 text-gray-400 text-sm">
-                                    {item.quantity}
+                                    {formatNumber(item.quantity)}
                                     {item.unit_label && (
                                         <span className={`ms-1 text-xs ${item.unit_type !== 'base' ? 'text-blue-400' : 'text-gray-500'}`}>{item.unit_label}</span>
                                     )}

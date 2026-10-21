@@ -4,7 +4,7 @@ import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import BackButton from '../components/BackButton'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatCurrency, formatDate, formatUnitBreakdown } from '../lib/format'
+import { formatCurrency, formatDate, formatIdentifier, formatNumber, formatPercent, formatUnitBreakdown } from '../lib/format'
 import { isShelf, sortShelfFirst } from '../lib/locations'
 import { canViewCostData } from '../lib/permissions'
 
@@ -48,7 +48,7 @@ export default function ProductDetail() {
                 <div className="flex items-start justify-between mb-4">
                     <div>
                         <h2 className="text-2xl font-bold text-white">{product.name}</h2>
-                        <p className="text-gray-400 text-sm mt-1">{t('search.product.skuLabel', { sku: product.sku })}</p>
+                        <p className="text-gray-400 text-sm mt-1">{t('search.product.skuLabel', { sku: formatIdentifier(product.sku) })}</p>
                     </div>
                     <span className={`px-3 py-1 rounded-lg text-sm font-medium ${
                         totalStock > 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
@@ -73,7 +73,7 @@ export default function ProductDetail() {
                             <div>
                                 <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">{t('products.profitMargin')}</p>
                                 <p className="text-blue-400 text-lg font-semibold">
-                                    {product.profit_margin != null ? `${product.profit_margin}%` : '—'}
+                                    {formatPercent(product.profit_margin)}
                                 </p>
                             </div>
                         </>
@@ -147,7 +147,7 @@ export default function ProductDetail() {
                                         {formatUnitBreakdown(s.quantity, product)}
                                     </span>
                                 </td>
-                                <td className="px-4 py-3 text-gray-400 text-sm">{s.threshold}</td>
+                                <td className="px-4 py-3 text-gray-400 text-sm">{formatNumber(s.threshold)}</td>
                             </tr>
                         ))}
                     </tbody>
@@ -176,7 +176,7 @@ export default function ProductDetail() {
                             <tr key={s.id} className="hover:bg-gray-800/50">
                                 <td className="px-4 py-3 text-white text-sm">{s.name}</td>
                                 <td className="px-4 py-3 text-white text-sm">
-                                    {s.cost_price ?? s.last_purchase_price ?? '—'}
+                                    {(s.cost_price ?? s.last_purchase_price) != null ? formatNumber(s.cost_price ?? s.last_purchase_price, { maximumFractionDigits: 4 }) : '—'}
                                 </td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">{s.last_purchased_at ? formatDate(s.last_purchased_at, lang) : '—'}</td>
                                 <td className="px-4 py-3 text-sm">{s.is_preferred ? '⭐' : ''}</td>

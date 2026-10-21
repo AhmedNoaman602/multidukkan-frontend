@@ -5,7 +5,7 @@ import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import { useToast } from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatCurrency, formatDate } from '../lib/format'
+import { formatCurrency, formatDate, formatIdentifier, formatNumber } from '../lib/format'
 
 export default function OrderInvoice() {
     const { id } = useParams()
@@ -101,7 +101,7 @@ const mergedItems = order.items?.reduce((acc, item) => {
                     </div>
                     <div className="text-end">
                         <p className="text-2xl font-bold text-gray-900">{t('common.invoice')}</p>
-                        <p className="text-gray-500 text-sm mt-1">#{order.invoice_number}</p>
+                        <p className="text-gray-500 text-sm mt-1">{formatIdentifier(`#${order.invoice_number}`)}</p>
                     </div>
                 </div>
 
@@ -114,7 +114,7 @@ const mergedItems = order.items?.reduce((acc, item) => {
                         <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">{t('orders.invoice.billTo')}</p>
                         <p className="text-gray-900 font-semibold">{order.customer_name}</p>
                         {order.customer_phone && (
-                            <p className="text-gray-500 text-sm">{order.customer_phone}</p>
+                            <p className="text-gray-500 text-sm">{formatIdentifier(order.customer_phone)}</p>
                         )}
                     </div>
                     <div className="text-end">
@@ -149,7 +149,7 @@ const mergedItems = order.items?.reduce((acc, item) => {
                             <tr key={index} className="border-b border-gray-100">
                                 <td className="py-3 text-gray-900 text-sm">{item.product_name}</td>
                                 <td className="py-3 text-center text-gray-600 text-sm">
-                                    {item.quantity}
+                                    {formatNumber(item.quantity)}
                                     {item.unit_label && <span className="ms-1 text-xs text-gray-400">{item.unit_label}</span>}
                                 </td>
                                 <td className="py-3 text-end text-gray-600 text-sm">{formatCurrency(item.unit_price, lang)}</td>

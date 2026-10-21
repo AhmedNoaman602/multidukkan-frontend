@@ -12,7 +12,7 @@ import RefundModal from '../components/RefundModal'
 import {useToast} from '../hooks/useToast'
 import QuickSaleModal from '../components/QuickSaleModal'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatCurrency, formatDate, formatNumber } from '../lib/format'
+import { formatCurrency, formatDate, formatIdentifier, formatNumber } from '../lib/format'
 import NumberInput from '../components/NumberInput'
 
 const PAY_METHODS = ['cash', 'bank_transfer', 'check']
@@ -325,7 +325,7 @@ const fetchQuickSaleData = async () => {
                                 className="hover:bg-gray-800/50 transition-colors cursor-pointer"
                             >
                                 <td className="px-4 py-3 text-gray-400 text-sm font-mono">
-                                    {order.invoice_number || `#${order.id}`}
+                                    {formatIdentifier(order.invoice_number || `#${order.id}`)}
                                 </td>
                                 <td className="px-4 py-3 text-white text-sm font-medium">{order.customer_name}</td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">{order.items_count} {t('orders.list.unit')}</td>
@@ -426,7 +426,7 @@ const fetchQuickSaleData = async () => {
                     setPayTarget(null)
                     setPayForm({ amount: '', method: 'cash' })
                 }}
-                title={t('orders.payModal.title', { invoice: payTarget?.invoice_number })}
+                title={t('orders.payModal.title', { invoice: formatIdentifier(payTarget?.invoice_number) })}
             >
                 {payTarget && (
                     <form onSubmit={handlePay} className="space-y-4">

@@ -7,6 +7,7 @@ import { useToast } from '../hooks/useToast'
 import DeleteModal from '../components/DeleteModal'
 import Modal from '../components/Modal'
 import { useTranslation } from '../i18n/useTranslation'
+import { formatIdentifier } from '../lib/format'
 import { isShelf, sortShelfFirst } from '../lib/locations'
 
 export default function Settings() {
@@ -415,7 +416,7 @@ const handleDeleteUnit = async () => {
                                     <tr key={s.id} className="hover:bg-gray-800/50 transition-colors">
                                         <td className="px-4 py-3 text-white text-sm font-medium">{s.name}</td>
                                         <td className="px-4 py-3 text-gray-400 text-sm">{s.address || '—'}</td>
-                                        <td className="px-4 py-3 text-gray-400 text-sm">{s.phone || '—'}</td>
+                                        <td className="px-4 py-3 text-gray-400 text-sm">{s.phone ? formatIdentifier(s.phone) : '—'}</td>
                                         <td className="px-4 py-3">
                                             {stores.length > 1 && (
                                                 <button onClick={() => setDeleteTargetStore(s)} className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-medium rounded-lg transition-colors">{t('common.delete')}</button>

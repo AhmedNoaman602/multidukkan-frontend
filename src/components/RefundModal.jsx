@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import api from '../api/axios'
 import { useToast } from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatCurrency } from '../lib/format'
+import { formatCurrency, formatIdentifier } from '../lib/format'
 import NumberInput from './NumberInput'
 
 const REFUND_METHODS = ['cash', 'bank_transfer', 'check']
@@ -120,7 +120,7 @@ export default function RefundModal({
                                     <option value="">{t('customers.balance.refundAllPayments')}</option>
                                     {filteredPayments.map(p => (
                                         <option key={p.id} value={p.id}>
-                                            {p.invoice_number} — {formatCurrency(p.amount - (p.refunded_amount ?? 0), lang)} {t('common.net')}
+                                            {formatIdentifier(p.invoice_number)} — {formatCurrency(p.amount - (p.refunded_amount ?? 0), lang)} {t('common.net')}
                                         </option>
                                     ))}
                                 </select>
