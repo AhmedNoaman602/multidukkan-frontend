@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatIdentifier } from '../lib/format'
+import { matchesSearch } from '../lib/search'
 
 export default function CustomerSearchInput({ customers, value, onSelect, placeholder, autoFocus = false }) {
     const { t } = useTranslation()
@@ -12,10 +13,7 @@ export default function CustomerSearchInput({ customers, value, onSelect, placeh
     const [browseQuery, setBrowseQuery] = useState('')
     const ref = useRef(null)
 
-    const filterFn = (q) => (c) =>
-        c.name.toLowerCase().includes(q.toLowerCase()) ||
-        (c.phone && c.phone.includes(q)) ||
-        (c.code && c.code.toLowerCase().includes(q.toLowerCase()))
+    const filterFn = (q) => (c) => matchesSearch(c.name, q) || matchesSearch(c.phone, q) || matchesSearch(c.code, q)
 
     const filtered = query.length > 0
         ? customers.filter(filterFn(query)).slice(0, 8)

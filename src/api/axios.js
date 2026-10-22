@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { STORAGE_KEY, DEFAULT_LANG, LANGUAGES } from '../i18n/translate'
+import { normalizeSearchParams } from '../lib/search'
 
 // Create a single axios instance used by every page in the app.
 // Configuring it once here means we don't repeat baseURL or headers everywhere.
@@ -42,6 +43,11 @@ api.interceptors.request.use((config) => {
     } catch {
         // Older browsers without a resolvable zone fall back to the server default.
     }
+
+    // Search boxes may hold Arabic digits (٢٠٢٦) or a pasted identifier with hidden marks.
+    // Codes, phones and invoice numbers are stored with Western digits, so the search and q
+    // params go out that way too.
+    config.params = normalizeSearchParams(config.params)
 
     // Must return config for the request to proceed
     return config

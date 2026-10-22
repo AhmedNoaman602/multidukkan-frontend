@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatCurrency, formatIdentifier } from '../lib/format'
+import { matchesSearch } from '../lib/search'
 
 export default function OrderSearchInput({
     orders,
@@ -19,8 +20,7 @@ export default function OrderSearchInput({
     const [browseQuery, setBrowseQuery] = useState('')
     const ref = useRef(null)
 
-    const filterFn = (q) => (o) =>
-        o.invoice_number?.toLowerCase().includes(q.toLowerCase())
+    const filterFn = (q) => (o) => matchesSearch(o.invoice_number, q)
 
     const filtered = query.length > 0
         ? orders.filter(filterFn(query)).slice(0, 8)

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatIdentifier, formatNumber } from '../lib/format'
+import { matchesSearch } from '../lib/search'
 
 export default function ProductSearchInput({ products, onSelect, showCostPrice = false, placeholder, inputRef: externalRef, disabled = false }) {
     const { t } = useTranslation()
@@ -15,17 +16,11 @@ export default function ProductSearchInput({ products, onSelect, showCostPrice =
     const inputRefToUse = externalRef || internalInputRef
 
     const filtered = query.length > 0
-        ? products.filter(p =>
-            p.name.toLowerCase().includes(query.toLowerCase()) ||
-            (p.sku && p.sku.toLowerCase().includes(query.toLowerCase()))
-          ).slice(0, 8)
+        ? products.filter(p => matchesSearch(p.name, query) || matchesSearch(p.sku, query)).slice(0, 8)
         : []
 
     const browseFiltered = browseQuery.length > 0
-        ? products.filter(p =>
-            p.name.toLowerCase().includes(browseQuery.toLowerCase()) ||
-            (p.sku && p.sku.toLowerCase().includes(browseQuery.toLowerCase()))
-          )
+        ? products.filter(p => matchesSearch(p.name, browseQuery) || matchesSearch(p.sku, browseQuery))
         : products
 
     useEffect(() => {

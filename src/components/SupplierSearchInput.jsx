@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatIdentifier } from '../lib/format'
+import { matchesSearch } from '../lib/search'
 
 export default function SupplierSearchInput({ suppliers, value, onSelect, placeholder, autoFocus = false }) {
     const { t } = useTranslation()
@@ -12,10 +13,7 @@ export default function SupplierSearchInput({ suppliers, value, onSelect, placeh
     const [browseQuery, setBrowseQuery] = useState('')
     const ref = useRef(null)
 
-    const filterFn = (q) => (s) =>
-        s.name.toLowerCase().includes(q.toLowerCase()) ||
-        (s.phone && s.phone.includes(q)) ||
-        (s.code && s.code.toLowerCase().includes(q.toLowerCase()))
+    const filterFn = (q) => (s) => matchesSearch(s.name, q) || matchesSearch(s.phone, q) || matchesSearch(s.code, q)
 
     const filtered = query.length > 0
         ? suppliers.filter(filterFn(query)).slice(0, 8)

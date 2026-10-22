@@ -31,7 +31,7 @@ export default function GlobalSearch({ open, onClose }) {
         const timeout = setTimeout(async () => {
             setLoading(true)
             try {
-                const res = await api.get(`/search?q=${query}`)
+                const res = await api.get('/search', { params: { q: query } })
                 setResults({
                     customers:      res.data.customers ?? [],
                     products:       res.data.products ?? [],
