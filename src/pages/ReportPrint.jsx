@@ -78,7 +78,9 @@ export default function ReportPrint() {
                     </div>
                     <div className="text-end">
                         <p className="text-gray-500 text-sm">
-                            {from === to ? from : t('reports.print.dateRange', { from, to })}
+                            {from === to
+                                ? formatDate(from, lang)
+                                : t('reports.print.dateRange', { from: formatDate(from, lang), to: formatDate(to, lang) })}
                         </p>
                         <p className="text-gray-400 text-xs mt-1">
                             {t('reports.print.printedOn', { date: formatDate(new Date(), lang) })}
