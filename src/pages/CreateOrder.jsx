@@ -221,17 +221,17 @@ export default function CreateOrder() {
     if (loading) return <LoadingSpinner />
 
     return (
-        <div>
+        <div className="pb-24 lg:pb-0">
             <div className="flex items-center gap-4 mb-5">
                 <BackButton label={t('orders.create.backToOrders')} to="/orders" />
                 <h2 className="text-2xl font-bold text-white">{t('orders.create.title')}</h2>
             </div>
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4 lg:block">
                 {/* Store + Customer row */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                <div className="contents lg:grid lg:grid-cols-3 lg:gap-4 lg:mb-4">
                     {!user.store_id && (
-                        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+                        <div className="order-1 lg:order-none bg-gray-900 border border-gray-800 rounded-xl p-4">
                             <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wider">{t('common.store')}</label>
                             <select
                                 value={storeId}
@@ -244,7 +244,7 @@ export default function CreateOrder() {
                             </select>
                         </div>
                     )}
-                    <div className={`bg-gray-900 border border-gray-800 rounded-xl p-4 ${user.store_id ? 'col-span-2' : ''}`}>
+                    <div className={`order-3 lg:order-none bg-gray-900 border border-gray-800 rounded-xl p-4 ${user.store_id ? 'col-span-2' : ''}`}>
                         <label className="flex items-center gap-1.5 text-xs text-gray-400 mb-1.5 uppercase tracking-wider">
                             <span className="flex items-center justify-center w-4 h-4 rounded-full bg-gray-700 text-gray-300 text-[10px] normal-case">2</span>
                             {t('orders.create.addProduct')}
@@ -257,7 +257,7 @@ export default function CreateOrder() {
                             placeholder={!customerId ? t('orders.create.selectCustomerFirst') : undefined}
                         />
                     </div>
-                    <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+                    <div className="order-4 lg:order-none bg-gray-900 border border-gray-800 rounded-xl p-4">
     <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wider">
         {t('orders.create.orderDate')}
     </label>
@@ -272,10 +272,10 @@ export default function CreateOrder() {
                 </div>
 
                 {/* Main: items table (left) + sticky panel (right) */}
-                <div className="flex flex-col lg:flex-row gap-4 items-start">
+                <div className="contents lg:flex lg:flex-row lg:gap-4 lg:items-start">
 
                     {/* Items table */}
-                    <div className="flex-1 bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto min-w-0">
+                    <div className="order-5 lg:order-none flex-1 bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto min-w-0">
                         <div className="px-4 py-2.5 border-b border-gray-800 flex items-center justify-between">
                             <h3 className="text-white text-sm font-semibold">
                                 {items.length > 0 ? t('orders.create.itemsCount', { count: items.length }) : t('orders.create.items')}
@@ -443,10 +443,10 @@ export default function CreateOrder() {
                     </div>
 
                     {/* Sticky right panel */}
-                    <div className="w-full lg:w-[340px] shrink-0 lg:sticky lg:top-4 space-y-3">
+                    <div className="contents lg:block lg:w-[340px] lg:shrink-0 lg:sticky lg:top-4 lg:space-y-3">
 
                         {/* Customer search */}
-                        <div id="customer-panel" className="bg-gray-900 border border-gray-800 rounded-xl p-4 scroll-mt-20">
+                        <div id="customer-panel" className="order-2 lg:order-none bg-gray-900 border border-gray-800 rounded-xl p-4 scroll-mt-20">
                             <p className="flex items-center gap-1.5 text-[11px] text-gray-400 mb-2 uppercase tracking-wider font-medium">
                                 <span className="flex items-center justify-center w-4 h-4 rounded-full bg-blue-600 text-white text-[10px] normal-case">1</span>
                                 {t('common.customer')}
@@ -460,7 +460,7 @@ export default function CreateOrder() {
                         </div>
 
                         {/* Summary */}
-                        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-2.5">
+                        <div className="order-6 lg:order-none bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-2.5">
                             <p className="text-[11px] text-gray-400 uppercase tracking-wider font-medium">{t('orders.create.summary')}</p>
 
                             <div className="flex justify-between text-sm text-gray-400">
