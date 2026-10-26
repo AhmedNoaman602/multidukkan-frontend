@@ -177,7 +177,7 @@ export default function EditProduct() {
                             className={`w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm rtl:text-right ${codeBoxClass(form.sku)}`}
                         />
                     </div>
-                    <div className="col-span-2">
+                    <div className="sm:col-span-2">
     <label className="block text-sm text-gray-400 mb-1">
         {t('products.form.supplier')} <span className="text-gray-600">({t('common.optional')})</span>
     </label>
@@ -224,7 +224,7 @@ export default function EditProduct() {
                         </select>
                     </div>
 
-                                            <div className="col-span-2">
+                                            <div className="sm:col-span-2">
     <div className="flex items-center justify-between mb-1">
         <label className="block text-sm text-gray-400">{t('products.form.description')}</label>
         <button
@@ -287,7 +287,7 @@ export default function EditProduct() {
                     </div>
 
                     {/* Stock by location — set to the amount entered; the server converts and logs the difference */}
-                    <div className="col-span-2">
+                    <div className="sm:col-span-2">
                         <StockLocationEditor
                             rows={stocks}
                             onChange={setStocks}
@@ -299,7 +299,7 @@ export default function EditProduct() {
                         />
                     </div>
 
-                    <div className="col-span-2 pt-2">
+                    <div className="sm:col-span-2 pt-2">
                         <button
                             type="submit"
                             disabled={saving}
