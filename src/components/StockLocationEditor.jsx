@@ -66,21 +66,22 @@ export default function StockLocationEditor({ rows, onChange, warehouses, stores
                 )}
             </div>
 
-            <div className="overflow-auto max-h-80">
-            <table className="w-full">
-                <thead className="bg-gray-800 sticky top-0 z-10">
+            <div className="sm:overflow-auto sm:max-h-80">
+            <table className="w-full block sm:table">
+                <thead className="hidden sm:table-header-group bg-gray-800 sticky top-0 z-10">
                     <tr>
                         {['common.warehouse', 'common.quantity', 'products.form.threshold', null].map(key => (
                             <th key={key ?? 'actions'} className="px-3 py-2 text-start text-[11px] font-medium text-gray-400 uppercase tracking-wider">{key ? t(key) : ''}</th>
                         ))}
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-800/60">
+                <tbody className="block sm:table-row-group divide-y divide-gray-800/60">
                     {rows.map((row, i) => {
                         const location = warehouses.find(w => w.id === parseInt(row.warehouse_id))
                         return (
-                            <tr key={i} className="hover:bg-gray-800/30 transition-colors align-top">
-                                <td className="px-3 py-2">
+                            <tr key={i} className="relative grid grid-cols-2 gap-x-3 gap-y-2 p-3 sm:p-0 sm:table-row hover:bg-gray-800/30 transition-colors align-top">
+                                <td className="col-span-2 pe-8 sm:px-3 sm:py-2">
+                                    <span className="block sm:hidden mb-1 text-[11px] text-gray-400">{t('common.warehouse')}</span>
                                     {row.isNew ? (
                                         <select value={row.warehouse_id} onChange={e => update(i, { warehouse_id: e.target.value })} className={`w-full ${cell}`}>
                                             <option value="">{t('products.form.chooseWarehouse')}</option>
@@ -95,14 +96,15 @@ export default function StockLocationEditor({ rows, onChange, warehouses, stores
                                         </div>
                                     )}
                                 </td>
-                                <td className="px-3 py-2">
+                                <td className="sm:px-3 sm:py-2">
+                                    <span className="block sm:hidden mb-1 text-[11px] text-gray-400">{t('common.quantity')}</span>
                                     <NumberInput decimals={0}
 
                                         min="0"
 
                                         value={row.quantity}
                                         onChange={e => update(i, { quantity: e.target.value, quantityEdited: true })}
-                                        className={`w-24 text-center ${cell}`}
+                                        className={`w-full sm:w-24 text-center ${cell}`}
                                     />
                                     {hasSecondary && (
                                         <div className="flex flex-wrap gap-1 mt-1 items-center">
@@ -140,18 +142,19 @@ export default function StockLocationEditor({ rows, onChange, warehouses, stores
                                         </div>
                                     )}
                                 </td>
-                                <td className="px-3 py-2">
+                                <td className="sm:px-3 sm:py-2">
+                                    <span className="block sm:hidden mb-1 text-[11px] text-gray-400">{t('products.form.threshold')}</span>
                                     <NumberInput decimals={0}
 
                                         min="0"
                                         value={row.threshold}
                                         onChange={e => update(i, { threshold: e.target.value })}
-                                        className={`w-24 text-center ${cell}`}
+                                        className={`w-full sm:w-24 text-center ${cell}`}
                                     />
                                 </td>
-                                <td className="px-3 py-2">
+                                <td className="absolute top-2 end-2 sm:static sm:px-3 sm:py-2">
                                     {row.isNew && (
-                                        <button type="button" onClick={() => remove(i)} className="text-gray-600 hover:text-red-400 transition-colors text-xs">✕</button>
+                                        <button type="button" onClick={() => remove(i)} className="p-2 sm:p-0 text-gray-600 hover:text-red-400 transition-colors text-xs">✕</button>
                                     )}
                                 </td>
                             </tr>
