@@ -142,7 +142,7 @@ export default function CreateProduct() {
     }
 
     return (
-        <div>
+        <div className="pb-24">
             <div className="flex items-center gap-4 mb-6">
                 <BackButton label={t('products.create.backToProducts')} to="/products" />
                 <h2 className="text-2xl font-bold text-white">{t('products.create.title')}</h2>
@@ -175,7 +175,7 @@ export default function CreateProduct() {
                                 className={`w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm rtl:text-right ${codeBoxClass(form.sku)}`}
                             />
                         </div>
-                        <div className="col-span-2">
+                        <div className="sm:col-span-2">
     <label className="block text-sm text-gray-400 mb-1">
         {t('products.form.supplier')} <span className="text-gray-600">({t('common.optional')})</span>
     </label>
@@ -250,7 +250,7 @@ export default function CreateProduct() {
                             )}
                         </div>
 
-                        <div className="col-span-2">
+                        <div className="sm:col-span-2">
     <div className="flex items-center justify-between mb-1">
         <label className="block text-sm text-gray-400">{t('products.form.description')}</label>
     </div>
