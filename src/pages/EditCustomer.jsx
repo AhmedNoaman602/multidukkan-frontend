@@ -21,6 +21,7 @@ export default function EditCustomer() {
     const { data, isLoading, isError } = useQuery({
         queryKey: ['customers', id],
         queryFn: () => api.get(`/customers/${id}`).then(res => res.data.data),
+        gcTime: 0,
     })
 
     useEffect(() => {

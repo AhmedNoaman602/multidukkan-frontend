@@ -33,6 +33,7 @@ export default function EditSupplier() {
             attachedIds: attachedRes.data.data.products.map(p => p.id),
             allProducts: allProductsRes.data.data,
         })),
+        gcTime: 0,
     })
 
     useEffect(() => {

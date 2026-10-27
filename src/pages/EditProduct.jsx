@@ -46,6 +46,7 @@ export default function EditProduct() {
             linkedSupplierIds: linkedRes.data.data.map(s => s.id),
             stores: storeRes.data.data,
         })),
+        gcTime: 0,
     })
 
     useEffect(() => {
