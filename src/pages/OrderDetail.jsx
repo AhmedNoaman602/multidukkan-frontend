@@ -8,7 +8,7 @@ import { useToast } from '../hooks/useToast'
 import AddItemModal from '../components/AddItemModal'
 import DeleteModal from '../components/DeleteModal'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatCurrency, formatDate, formatIdentifier, formatNumber, formatPercent } from '../lib/format'
+import { formatCode, formatCurrency, formatDate, formatIdentifier, formatNumber, formatPercent } from '../lib/format'
 import { parseNumber, reportInvalidNumberInput } from '../lib/number'
 import { canViewCostData } from '../lib/permissions'
 import NumberInput from '../components/NumberInput'
@@ -226,7 +226,7 @@ const displayTotal = editMode
                         <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">{t('common.customer')}</p>
                         <p className="text-white text-sm font-medium">{order.customer_name}</p>
                         {order.customer_phone && (
-                            <p className="text-gray-400 text-sm">{formatIdentifier(order.customer_phone)}</p>
+                            <p className="text-gray-400 text-sm">{formatCode(order.customer_phone)}</p>
                         )}
                     </div>
                     <div>

@@ -5,7 +5,7 @@ import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import BackButton from '../components/BackButton'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatIdentifier } from '../lib/format'
+import { formatCode } from '../lib/format'
 import { codeBoxClass, codeInput, displayIdentifier, phoneInput } from '../lib/identifierInput'
 
 export default function EditSupplier() {
@@ -200,7 +200,7 @@ export default function EditSupplier() {
                                 >
                                     <div>
                                         <p className="text-sm text-white">{product.name}</p>
-                                        <p className="text-xs text-gray-500">{formatIdentifier(product.sku)}</p>
+                                        <p className="text-xs text-gray-500">{formatCode(product.sku)}</p>
                                     </div>
                                     <button
                                         onClick={() => toggleProduct(product.id)}

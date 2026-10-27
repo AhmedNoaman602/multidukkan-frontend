@@ -9,7 +9,7 @@ import ProductSearchInput from '../components/ProductSearchInput'
 import SupplierSearchInput from '../components/SupplierSearchInput'
 import { useToast } from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatIdentifier, formatNumber } from '../lib/format'
+import { formatCode, formatNumber } from '../lib/format'
 import { parseNumber } from '../lib/number'
 import NumberInput from '../components/NumberInput'
 import { changeLinePrice, changeLineUnit, confirmLinePrice, convertLinePrice, convertedPrice, needsPriceReview, newLine } from '../lib/purchaseLine'
@@ -399,7 +399,7 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
                                             >
                                                 <td className="px-2.5 py-1.5">
                                                     <p className="text-white text-sm leading-tight">{product?.name ?? '—'}</p>
-                                                    {product?.sku && <p className="text-gray-500 text-[10px]">{formatIdentifier(product.sku)}</p>}
+                                                    {product?.sku && <p className="text-gray-500 text-[10px]">{formatCode(product.sku)}</p>}
                                                 </td>
                                                 <td className="px-2.5 py-1.5">
                                                     <NumberInput decimals={0}
@@ -475,7 +475,7 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
                                             <div className="flex items-start justify-between gap-2">
                                                 <div className="min-w-0">
                                                     <p className="text-white text-sm leading-tight truncate">{product?.name ?? '—'}</p>
-                                                    {product?.sku && <p className="text-gray-500 text-[10px] truncate">{formatIdentifier(product.sku)}</p>}
+                                                    {product?.sku && <p className="text-gray-500 text-[10px] truncate">{formatCode(product.sku)}</p>}
                                                 </div>
                                                 <button
                                                     type="button"

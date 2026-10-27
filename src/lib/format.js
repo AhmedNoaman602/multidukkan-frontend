@@ -6,6 +6,7 @@ import { formatNumber, getDisplayLanguage } from './formatCore'
 
 export {
     TIME_OPTS,
+    formatCode,
     formatDate,
     formatDateTime,
     formatIdentifier,

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatIdentifier } from '../lib/format'
+import { formatCode } from '../lib/format'
 import { matchesSearch } from '../lib/search'
 
 export default function SupplierSearchInput({ suppliers, value, onSelect, placeholder, autoFocus = false }) {
@@ -82,9 +82,9 @@ export default function SupplierSearchInput({ suppliers, value, onSelect, placeh
                     </div>
                     <div className="min-w-0">
                         <span className="text-white text-sm font-medium">{selectedSupplier.name}</span>
-                        <span className="text-gray-400 text-sm ms-2">{formatIdentifier(selectedSupplier.phone)}</span>
+                        <span className="text-gray-400 text-sm ms-2">{formatCode(selectedSupplier.phone)}</span>
                         {selectedSupplier.code && (
-                            <span className="text-gray-500 text-xs ms-2">{formatIdentifier(selectedSupplier.code)}</span>
+                            <span className="text-gray-500 text-xs ms-2">{formatCode(selectedSupplier.code)}</span>
                         )}
                     </div>
                 </div>
@@ -127,10 +127,10 @@ export default function SupplierSearchInput({ suppliers, value, onSelect, placeh
                                 >
                                     <div className="flex justify-between items-center">
                                         <span className="font-medium">{supplier.name}</span>
-                                        <span className={`text-xs ${i === highlighted ? 'text-blue-200' : 'text-gray-400'}`}>{formatIdentifier(supplier.phone)}</span>
+                                        <span className={`text-xs ${i === highlighted ? 'text-blue-200' : 'text-gray-400'}`}>{formatCode(supplier.phone)}</span>
                                     </div>
                                     {supplier.code && (
-                                        <div className={`text-xs mt-0.5 ${i === highlighted ? 'text-blue-200' : 'text-gray-500'}`}>{formatIdentifier(supplier.code)}</div>
+                                        <div className={`text-xs mt-0.5 ${i === highlighted ? 'text-blue-200' : 'text-gray-500'}`}>{formatCode(supplier.code)}</div>
                                     )}
                                 </div>
                             ))}
@@ -201,11 +201,11 @@ export default function SupplierSearchInput({ suppliers, value, onSelect, placeh
                                         <div>
                                             <p className="text-white text-sm font-medium">{supplier.name}</p>
                                             {supplier.code && (
-                                                <p className="text-gray-500 text-xs mt-0.5">{formatIdentifier(supplier.code)}</p>
+                                                <p className="text-gray-500 text-xs mt-0.5">{formatCode(supplier.code)}</p>
                                             )}
                                         </div>
                                     </div>
-                                    <p className="text-gray-400 text-sm">{formatIdentifier(supplier.phone)}</p>
+                                    <p className="text-gray-400 text-sm">{formatCode(supplier.phone)}</p>
                                 </div>
                             ))}
                             {browseFiltered.length === 0 && (

@@ -10,7 +10,7 @@ import StatBoxes from '../components/StatBoxes'
 import {useToast} from '../hooks/useToast'
 import DeleteModal from '../components/DeleteModal'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatCurrency, formatIdentifier, formatNumber } from '../lib/format'
+import { formatCode, formatCurrency, formatNumber } from '../lib/format'
 
 export default function Suppliers() {
     const [search, setSearch] = useState('')
@@ -114,13 +114,13 @@ export default function Suppliers() {
                                 className="hover:bg-gray-800/50 transition-colors cursor-pointer"
                             >
                                 <td className="px-4 py-3 text-white text-sm font-medium">
-                                    {formatIdentifier(supplier.code)}
+                                    {formatCode(supplier.code)}
                                 </td>
                                 <td className="px-4 py-3 text-white text-sm font-medium">
                                     {supplier.name}
                                 </td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">
-                                    {formatIdentifier(supplier.phone)}
+                                    {formatCode(supplier.phone)}
                                 </td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">
                                     {supplier.address || '—'}

@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatCurrency, formatDate, formatIdentifier, formatNumber } from '../lib/format'
+import { formatCode, formatCurrency, formatDate, formatIdentifier, formatNumber } from '../lib/format'
 
 export default function PurchaseOrderInvoice() {
     const { id } = useParams()
@@ -79,7 +79,7 @@ export default function PurchaseOrderInvoice() {
                         <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">{t('common.supplier')}</p>
                         <p className="text-gray-900 font-semibold">{order.supplier_name}</p>
                         {order.supplier_phone && (
-                            <p className="text-gray-500 text-sm">{formatIdentifier(order.supplier_phone)}</p>
+                            <p className="text-gray-500 text-sm">{formatCode(order.supplier_phone)}</p>
                         )}
                     </div>
                     <div className="text-end">
