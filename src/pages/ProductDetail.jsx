@@ -4,7 +4,7 @@ import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import BackButton from '../components/BackButton'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatCurrency, formatDate, formatIdentifier, formatNumber, formatPercent, formatUnitBreakdown } from '../lib/format'
+import { formatCode, formatCurrency, formatDate, formatNumber, formatPercent, formatUnitBreakdown } from '../lib/format'
 import { isShelf, sortShelfFirst } from '../lib/locations'
 import { canViewCostData } from '../lib/permissions'
 
@@ -48,7 +48,7 @@ export default function ProductDetail() {
                 <div className="flex items-start justify-between mb-4">
                     <div>
                         <h2 className="text-2xl font-bold text-white">{product.name}</h2>
-                        <p className="text-gray-400 text-sm mt-1">{t('search.product.skuLabel', { sku: formatIdentifier(product.sku) })}</p>
+                        <p className="text-gray-400 text-sm mt-1">{t('search.product.skuLabel', { sku: formatCode(product.sku) })}</p>
                     </div>
                     <span className={`px-3 py-1 rounded-lg text-sm font-medium ${
                         totalStock > 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'

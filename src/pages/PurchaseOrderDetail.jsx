@@ -5,7 +5,7 @@ import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import BackButton from '../components/BackButton'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatCurrency, formatDate, formatIdentifier, formatNumber } from '../lib/format'
+import { formatCode, formatCurrency, formatDate, formatIdentifier, formatNumber } from '../lib/format'
 
 export default function PurchaseOrderDetail() {
     const { id } = useParams()
@@ -87,7 +87,7 @@ export default function PurchaseOrderDetail() {
                         <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">{t('common.supplier')}</p>
                         <p className="text-white text-sm font-medium">{order.supplier_name}</p>
                         {order.supplier_phone && (
-                            <p className="text-gray-400 text-sm">{formatIdentifier(order.supplier_phone)}</p>
+                            <p className="text-gray-400 text-sm">{formatCode(order.supplier_phone)}</p>
                         )}
                     </div>
                     <div>

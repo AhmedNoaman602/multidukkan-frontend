@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
+    formatCode,
     formatDate,
     formatIdentifier,
     formatNumber,
@@ -91,6 +92,20 @@ test('formatIdentifier leaves English exactly as it was, and empty values empty'
     assert.equal(formatIdentifier(null, 'ar'), '')
     assert.equal(formatIdentifier(undefined, 'ar'), '')
     assert.equal(formatIdentifier('', 'ar'), '')
+})
+
+test('formatCode keeps Western digits on Arabic screens and still pins each separator', () => {
+    assert.equal(formatCode('TN-1000', 'ar'), `${ISOLATE}TN${LRM}-${LRM}1000${POP}`)
+    assert.equal(formatCode('S-900', 'ar'), `${ISOLATE}S${LRM}-${LRM}900${POP}`)
+    assert.equal(formatCode('010 1234', 'ar'), `${ISOLATE}010${LRM} ${LRM}1234${POP}`)
+    assert.equal(formatCode('مسمار-12', 'ar'), `${ISOLATE}مسمار${LRM}-${LRM}12${POP}`)
+})
+
+test('formatCode leaves English exactly as it was, and empty values empty', () => {
+    assert.equal(formatCode('TN-1000', 'en'), 'TN-1000')
+    assert.equal(formatCode(1000, 'ar'), `${ISOLATE}1000${POP}`)
+    assert.equal(formatCode(null, 'ar'), '')
+    assert.equal(formatCode('', 'ar'), '')
 })
 
 test('formatPercent uses the Arabic percent sign in Arabic', () => {

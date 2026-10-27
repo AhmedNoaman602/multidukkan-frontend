@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatCurrency, formatIdentifier } from '../lib/format'
+import { formatCode, formatCurrency, formatIdentifier } from '../lib/format'
 
 export default function GlobalSearch({ open, onClose }) {
     const [query, setQuery] = useState('')
@@ -52,10 +52,10 @@ export default function GlobalSearch({ open, onClose }) {
 
     // Flatten all results into one list for keyboard navigation
     const flatResults = [
-        ...results.customers.map(c => ({ type: 'customer', item: c, path: `/customers/${c.id}/balance`, label: c.name, sub: `${formatIdentifier(c.code)} · ${formatIdentifier(c.phone)}` })),
-        ...results.products.map(p => ({ type: 'product', item: p, path: `/products/${p.id}`, label: p.name, sub: `${t('search.product.skuLabel', { sku: formatIdentifier(p.sku) })} · ${formatCurrency(p.price, lang)}` })),
+        ...results.customers.map(c => ({ type: 'customer', item: c, path: `/customers/${c.id}/balance`, label: c.name, sub: `${formatCode(c.code)} · ${formatCode(c.phone)}` })),
+        ...results.products.map(p => ({ type: 'product', item: p, path: `/products/${p.id}`, label: p.name, sub: `${t('search.product.skuLabel', { sku: formatCode(p.sku) })} · ${formatCurrency(p.price, lang)}` })),
         ...results.orders.map(o => ({ type: 'order', item: o, path: `/orders/${o.id}`, label: formatIdentifier(o.invoice_number), sub: `${o.customer_name} · ${formatCurrency(o.total, lang)}`, status: o.status })),
-        ...results.suppliers.map(s => ({ type: 'supplier', item: s, path: `/suppliers/${s.id}/balance`, label: s.name, sub: `${formatIdentifier(s.code)} · ${formatIdentifier(s.phone)}` })),
+        ...results.suppliers.map(s => ({ type: 'supplier', item: s, path: `/suppliers/${s.id}/balance`, label: s.name, sub: `${formatCode(s.code)} · ${formatCode(s.phone)}` })),
         ...results.purchaseOrders.map(po => ({ type: 'purchaseOrder', item: po, path: `/purchase-orders/${po.id}`, label: formatIdentifier(po.invoice_number), sub: `${po.supplier_name} · ${formatCurrency(po.total, lang)}`, status: po.status })),
     ]
 

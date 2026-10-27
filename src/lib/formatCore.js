@@ -36,7 +36,7 @@ export function formatNumber(value, options = {}, lang = displayLanguage) {
 
 const ARABIC_DIGITS = '٠١٢٣٤٥٦٧٨٩'
 
-// Digits inside identifiers (invoice numbers, SKUs, phone numbers) in the display language.
+// Digits inside identifiers (invoice numbers, payment references) in the display language.
 // Only the digits change; letters, hyphens and spaces stay as they are.
 export function toDisplayDigits(text, lang = displayLanguage) {
     if (text === null || text === undefined) return ''
@@ -55,13 +55,23 @@ const LTR_ISOLATE = '\u2066'
 const POP_ISOLATE = '\u2069'
 const SEPARATORS = /[^\p{L}\p{N}]+/gu
 
-// Invoice numbers, SKUs, customer and supplier codes, phones, payment references.
+function keepInOrder(text, lang) {
+    if (lang !== 'ar') return text
+    return `${LTR_ISOLATE}${text.replace(SEPARATORS, (s) => `${LRM}${s}${LRM}`)}${POP_ISOLATE}`
+}
+
+// Invoice numbers and payment references, in the screen's digits.
 // Empty values give '' so callers keep their own fallback ('—', '#12').
 export function formatIdentifier(value, lang = displayLanguage) {
     if (value === null || value === undefined || value === '') return ''
-    const text = toDisplayDigits(value, lang)
-    if (lang !== 'ar') return text
-    return `${LTR_ISOLATE}${text.replace(SEPARATORS, (s) => `${LRM}${s}${LRM}`)}${POP_ISOLATE}`
+    return keepInOrder(toDisplayDigits(value, lang), lang)
+}
+
+// SKUs, customer and supplier codes and phones keep Western digits on every screen (the owner's
+// choice), still held in order on Arabic screens.
+export function formatCode(value, lang = displayLanguage) {
+    if (value === null || value === undefined || value === '') return ''
+    return keepInOrder(String(value), lang)
 }
 
 // Values arrive as percentages already (40 means 40%). Arabic uses its own percent sign: ٤٠٪.

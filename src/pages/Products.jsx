@@ -8,7 +8,7 @@ import SearchInput from '../components/SearchInput'
 import {useToast} from '../hooks/useToast'
 import DeleteModal from '../components/DeleteModal'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatCurrency, formatIdentifier, formatNumber, formatPercent } from '../lib/format'
+import { formatCode, formatCurrency, formatNumber, formatPercent } from '../lib/format'
 import { canViewCostData } from '../lib/permissions'
 
 export default function Products() {
@@ -103,7 +103,7 @@ export default function Products() {
                         {products.map(product => (
                             <tr key={product.id} onClick={() => navigate(`/products/${product.id}`)} className="hover:bg-gray-800/50 transition-colors cursor-pointer">
                                 <td className="px-4 py-3 text-white text-sm">{product.name}</td>
-                                <td className="px-4 py-3 text-gray-400 text-sm">{formatIdentifier(product.sku)}</td>
+                                <td className="px-4 py-3 text-gray-400 text-sm">{formatCode(product.sku)}</td>
                                 <td className="px-4 py-3 text-white text-sm">{formatCurrency(product.price, lang)}</td>
                                {['a', 'b', 'c', 'd', 'e'].map(tier => (
     <td key={tier} className="px-4 py-3 text-sm">
