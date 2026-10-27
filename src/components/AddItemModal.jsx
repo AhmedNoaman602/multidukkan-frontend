@@ -8,8 +8,9 @@ import StockAvailability from './StockAvailability'
 import { useStoreAvailability, baseNeedsByProduct } from '../hooks/useStoreAvailability'
 import NumberInput from './NumberInput'
 import { reportInvalidNumberInput } from '../lib/number'
+import { defaultSalePrice } from '../lib/saleLine'
 
-export default function AddItemModal({ open, onClose,orderId, storeId, onSuccess }) {
+export default function AddItemModal({ open, onClose,orderId, storeId, priceTier, onSuccess }) {
     const [selectedProduct, setSelectedProduct] = useState(null)
     const [products,setProducts] = useState([])
     const [saving, setSaving] = useState(false)
@@ -22,6 +23,7 @@ export default function AddItemModal({ open, onClose,orderId, storeId, onSuccess
         quantity: 1,
         unit_type: 'base',
         unit_price: '',
+        price_edited: false,
     })
 
     useEffect(() => {
@@ -40,13 +42,15 @@ export default function AddItemModal({ open, onClose,orderId, storeId, onSuccess
         setForm(f => ({
             ...f,
             product_id: String(product.id),
-            unit_price: product.price ?? '',
+            unit_type: 'base',
+            unit_price: defaultSalePrice(product, priceTier, 'base'),
+            price_edited: false,
         }))
     }
 
     const handleClose = () => {
         setSelectedProduct(null)
-        setForm({ product_id: '', quantity: 1, unit_type: 'base', unit_price: '' })
+        setForm({ product_id: '', quantity: 1, unit_type: 'base', unit_price: '', price_edited: false })
         onClose()
     }
 
@@ -56,7 +60,7 @@ export default function AddItemModal({ open, onClose,orderId, storeId, onSuccess
         try{
             await api.post(`/orders/${orderId}/items` , {
                 product_id:form.product_id,
-                unit_price:form.unit_price,
+                ...(form.price_edited && form.unit_price !== '' ? { unit_price: form.unit_price } : {}),
                 unit_type:form.unit_type,
                 quantity:form.quantity,
             })
@@ -92,7 +96,7 @@ export default function AddItemModal({ open, onClose,orderId, storeId, onSuccess
                             <button
                                 onClick={() => {
                                     setSelectedProduct(null)
-                                    setForm(f => ({ ...f, product_id: '', unit_price: '' }))
+                                    setForm(f => ({ ...f, product_id: '', unit_type: 'base', unit_price: '', price_edited: false }))
                                 }}
                                 className="text-gray-400 hover:text-red-400 text-xs"
                             >✕</button>
@@ -127,7 +131,7 @@ export default function AddItemModal({ open, onClose,orderId, storeId, onSuccess
                             <NumberInput
                                 min="0"
                                 value={form.unit_price}
-                                onChange={e => setForm({ ...form, unit_price: e.target.value })}
+                                onChange={e => setForm({ ...form, unit_price: e.target.value, price_edited: true })}
                                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                             />
                         </div>
@@ -141,7 +145,7 @@ export default function AddItemModal({ open, onClose,orderId, storeId, onSuccess
                                         <button
                                             key={u}
                                             type="button"
-                                            onClick={() => setForm({ ...form, unit_type: u })}
+                                            onClick={() => setForm({ ...form, unit_type: u, unit_price: defaultSalePrice(selectedProduct, priceTier, u), price_edited: false })}
                                             className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
                                                 form.unit_type === u
                                                     ? 'bg-blue-600 text-white'

@@ -487,6 +487,7 @@ const displayTotal = editMode
             open={showAddItem}
             orderId={id}
             storeId={order?.store_id}
+            priceTier={order?.customer_price_tier}
             onSuccess={() => {
                 refetchOrder()
                 setShowAddItem(false)
