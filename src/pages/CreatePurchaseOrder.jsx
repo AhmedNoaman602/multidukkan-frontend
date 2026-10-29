@@ -11,7 +11,7 @@ import { useToast } from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatCode, formatNumber } from '../lib/format'
 import { parseNumber } from '../lib/number'
-import { PRICE_FORMAT, TOTAL_FORMAT, roundPrice, roundTotal } from '../lib/money'
+import { PRICE_FORMAT, TOTAL_FORMAT, moneyTotal, roundPrice } from '../lib/money'
 import NumberInput from '../components/NumberInput'
 import { changeLinePrice, changeLineUnit, confirmLinePrice, convertLinePrice, convertedPrice, needsPriceReview, newLine } from '../lib/purchaseLine'
 const STORAGE_KEY = 'createPurchaseOrderDraft'
@@ -199,7 +199,7 @@ const getCostPrice = (product) => {
 return total + (parseFloat(item.unit_price) || 0) * item.quantity
     }, 0)
 
-  const grandTotal = subtotal
+  const grandTotal = moneyTotal(subtotal)
 
     const itemsWithTotals = items.map((item, index) => {
         const product = products.find(p => p.id === parseInt(item.product_id))
@@ -446,7 +446,7 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
                                                     </select>
                                                 </td>
                                                 <td className="px-2.5 py-1.5 text-white text-sm font-medium whitespace-nowrap">
-                                                    {formatNumber(roundTotal(lineTotal), TOTAL_FORMAT)} <span className="text-gray-500 text-[10px]">{t('common.currency')}</span>
+                                                    {formatNumber(moneyTotal(lineTotal), TOTAL_FORMAT)} <span className="text-gray-500 text-[10px]">{t('common.currency')}</span>
                                                 </td>
                                                 <td className="px-2.5 py-1.5">
                                                     <button
@@ -524,7 +524,7 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
                                             )}
 
                                             <p className="text-end text-white text-sm font-medium">
-                                                {formatNumber(roundTotal(lineTotal), TOTAL_FORMAT)} <span className="text-gray-500 text-[10px]">{t('common.currency')}</span>
+                                                {formatNumber(moneyTotal(lineTotal), TOTAL_FORMAT)} <span className="text-gray-500 text-[10px]">{t('common.currency')}</span>
                                             </p>
                                         </div>
                                     )
@@ -562,12 +562,12 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
 
                             <div className="flex justify-between text-sm text-gray-400">
                                 <span>{t('orders.subtotal')}</span>
-                                <span className="text-white">{formatNumber(roundTotal(subtotal), TOTAL_FORMAT)} {t('common.currency')}</span>
+                                <span className="text-white">{formatNumber(moneyTotal(subtotal), TOTAL_FORMAT)} {t('common.currency')}</span>
                             </div>
 
                             <div className="flex justify-between text-lg font-bold text-white border-t border-gray-800 pt-3">
                                 <span>{t('common.total')}</span>
-                                <span>{formatNumber(roundTotal(grandTotal), TOTAL_FORMAT)} {t('common.currency')}</span>
+                                <span>{formatNumber(grandTotal, TOTAL_FORMAT)} {t('common.currency')}</span>
                             </div>
 
                             <button

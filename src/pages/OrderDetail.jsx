@@ -10,7 +10,7 @@ import DeleteModal from '../components/DeleteModal'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatCode, formatCurrency, formatDate, formatIdentifier, formatNumber, formatPercent, formatPrice } from '../lib/format'
 import { parseNumber, reportInvalidNumberInput } from '../lib/number'
-import { TOTAL_FORMAT, priceText, roundTotal } from '../lib/money'
+import { TOTAL_FORMAT, orderTotals, priceText } from '../lib/money'
 import { canViewCostData } from '../lib/permissions'
 import NumberInput from '../components/NumberInput'
 
@@ -143,12 +143,12 @@ export default function OrderDetail() {
     if (!order) return null
 
 
-    const discountPreview = discountType === 'percent'
-    ? roundTotal(order.subtotal * (parseFloat(editForm.discount) || 0) / 100)
-    : parseFloat(editForm.discount) || 0
+    // order.subtotal is rounded to piasters; the server works from the exact 4-decimal one.
+    const lineSum = order.items.reduce((sum, item) => sum + Number(item.unit_price) * item.quantity, 0)
+    const preview = orderTotals(lineSum, discountType, editForm.discount)
 
 const displayTotal = editMode
-    ? (hasManualTotal ? parseFloat(editForm.manual_total) || 0 : roundTotal(Math.max(0, order.subtotal - discountPreview)))
+    ? (hasManualTotal ? parseFloat(editForm.manual_total) || 0 : preview.total)
     : order.total
 
     const displayAmountDue = editMode
@@ -399,7 +399,7 @@ const displayTotal = editMode
             min="0"
             value={editForm.manual_total ?? ''}
             onChange={e => setEditForm({ ...editForm, manual_total: e.target.value })}
-            placeholder={formatNumber(roundTotal(Math.max(0, order.subtotal - discountPreview)), TOTAL_FORMAT)}
+            placeholder={formatNumber(preview.total, TOTAL_FORMAT)}
             className="w-24 px-2 py-1 bg-gray-800 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm text-end"
         />
     </div>

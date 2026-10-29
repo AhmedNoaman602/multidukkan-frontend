@@ -7,7 +7,7 @@ import StockAvailability from './StockAvailability'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatCurrency, formatNumber } from '../lib/format'
 import { parseNumber, reportInvalidNumberInput } from '../lib/number'
-import { TOTAL_FORMAT, priceText, roundTotal } from '../lib/money'
+import { TOTAL_FORMAT, orderTotals, priceText, roundTotal } from '../lib/money'
 import { useStoreAvailability, baseNeedsByProduct } from '../hooks/useStoreAvailability'
 import NumberInput from './NumberInput'
 
@@ -71,16 +71,11 @@ export default function QuickSaleModal({
         }
     }
 
-    const subtotal = items.reduce((sum, item) =>
+    const lineSum = items.reduce((sum, item) =>
         sum + (parseFloat(item.unit_price) || 0) * (parseInt(item.quantity) || 0), 0
     )
 
-    // Same steps as OrderService: percent discount rounded to piasters, then the total rounded once.
-    const discountAmount = discountType === 'percent'
-        ? roundTotal(subtotal * (parseFloat(discount) || 0) / 100)
-        : parseFloat(discount) || 0
-
-    const grandTotal = roundTotal(Math.max(0, subtotal - discountAmount))
+    const { total: grandTotal } = orderTotals(lineSum, discountType, discount)
 
     const hasManualTotal = manualTotal !== null && manualTotal !== ''
 

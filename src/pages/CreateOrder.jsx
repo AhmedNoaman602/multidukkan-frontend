@@ -11,7 +11,7 @@ import { useToast } from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatCode, formatNumber } from '../lib/format'
 import { parseNumber } from '../lib/number'
-import { TOTAL_FORMAT, priceText, roundTotal } from '../lib/money'
+import { TOTAL_FORMAT, moneyTotal, orderTotals, priceText, roundTotal } from '../lib/money'
 import StockAvailability from '../components/StockAvailability'
 import { useStoreAvailability, baseNeedsByProduct } from '../hooks/useStoreAvailability'
 import NumberInput from '../components/NumberInput'
@@ -133,18 +133,13 @@ export default function CreateOrder() {
             : base
     }
 
-    const subtotal = items.reduce((total, item) => {
+    const lineSum = items.reduce((total, item) => {
         const product = products.find(p => p.id === parseInt(item.product_id))
         if (!product || !item.quantity) return total
         return total + getUnitPrice(product, item.unit_type) * item.quantity
     }, 0)
 
-    // Same steps as OrderService: percent discount rounded to piasters, then the total rounded once.
-    const discountAmount = discountType === 'percent'
-        ? roundTotal(subtotal * (parseFloat(discountValue) || 0) / 100)
-        : parseFloat(discountValue) || 0
-
-    const grandTotal = roundTotal(Math.max(0, subtotal - discountAmount))
+    const { subtotal, discount: discountAmount, total: grandTotal } = orderTotals(lineSum, discountType, discountValue)
 
     const itemsWithTotals = items.map((item, index) => {
         const product = products.find(p => p.id === parseInt(item.product_id))
@@ -359,7 +354,7 @@ export default function CreateOrder() {
                                                     )}
                                                 </td>
                                                 <td className="px-2.5 py-1.5 text-white text-sm font-medium whitespace-nowrap">
-                                                    {formatNumber(roundTotal(lineTotal), TOTAL_FORMAT)} <span className="text-gray-500 text-[10px]">{t('common.currency')}</span>
+                                                    {formatNumber(moneyTotal(lineTotal), TOTAL_FORMAT)} <span className="text-gray-500 text-[10px]">{t('common.currency')}</span>
                                                 </td>
                                                 <td className="px-2.5 py-1.5">
                                                     <button
@@ -434,7 +429,7 @@ export default function CreateOrder() {
                                             </div>
 
                                             <p className="text-end text-white text-sm font-medium">
-                                                {formatNumber(roundTotal(lineTotal), TOTAL_FORMAT)} <span className="text-gray-500 text-[10px]">{t('common.currency')}</span>
+                                                {formatNumber(moneyTotal(lineTotal), TOTAL_FORMAT)} <span className="text-gray-500 text-[10px]">{t('common.currency')}</span>
                                             </p>
                                         </div>
                                     )

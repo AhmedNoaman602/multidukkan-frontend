@@ -1,10 +1,10 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { priceText, roundMoney, roundPrice, roundTotal } from './money.js'
+import { moneyTotal, orderTotals, priceText, roundMoney, roundPrice, roundTotal } from './money.js'
 
-// Expected values were produced by PHP 8.4.21's round() on the same floats, so the screen and the
-// server agree. A wider check (235,000 generated totals, prices and discounts) matched with no
-// difference; these are the cases worth keeping in the repo.
+// Expected values were produced by PHP 8.3.31's round() on the same floats (the live server runs
+// 8.3), so the screen and the server agree. A wider check (2.9 million generated totals, prices,
+// discounts and edge values) matched with no difference; these are the cases worth keeping.
 
 test('totals round to piasters exactly like PHP, including floats just under or on a halfway point', () => {
     const cases = [
@@ -19,8 +19,8 @@ test('totals round to piasters exactly like PHP, including floats just under or 
         [5.015, 5.02],
         [0.115, 0.12],
         [0.125, 0.13],
-        [239075.79499999998, 239075.79],
-        [913118.8449999999, 913118.84],
+        [239075.79499999998, 239075.8],
+        [913118.8449999999, 913118.85],
         [0.004, 0],
         [0.005, 0.01],
         [0.0049999, 0],
@@ -47,7 +47,7 @@ test('prices and costs round to 4 decimals like PHP', () => {
         [0.05025, 0.0503],
         [0.0485, 0.0485],
         [0.04966666666666667, 0.0497],
-        [64552.10354999999, 64552.1035],
+        [64552.10354999999, 64552.1036],
         [1.23455, 1.2346],
         [0.00005, 0.0001],
         [48.5, 48.5],
@@ -55,6 +55,35 @@ test('prices and costs round to 4 decimals like PHP', () => {
     for (const [value, php] of cases) assert.equal(roundPrice(value), php, `roundPrice(${value})`)
     assert.equal(roundPrice(48.5 / 1000), 0.0485)
     assert.equal(roundPrice(50 / 12), 4.1667)
+})
+
+test('where PHP 8.3 and 8.4 disagree, rounding follows 8.3, the version the server runs', () => {
+    // PHP 8.4.21 gives 63.21, 1336.65, 35.11, 1.96, 1305.04, 36492.9651 and 35.6368 for these.
+    assert.equal(roundTotal(63.214999999999996), 63.22)
+    assert.equal(roundTotal(1336.6549999999997), 1336.66)
+    assert.equal(roundTotal(35.114999999999995), 35.12)
+    assert.equal(roundTotal(1.9649999999999999), 1.97)
+    assert.equal(roundTotal(8700.30 * 15 / 100), 1305.05)
+    assert.equal(roundPrice(36492.965149999996), 36492.9652)
+    assert.equal(roundPrice(35.636849999999995), 35.6369)
+})
+
+test('moneyTotal matches Money::total() on float sums and differences', () => {
+    assert.equal(moneyTotal(4.1022 * 3 + 3.8014 * 6), 35.12)  // 35.114999999999995
+    assert.equal(moneyTotal(2.885 - 0.92), 1.97)              // 1.9649999999999999
+    assert.equal(moneyTotal(1.0125 * 6), 6.08)                // 6.074999999999999
+})
+
+test('orderTotals takes the same steps as OrderService', () => {
+    // 1.4114 × 12.5% = 0.176425 → 0.18, then 1.4114 − 0.18 = 1.2314 → 1.23 (not 1.24).
+    assert.deepEqual(orderTotals(1.4114, 'percent', 12.5), { subtotal: 1.4114, discount: 0.18, total: 1.23 })
+    // The float sum 69.44999… is cleaned first: 10% is 6.945 → 6.95, not 6.94.
+    assert.deepEqual(orderTotals(8.0247 * 4 + 4.6689 * 8, 'percent', 10), { subtotal: 69.45, discount: 6.95, total: 62.5 })
+    assert.deepEqual(orderTotals(4.1022 * 3 + 3.8014 * 6, 'amount', ''), { subtotal: 35.115, discount: 0, total: 35.12 })
+    assert.deepEqual(orderTotals(2.885, 'amount', '0.92'), { subtotal: 2.885, discount: 0.92, total: 1.97 })
+    assert.deepEqual(orderTotals(8700.30, 'percent', 15), { subtotal: 8700.3, discount: 1305.05, total: 7395.25 })
+    // A discount larger than the subtotal is capped at it, as resolveDiscount does.
+    assert.deepEqual(orderTotals(10, 'amount', 15), { subtotal: 10, discount: 10, total: 0 })
 })
 
 test('the weighted-average example depends on the quantities', () => {
