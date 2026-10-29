@@ -4,7 +4,7 @@ import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import BackButton from '../components/BackButton'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatCode, formatCurrency, formatDate, formatNumber, formatPercent, formatUnitBreakdown } from '../lib/format'
+import { formatCode, formatDate, formatNumber, formatPercent, formatPrice, formatUnitBreakdown } from '../lib/format'
 import { isShelf, sortShelfFirst } from '../lib/locations'
 import { canViewCostData } from '../lib/permissions'
 
@@ -60,14 +60,14 @@ export default function ProductDetail() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
                         <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">{t('products.defaultPrice')}</p>
-                        <p className="text-white text-lg font-semibold">{formatCurrency(product.price, lang)}</p>
+                        <p className="text-white text-lg font-semibold">{formatPrice(product.price, lang)}</p>
                     </div>
                     {showCost && (
                         <>
                             <div>
                                 <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">{t('products.costPrice')}</p>
                                 <p className="text-white text-lg font-semibold">
-                                    {product.cost_price ? formatCurrency(product.cost_price, lang) : '—'}
+                                    {product.cost_price ? formatPrice(product.cost_price, lang) : '—'}
                                 </p>
                             </div>
                             <div>
@@ -106,7 +106,7 @@ export default function ProductDetail() {
                             <div key={tier}>
                                 <p className="text-gray-500 text-xs mb-1">{t(`enums.priceTier.${tier}`)}</p>
                                 <p className="text-white text-sm font-medium">
-                                    {product[`price_${tier}`] ? formatCurrency(product[`price_${tier}`], lang) : '—'}
+                                    {product[`price_${tier}`] ? formatPrice(product[`price_${tier}`], lang) : '—'}
                                 </p>
                             </div>
                         ))}

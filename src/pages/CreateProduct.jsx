@@ -190,7 +190,7 @@ export default function CreateProduct() {
 
                         <div>
                             <label className="block text-sm text-gray-400 mb-1">{t('products.defaultPrice')}</label>
-                            <NumberInput
+                            <NumberInput decimals={4}
                                 value={form.price}
                                 onChange={(e) => setForm({ ...form, price: e.target.value })}
                                 required
@@ -201,7 +201,7 @@ export default function CreateProduct() {
     <label className="block text-sm text-gray-400 mb-1">
         {t('products.costPrice')} <span className="text-gray-600">({t('common.optional')})</span>
     </label>
-    <NumberInput
+    <NumberInput decimals={4}
         value={form.cost_price}
         onChange={(e) => setForm({ ...form, cost_price: e.target.value })}
         placeholder={t('products.form.costPricePlaceholder')}
@@ -272,7 +272,7 @@ export default function CreateProduct() {
                         {['a', 'b', 'c', 'd', 'e'].map(tier => (
                             <div key={tier}>
                                 <label className="block text-sm text-gray-400 mb-1">{t(`enums.priceTier.${tier}`)}</label>
-                                <NumberInput
+                                <NumberInput decimals={4}
                                     value={form[`price_${tier}`]}
                                     onChange={(e) => setForm({ ...form, [`price_${tier}`]: e.target.value })}
                                     placeholder={t('common.optional')}

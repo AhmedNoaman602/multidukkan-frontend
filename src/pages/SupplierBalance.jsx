@@ -9,7 +9,8 @@ import Modal from '../components/Modal'
 import ReverseSupplierPaymentModal from '../components/ReverseSupplierPaymentModal'
 import { useToast } from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatCurrency, formatDate, formatIdentifier, formatNumber } from '../lib/format'
+import { formatCurrency, formatDate, formatIdentifier, formatNumber, formatPrice } from '../lib/format'
+import { priceText } from '../lib/money'
 import NumberInput from '../components/NumberInput'
 import { reportInvalidNumberInput } from '../lib/number'
 
@@ -148,7 +149,7 @@ const addToCart = (product) => {
         id: product.id,
         name: product.name,
         unit: product.unit,
-        cost_price: product.cost_price ?? '',
+        cost_price: priceText(product.cost_price),
         is_preferred: false,
         notes: ''
     }])
@@ -266,12 +267,12 @@ const updateCartItem = (productId, field, value) => {
                         <td className="px-4 py-3 text-white text-sm font-medium">{product.name}</td>
                         <td className="px-4 py-3 text-white text-sm">
                           {(product.cost_price ?? product.last_purchase_price)
-                            ? <>{formatCurrency(product.cost_price ?? product.last_purchase_price, lang)} <span className="text-gray-500 text-xs">{t('purchaseOrders.create.pricePerUnit', { unit: product.unit })}</span></>
+                            ? <>{formatPrice(product.cost_price ?? product.last_purchase_price, lang)} <span className="text-gray-500 text-xs">{t('purchaseOrders.create.pricePerUnit', { unit: product.unit })}</span></>
                             : '—'}
                         </td>
                         <td className="px-4 py-3 text-gray-400 text-sm">
                              {product.last_purchase_price
-                                ? <>{formatCurrency(product.last_purchase_price, lang)} <span className="text-gray-500 text-xs">{t('purchaseOrders.create.pricePerUnit', { unit: product.unit })}</span></>
+                                ? <>{formatPrice(product.last_purchase_price, lang)} <span className="text-gray-500 text-xs">{t('purchaseOrders.create.pricePerUnit', { unit: product.unit })}</span></>
                                 : '—'}
                         </td>
                         <td className="px-4 py-3 text-gray-400 text-sm">
@@ -290,7 +291,7 @@ const updateCartItem = (productId, field, value) => {
                                 onClick={() => {
                                     setSelectedProduct(product)
                                     setPivotForm({
-                                        cost_price: product.cost_price ?? '',
+                                        cost_price: priceText(product.cost_price),
                                         is_preferred: product.is_preferred ?? false,
                                         notes: product.notes ?? ''
                                     })
@@ -556,7 +557,7 @@ const updateCartItem = (productId, field, value) => {
         <span className="text-white text-sm font-medium flex-1">{item.name}</span>
         <div className="flex flex-col gap-1">
     <span className="text-gray-500 text-[10px]">{t('suppliers.balance.supplierCostPerUnit', { unit: item.unit })}</span>
-    <NumberInput
+    <NumberInput decimals={4}
         value={item.cost_price}
         onChange={e => updateCartItem(item.id, 'cost_price', e.target.value)}
 
@@ -618,7 +619,7 @@ const updateCartItem = (productId, field, value) => {
                 {t('suppliers.balance.supplierCostPerUnit', { unit: selectedProduct?.unit })} ({t('common.currency')})
                 <span className="text-gray-600 text-xs ms-1 block mt-0.5">{t('suppliers.balance.costPriceHint', { unit: selectedProduct?.unit })}</span>
             </label>
-            <NumberInput
+            <NumberInput decimals={4}
 
                 value={pivotForm.cost_price}
                 onChange={e => setPivotForm(f => ({ ...f, cost_price: e.target.value }))}

@@ -85,7 +85,10 @@ test('Convert re-expresses the typed price in the new unit: piece → box multip
 
     const boxTyped = changeLinePrice({ ...newLine(nails, PIECE_COST), unit_type: 'secondary' }, '48')
     const toPiece = convertLinePrice(changeLineUnit(boxTyped, 'base', 1000), 1000)
-    assert.equal(toPiece.unit_price, 0.05) // 0.048 rounded to the server's 2 decimals
+    assert.equal(toPiece.unit_price, 0.048) // kept: prices have 4 decimals (ADR-011), 2 decimals made it 0.05
+
+    const boxOf1000 = changeLinePrice({ ...newLine(nails, PIECE_COST), unit_type: 'secondary' }, '48.50')
+    assert.equal(convertLinePrice(changeLineUnit(boxOf1000, 'base', 1000), 1000).unit_price, 0.0485)
 })
 
 test('switching back to the unit the price was typed for clears the flag and keeps the price', () => {

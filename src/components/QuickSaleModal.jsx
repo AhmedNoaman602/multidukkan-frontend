@@ -7,6 +7,7 @@ import StockAvailability from './StockAvailability'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatCurrency, formatNumber } from '../lib/format'
 import { parseNumber, reportInvalidNumberInput } from '../lib/number'
+import { TOTAL_FORMAT, orderTotals, priceText, roundTotal } from '../lib/money'
 import { useStoreAvailability, baseNeedsByProduct } from '../hooks/useStoreAvailability'
 import NumberInput from './NumberInput'
 
@@ -43,7 +44,7 @@ export default function QuickSaleModal({
         const next = [...prev, {
             product_id: String(product.id),
             product_name: product.name,
-            unit_price: product.price,
+            unit_price: priceText(product.price),
             quantity: 1,
             unit_type: 'base',
         }]
@@ -70,15 +71,11 @@ export default function QuickSaleModal({
         }
     }
 
-    const subtotal = items.reduce((sum, item) =>
+    const lineSum = items.reduce((sum, item) =>
         sum + (parseFloat(item.unit_price) || 0) * (parseInt(item.quantity) || 0), 0
     )
 
-    const discountAmount = discountType === 'percent'
-        ? Math.round(subtotal * (parseFloat(discount) || 0) / 100 * 100) / 100
-        : parseFloat(discount) || 0
-
-    const grandTotal = Math.max(0, subtotal - discountAmount)
+    const { total: grandTotal } = orderTotals(lineSum, discountType, discount)
 
     const hasManualTotal = manualTotal !== null && manualTotal !== ''
 
@@ -214,7 +211,7 @@ try {
                                             />
                                         </td>
                                         <td className="px-2 py-1.5">
-                                            <NumberInput
+                                            <NumberInput decimals={4}
                                                 min="0"
                                                 value={item.unit_price}
                                                 onChange={e => updateItem(index, 'unit_price', e.target.value)}
@@ -259,7 +256,7 @@ try {
                                             onKeyDown={handleQtyKeyDown}
                                             className="w-12 shrink-0 px-1 py-1.5 bg-gray-800 border border-gray-700 text-white rounded text-xs text-center focus:outline-none focus:border-blue-500"
                                         />
-                                        <NumberInput
+                                        <NumberInput decimals={4}
                                             min="0"
                                             value={item.unit_price}
                                             onChange={e => updateItem(index, 'unit_price', e.target.value)}
@@ -315,7 +312,7 @@ try {
             min="0"
             value={manualTotal ?? ''}
             onChange={e => setManualTotal(e.target.value)}
-            placeholder={formatNumber(grandTotal, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            placeholder={formatNumber(roundTotal(grandTotal), TOTAL_FORMAT)}
             className="w-24 px-2 py-1 bg-gray-800 border border-gray-700 text-white rounded-lg text-sm text-end focus:outline-none focus:border-blue-500"
         />
         <p className="text-gray-500 text-[10px] mt-0.5">

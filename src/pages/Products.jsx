@@ -8,7 +8,8 @@ import SearchInput from '../components/SearchInput'
 import {useToast} from '../hooks/useToast'
 import DeleteModal from '../components/DeleteModal'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatCode, formatCurrency, formatNumber, formatPercent } from '../lib/format'
+import { formatCode, formatNumber, formatPercent, formatPrice } from '../lib/format'
+import { PRICE_FORMAT, roundPrice } from '../lib/money'
 import { canViewCostData } from '../lib/permissions'
 
 export default function Products() {
@@ -104,11 +105,11 @@ export default function Products() {
                             <tr key={product.id} onClick={() => navigate(`/products/${product.id}`)} className="hover:bg-gray-800/50 transition-colors cursor-pointer">
                                 <td className="px-4 py-3 text-white text-sm">{product.name}</td>
                                 <td className="px-4 py-3 text-gray-400 text-sm">{formatCode(product.sku)}</td>
-                                <td className="px-4 py-3 text-white text-sm">{formatCurrency(product.price, lang)}</td>
+                                <td className="px-4 py-3 text-white text-sm">{formatPrice(product.price, lang)}</td>
                                {['a', 'b', 'c', 'd', 'e'].map(tier => (
     <td key={tier} className="px-4 py-3 text-sm">
         <div className="text-gray-300">
-            {product[`price_${tier}`] != null ? formatNumber(product[`price_${tier}`], { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—'}
+            {product[`price_${tier}`] != null ? formatNumber(roundPrice(product[`price_${tier}`]), PRICE_FORMAT) : '—'}
         </div>
         {showCost && product[`price_${tier}`] && product[`profit_margin_${tier}`] != null && (
             <div className={`text-xs ${
@@ -125,7 +126,7 @@ export default function Products() {
     {showCost && (
         <>
             <td className='px-4 py-3 text-white text-sm'>
-            {product.cost_price ? formatCurrency(product.cost_price, lang) : '—'}
+            {product.cost_price ? formatPrice(product.cost_price, lang) : '—'}
             </td>
 
             <td className={`px-4 py-3 text-sm font-medium ${

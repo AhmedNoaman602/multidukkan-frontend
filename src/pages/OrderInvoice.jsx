@@ -5,7 +5,7 @@ import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import { useToast } from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatCode, formatCurrency, formatDate, formatIdentifier, formatNumber } from '../lib/format'
+import { formatCode, formatCurrency, formatDate, formatIdentifier, formatNumber, formatPrice } from '../lib/format'
 
 export default function OrderInvoice() {
     const { id } = useParams()
@@ -152,7 +152,7 @@ const mergedItems = order.items?.reduce((acc, item) => {
                                     {formatNumber(item.quantity)}
                                     {item.unit_label && <span className="ms-1 text-xs text-gray-400">{item.unit_label}</span>}
                                 </td>
-                                <td className="py-3 text-end text-gray-600 text-sm">{formatCurrency(item.unit_price, lang)}</td>
+                                <td className="py-3 text-end text-gray-600 text-sm">{formatPrice(item.unit_price, lang)}</td>
                                 <td className="py-3 text-end text-gray-900 text-sm font-medium">{formatCurrency(item.total, lang)}</td>
                             </tr>
                         ))}

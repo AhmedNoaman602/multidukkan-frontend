@@ -8,8 +8,9 @@ import { useToast } from '../hooks/useToast'
 import AddItemModal from '../components/AddItemModal'
 import DeleteModal from '../components/DeleteModal'
 import { useTranslation } from '../i18n/useTranslation'
-import { formatCode, formatCurrency, formatDate, formatIdentifier, formatNumber, formatPercent } from '../lib/format'
+import { formatCode, formatCurrency, formatDate, formatIdentifier, formatNumber, formatPercent, formatPrice } from '../lib/format'
 import { parseNumber, reportInvalidNumberInput } from '../lib/number'
+import { TOTAL_FORMAT, orderTotals, priceText } from '../lib/money'
 import { canViewCostData } from '../lib/permissions'
 import NumberInput from '../components/NumberInput'
 
@@ -142,12 +143,12 @@ export default function OrderDetail() {
     if (!order) return null
 
 
-    const discountPreview = discountType === 'percent'
-    ? Math.round(order.subtotal * (parseFloat(editForm.discount) || 0) / 100 * 100) / 100
-    : parseFloat(editForm.discount) || 0
+    // order.subtotal is rounded to piasters; the server works from the exact 4-decimal one.
+    const lineSum = order.items.reduce((sum, item) => sum + Number(item.unit_price) * item.quantity, 0)
+    const preview = orderTotals(lineSum, discountType, editForm.discount)
 
 const displayTotal = editMode
-    ? (hasManualTotal ? parseFloat(editForm.manual_total) || 0 : Math.max(0, order.subtotal - discountPreview))
+    ? (hasManualTotal ? parseFloat(editForm.manual_total) || 0 : preview.total)
     : order.total
 
     const displayAmountDue = editMode
@@ -288,7 +289,7 @@ const displayTotal = editMode
         <td className="py-3 text-gray-400 text-sm">
             {editingItem === item.id
                 ? <span className="inline-flex items-center">
-                    <NumberInput min="0" value={itemForm.unit_price}
+                    <NumberInput decimals={4} min="0" value={itemForm.unit_price}
                         onChange={e => setItemForm({...itemForm, unit_price: e.target.value})}
                         className="w-24 px-2 py-1 bg-gray-800 border border-gray-600 text-white rounded-lg text-sm"/>
                     {item.unit_label && (
@@ -296,7 +297,7 @@ const displayTotal = editMode
                     )}
                   </span>
                 : <>
-                    {formatCurrency(item.unit_price, lang)}
+                    {formatPrice(item.unit_price, lang)}
                     {item.unit_label && (
                         <span className={`ms-1 text-xs ${item.unit_type !== 'base' ? 'text-blue-400' : 'text-gray-500'}`}>/ {item.unit_label}</span>
                     )}
@@ -325,7 +326,7 @@ const displayTotal = editMode
                  canEdit && (
                     <button onClick={() => {
                         setEditingItem(item.id)
-                        setItemForm({ quantity: item.quantity, unit_price: item.unit_price })
+                        setItemForm({ quantity: item.quantity, unit_price: priceText(item.unit_price) })
                     }}
                         className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-medium rounded-lg hover:bg-blue-500/20 transition-colors">
                        {t('common.edit')}
@@ -398,7 +399,7 @@ const displayTotal = editMode
             min="0"
             value={editForm.manual_total ?? ''}
             onChange={e => setEditForm({ ...editForm, manual_total: e.target.value })}
-            placeholder={formatNumber(Math.max(0, order.subtotal - discountPreview), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            placeholder={formatNumber(preview.total, TOTAL_FORMAT)}
             className="w-24 px-2 py-1 bg-gray-800 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm text-end"
         />
     </div>
