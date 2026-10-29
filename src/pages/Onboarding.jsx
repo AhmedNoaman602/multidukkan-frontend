@@ -294,11 +294,11 @@ export default function Onboarding() {
                             </div>
                             <div>
                                 <label className={lbl}>{t('onboarding.product.priceRequired')}</label>
-                                <NumberInput value={productForm.price} onChange={e => setProductForm({ ...productForm, price: e.target.value })} placeholder="0.00" className={inp} />
+                                <NumberInput decimals={4} value={productForm.price} onChange={e => setProductForm({ ...productForm, price: e.target.value })} placeholder="0.00" className={inp} />
                             </div>
                             <div>
                                 <label className={lbl}>{t('onboarding.product.costPriceOptional')} <span className="text-gray-600">({t('common.optional')})</span></label>
-                                <NumberInput value={productForm.cost_price} onChange={e => setProductForm({ ...productForm, cost_price: e.target.value })} placeholder={t('onboarding.product.costPricePlaceholder')} className={inp} />
+                                <NumberInput decimals={4} value={productForm.cost_price} onChange={e => setProductForm({ ...productForm, cost_price: e.target.value })} placeholder={t('onboarding.product.costPricePlaceholder')} className={inp} />
                             </div>
                             <div>
                                 <label className={lbl}>{t('onboarding.product.unitRequired')}</label>

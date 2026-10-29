@@ -11,6 +11,7 @@ import StockLocationEditor from '../components/StockLocationEditor'
 import { stockPayload } from '../lib/locations'
 import NumberInput from '../components/NumberInput'
 import { codeBoxClass, codeInput, displayIdentifier } from '../lib/identifierInput'
+import { priceText } from '../lib/money'
 
 export default function EditProduct() {
     const { id } = useParams()
@@ -62,14 +63,14 @@ export default function EditProduct() {
         setForm({
             name:              p.name || '',
             sku:               p.sku || '',
-            price:             p.price || '',
+            price:             priceText(p.price),
             unit:              p.unit || '',
-            price_a:           p.price_a || '',
-            price_b:           p.price_b || '',
-            price_c:           p.price_c || '',
-            price_d:           p.price_d || '',
-            price_e:           p.price_e || '',
-            cost_price:        p.cost_price || '',
+            price_a:           priceText(p.price_a),
+            price_b:           priceText(p.price_b),
+            price_c:           priceText(p.price_c),
+            price_d:           priceText(p.price_d),
+            price_e:           priceText(p.price_e),
+            cost_price:        priceText(p.cost_price),
             secondary_unit:    p.secondary_unit || '',
             conversion_factor: p.conversion_factor || '',
             description_ar:    p.description_ar || '',
@@ -193,7 +194,7 @@ export default function EditProduct() {
 
                     <div>
                         <label className="block text-sm text-gray-400 mb-1">{t('products.defaultPrice')}</label>
-                        <NumberInput
+                        <NumberInput decimals={4}
                             value={form.price}
                             onChange={(e) => setForm({ ...form, price: e.target.value })}
                             required
@@ -204,7 +205,7 @@ export default function EditProduct() {
     <label className="block text-sm text-gray-400 mb-1">
         {t('products.costPrice')} <span className="text-gray-600">({t('common.optional')})</span>
     </label>
-    <NumberInput
+    <NumberInput decimals={4}
         value={form.cost_price}
         onChange={(e) => setForm({ ...form, cost_price: e.target.value })}
         placeholder={t('products.form.costPricePlaceholder')}
@@ -249,7 +250,7 @@ export default function EditProduct() {
                     {['a', 'b', 'c', 'd', 'e'].map(tier => (
                         <div key={tier}>
                             <label className="block text-sm text-gray-400 mb-1">{t(`enums.priceTier.${tier}`)}</label>
-                            <NumberInput
+                            <NumberInput decimals={4}
                                 value={form[`price_${tier}`]}
                                 onChange={(e) => setForm({ ...form, [`price_${tier}`]: e.target.value })}
                                 placeholder={t('common.optional')}

@@ -11,6 +11,7 @@ import { useToast } from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatCode, formatNumber } from '../lib/format'
 import { parseNumber } from '../lib/number'
+import { TOTAL_FORMAT, priceText, roundTotal } from '../lib/money'
 import StockAvailability from '../components/StockAvailability'
 import { useStoreAvailability, baseNeedsByProduct } from '../hooks/useStoreAvailability'
 import NumberInput from '../components/NumberInput'
@@ -138,11 +139,12 @@ export default function CreateOrder() {
         return total + getUnitPrice(product, item.unit_type) * item.quantity
     }, 0)
 
+    // Same steps as OrderService: percent discount rounded to piasters, then the total rounded once.
     const discountAmount = discountType === 'percent'
-        ? Math.round(subtotal * (parseFloat(discountValue) || 0) / 100 * 100) / 100
+        ? roundTotal(subtotal * (parseFloat(discountValue) || 0) / 100)
         : parseFloat(discountValue) || 0
 
-    const grandTotal = Math.max(0, subtotal - discountAmount)
+    const grandTotal = roundTotal(Math.max(0, subtotal - discountAmount))
 
     const itemsWithTotals = items.map((item, index) => {
         const product = products.find(p => p.id === parseInt(item.product_id))
@@ -158,7 +160,7 @@ export default function CreateOrder() {
                 product_id: String(product.id),
                 quantity: 1,
                 unit_type: 'base',
-                unit_price: getPriceForCustomer(product)
+                unit_price: priceText(getPriceForCustomer(product))
             }]
             setFlashIndex(next.length - 1)
             // Focus the qty input of the new row after render
@@ -326,7 +328,7 @@ export default function CreateOrder() {
                                                     />
                                                 </td>
                                                 <td className="px-2.5 py-1.5">
-    <NumberInput
+    <NumberInput decimals={4}
         min="0"
            value={item.unit_price}
            onChange={e => updateItem(index, 'unit_price', e.target.value)}
@@ -342,7 +344,7 @@ export default function CreateOrder() {
                                                                     type="button"
                                                                     onClick={() => {
                                                                         updateItem(index, 'unit_type', u)
-                                                                        updateItem(index, 'unit_price', getUnitPrice(product, u))
+                                                                        updateItem(index, 'unit_price', priceText(getUnitPrice(product, u)))
                                                                     }}
                                                                     className={`px-1.5 py-0.5 rounded text-[11px] font-medium transition-colors ${
                                                                         item.unit_type === u ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400'
@@ -357,7 +359,7 @@ export default function CreateOrder() {
                                                     )}
                                                 </td>
                                                 <td className="px-2.5 py-1.5 text-white text-sm font-medium whitespace-nowrap">
-                                                    {formatNumber(lineTotal, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-gray-500 text-[10px]">{t('common.currency')}</span>
+                                                    {formatNumber(roundTotal(lineTotal), TOTAL_FORMAT)} <span className="text-gray-500 text-[10px]">{t('common.currency')}</span>
                                                 </td>
                                                 <td className="px-2.5 py-1.5">
                                                     <button
@@ -416,7 +418,7 @@ export default function CreateOrder() {
                                                                 type="button"
                                                                 onClick={() => {
                                                                     updateItem(index, 'unit_type', u)
-                                                                    updateItem(index, 'unit_price', getUnitPrice(product, u))
+                                                                    updateItem(index, 'unit_price', priceText(getUnitPrice(product, u)))
                                                                 }}
                                                                 className={`px-1.5 py-1 rounded text-[11px] font-medium transition-colors ${
                                                                     item.unit_type === u ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400'
@@ -432,7 +434,7 @@ export default function CreateOrder() {
                                             </div>
 
                                             <p className="text-end text-white text-sm font-medium">
-                                                {formatNumber(lineTotal, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-gray-500 text-[10px]">{t('common.currency')}</span>
+                                                {formatNumber(roundTotal(lineTotal), TOTAL_FORMAT)} <span className="text-gray-500 text-[10px]">{t('common.currency')}</span>
                                             </p>
                                         </div>
                                     )
@@ -470,7 +472,7 @@ export default function CreateOrder() {
 
                             <div className="flex justify-between text-sm text-gray-400">
                                 <span>{t('orders.subtotal')}</span>
-                                <span className="text-white">{formatNumber(subtotal, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {t('common.currency')}</span>
+                                <span className="text-white">{formatNumber(roundTotal(subtotal), TOTAL_FORMAT)} {t('common.currency')}</span>
                             </div>
 
                             {/* Discount */}
@@ -508,7 +510,7 @@ export default function CreateOrder() {
                                 {discountType === 'percent' && discountAmount > 0 && (
                                     <p className="text-green-400 text-xs">
                                         {t('orders.create.discountAmount', {
-                                            amount: `${formatNumber(discountAmount, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${t('common.currency')}`,
+                                            amount: `${formatNumber(roundTotal(discountAmount), TOTAL_FORMAT)} ${t('common.currency')}`,
                                         })}
                                     </p>
                                 )}
@@ -516,7 +518,7 @@ export default function CreateOrder() {
 
                             <div className="flex justify-between text-lg font-bold text-white border-t border-gray-800 pt-3">
                                 <span>{t('common.total')}</span>
-                                <span>{formatNumber(grandTotal, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {t('common.currency')}</span>
+                                <span>{formatNumber(roundTotal(grandTotal), TOTAL_FORMAT)} {t('common.currency')}</span>
                             </div>
 
                             <button

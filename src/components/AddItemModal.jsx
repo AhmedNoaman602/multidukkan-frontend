@@ -128,7 +128,7 @@ export default function AddItemModal({ open, onClose,orderId, storeId, priceTier
                         {/* Unit Price */}
                         <div>
                             <label className="block text-xs text-gray-400 mb-1">{t('orders.unitPrice')}</label>
-                            <NumberInput
+                            <NumberInput decimals={4}
                                 min="0"
                                 value={form.unit_price}
                                 onChange={e => setForm({ ...form, unit_price: e.target.value, price_edited: true })}

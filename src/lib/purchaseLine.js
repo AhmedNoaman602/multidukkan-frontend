@@ -3,16 +3,17 @@
 // a unit switch recalculates it from that cost. A price the user typed never changes on its own — a
 // unit switch only flags it for review, because we can't know which unit it was meant for.
 
-// Same scale as the backend rule for purchase prices (StorePurchaseOrderRequest: decimal:0,2).
-export const UNIT_PRICE_DECIMALS = 2
+import { PRICE_DECIMALS, roundMoney } from './money.js'
+
+// Same scale as the backend rule for purchase prices (StorePurchaseOrderRequest: decimal:0,4).
+export const UNIT_PRICE_DECIMALS = PRICE_DECIMALS
 
 // Mirrors Product::factorFor() on the backend.
 const factorFor = (unitType, conversionFactor) =>
     unitType === 'secondary' && Number(conversionFactor) > 0 ? Number(conversionFactor) : 1
 
 export function suggestedPrice(pieceCost, unitType, conversionFactor) {
-    const scale = 10 ** UNIT_PRICE_DECIMALS
-    return Math.round(Number(pieceCost || 0) * factorFor(unitType, conversionFactor) * scale) / scale
+    return roundMoney(Number(pieceCost || 0) * factorFor(unitType, conversionFactor), UNIT_PRICE_DECIMALS)
 }
 
 export function newLine(product, pieceCost) {

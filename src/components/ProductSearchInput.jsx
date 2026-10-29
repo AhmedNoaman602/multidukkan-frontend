@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatCode, formatNumber } from '../lib/format'
+import { PRICE_FORMAT, roundPrice } from '../lib/money'
 import { matchesSearch } from '../lib/search'
 
 export default function ProductSearchInput({ products, onSelect, showCostPrice = false, placeholder, inputRef: externalRef, disabled = false }) {
@@ -98,7 +99,7 @@ export default function ProductSearchInput({ products, onSelect, showCostPrice =
                                     <div className="flex justify-between items-center">
                                         <span className="font-medium">{product.name}</span>
                                         <span className={`text-xs ${i === highlighted ? 'text-blue-200' : 'text-gray-400'}`}>
-                                            {showCostPrice && (product.cost_price ?? '') === '' ? '—' : `${formatNumber(showCostPrice ? product.cost_price : product.price)} ${t('common.currency')}`}
+                                            {showCostPrice && (product.cost_price ?? '') === '' ? '—' : `${formatNumber(roundPrice(showCostPrice ? product.cost_price : product.price), PRICE_FORMAT)} ${t('common.currency')}`}
                                         </span>
                                     </div>
                                     {product.sku && (
@@ -178,7 +179,7 @@ export default function ProductSearchInput({ products, onSelect, showCostPrice =
                                     </div>
                                     <div className="text-end">
 <p className="text-white text-sm font-medium">
-    {showCostPrice && (product.cost_price ?? '') === '' ? '—' : `${formatNumber(showCostPrice ? product.cost_price : product.price)} ${t('common.currency')}`}
+    {showCostPrice && (product.cost_price ?? '') === '' ? '—' : `${formatNumber(roundPrice(showCostPrice ? product.cost_price : product.price), PRICE_FORMAT)} ${t('common.currency')}`}
 </p>                                        <p className="text-gray-500 text-xs">{product.unit}</p>
                                     </div>
                                 </div>

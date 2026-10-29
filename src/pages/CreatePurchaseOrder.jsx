@@ -11,13 +11,14 @@ import { useToast } from '../hooks/useToast'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatCode, formatNumber } from '../lib/format'
 import { parseNumber } from '../lib/number'
+import { PRICE_FORMAT, TOTAL_FORMAT, roundPrice, roundTotal } from '../lib/money'
 import NumberInput from '../components/NumberInput'
 import { changeLinePrice, changeLineUnit, confirmLinePrice, convertLinePrice, convertedPrice, needsPriceReview, newLine } from '../lib/purchaseLine'
 const STORAGE_KEY = 'createPurchaseOrderDraft'
 
 const unitNameOf = (item, product) => (item.unit_type === 'secondary' ? product?.secondary_unit : product?.unit) ?? ''
 
-const priceText = (value) => formatNumber(value, { maximumFractionDigits: 2 })
+const priceLabel = (value) => formatNumber(roundPrice(value), PRICE_FORMAT)
 
 function PriceReviewNotice({ item, product, onKeep, onConvert, t }) {
     const unit = unitNameOf(item, product)
@@ -26,11 +27,11 @@ function PriceReviewNotice({ item, product, onKeep, onConvert, t }) {
         <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-yellow-400">
             <span>⚠ {t('purchaseOrders.create.priceReview', { unit })}</span>
             <button type="button" onClick={onKeep} className="underline hover:text-yellow-300">
-                {t('purchaseOrders.create.keepPrice', { price: priceText(item.unit_price), unit })}
+                {t('purchaseOrders.create.keepPrice', { price: priceLabel(item.unit_price), unit })}
             </button>
             {converted !== null && (
                 <button type="button" onClick={onConvert} className="underline hover:text-yellow-300">
-                    {t('purchaseOrders.create.convertPrice', { price: priceText(converted), unit })}
+                    {t('purchaseOrders.create.convertPrice', { price: priceLabel(converted), unit })}
                 </button>
             )}
         </div>
@@ -416,7 +417,7 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
                                                 </td>
                                                 <td className="px-2.5 py-1.5">
     <div className="flex items-center gap-1">
-        <NumberInput
+        <NumberInput decimals={4}
             min="0"
             value={item.unit_price}
             onChange={e => changePrice(index, e.target.value)}
@@ -445,7 +446,7 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
                                                     </select>
                                                 </td>
                                                 <td className="px-2.5 py-1.5 text-white text-sm font-medium whitespace-nowrap">
-                                                    {formatNumber(lineTotal, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-gray-500 text-[10px]">{t('common.currency')}</span>
+                                                    {formatNumber(roundTotal(lineTotal), TOTAL_FORMAT)} <span className="text-gray-500 text-[10px]">{t('common.currency')}</span>
                                                 </td>
                                                 <td className="px-2.5 py-1.5">
                                                     <button
@@ -496,7 +497,7 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
                                                     className="w-14 shrink-0 px-1.5 py-1.5 bg-gray-800 border border-gray-700 text-white rounded text-sm text-center focus:outline-none focus:border-blue-500"
                                                 />
                                                 <UnitToggle item={item} product={product} onChange={u => changeUnit(index, u, product)} className="py-1" />
-                                                <NumberInput
+                                                <NumberInput decimals={4}
                                                     min="0"
                                                     value={item.unit_price}
                                                     onChange={e => changePrice(index, e.target.value)}
@@ -523,7 +524,7 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
                                             )}
 
                                             <p className="text-end text-white text-sm font-medium">
-                                                {formatNumber(lineTotal, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-gray-500 text-[10px]">{t('common.currency')}</span>
+                                                {formatNumber(roundTotal(lineTotal), TOTAL_FORMAT)} <span className="text-gray-500 text-[10px]">{t('common.currency')}</span>
                                             </p>
                                         </div>
                                     )
@@ -561,12 +562,12 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
 
                             <div className="flex justify-between text-sm text-gray-400">
                                 <span>{t('orders.subtotal')}</span>
-                                <span className="text-white">{formatNumber(subtotal, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {t('common.currency')}</span>
+                                <span className="text-white">{formatNumber(roundTotal(subtotal), TOTAL_FORMAT)} {t('common.currency')}</span>
                             </div>
 
                             <div className="flex justify-between text-lg font-bold text-white border-t border-gray-800 pt-3">
                                 <span>{t('common.total')}</span>
-                                <span>{formatNumber(grandTotal, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {t('common.currency')}</span>
+                                <span>{formatNumber(roundTotal(grandTotal), TOTAL_FORMAT)} {t('common.currency')}</span>
                             </div>
 
                             <button
