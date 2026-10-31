@@ -80,6 +80,7 @@ export default function CreatePurchaseOrder() {
 
     const [storeId, setStoreId] = useState(draft.storeId || '')
     const [supplierId, setSupplierId] = useState(draft.supplierId || '')
+    const [pickedSupplier, setPickedSupplier] = useState(null)
 
     const [items, setItems] = useState(draft.items || [])
 
@@ -109,9 +110,11 @@ const supplierChanged = items.length > 0 && supplierId !== pricedForSupplier
     }, [orderDate])
 
     // Fetch data
-    const { data: suppliers = [], isLoading: suppliersLoading, isError: suppliersError } = useQuery({
-        queryKey: ['suppliers', 'all'],
-        queryFn: () => api.get('/suppliers').then(res => res.data.data),
+    // A restored draft only knows the supplier's id, so that one supplier is loaded by id.
+    const { data: draftSupplier, isError: draftSupplierError } = useQuery({
+        queryKey: ['suppliers', supplierId],
+        queryFn: () => api.get(`/suppliers/${supplierId}`).then(res => res.data.data),
+        enabled: !!supplierId && pickedSupplier?.id !== Number(supplierId),
     })
     const { data: products = [], isLoading: productsLoading, isError: productsError } = useQuery({
         queryKey: ['products', 'all'],
@@ -126,8 +129,22 @@ const supplierChanged = items.length > 0 && supplierId !== pricedForSupplier
         queryFn: () => api.get('/stores').then(res => res.data.data),
     })
 
-    const loading = suppliersLoading || productsLoading || warehousesLoading || storesLoading
-    const loadError = suppliersError || productsError || warehousesError || storesError
+    const loading = productsLoading || warehousesLoading || storesLoading
+    const loadError = productsError || warehousesError || storesError
+
+    // The draft's supplier is gone (deleted, or another tenant's id): start without one.
+    useEffect(() => {
+        if (draftSupplierError) setSupplierId('')
+    }, [draftSupplierError])
+
+    const selectedSupplier = !supplierId
+        ? null
+        : pickedSupplier?.id === Number(supplierId) ? pickedSupplier : draftSupplier ?? null
+
+    const handleSupplierSelect = (supplier) => {
+        setPickedSupplier(supplier)
+        setSupplierId(supplier ? supplier.id : '')
+    }
 
     useEffect(() => {
         if (loadError) showToast(t('orders.create.loadFailed'), 'error')
@@ -544,9 +561,8 @@ return total + (parseFloat(item.unit_price) || 0) * item.quantity
                                 {t('common.supplier')}
                             </p>
                             <SupplierSearchInput
-                                suppliers={suppliers}
-                                value={supplierId}
-                                onSelect={setSupplierId}
+                                selected={selectedSupplier}
+                                onSelect={handleSupplierSelect}
                                 autoFocus
                             />
                         </div>

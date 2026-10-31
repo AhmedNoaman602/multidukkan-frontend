@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatCode } from '../lib/format'
-import { matchesSearch } from '../lib/search'
+import { useLookupPages, useLookupSearch } from '../hooks/useLookup'
 
-export default function SupplierSearchInput({ suppliers, value, onSelect, placeholder, autoFocus = false }) {
+// Searches /suppliers/lookup on the server. `selected` is the chosen supplier object; onSelect
+// receives a supplier, or null when the choice is cleared. `excludeIds` hides suppliers already picked.
+export default function SupplierSearchInput({ selected, onSelect, excludeIds = [], placeholder, autoFocus = false }) {
     const { t } = useTranslation()
     const effectivePlaceholder = placeholder ?? t('search.supplier.placeholder')
     const [query, setQuery] = useState('')
@@ -13,17 +15,11 @@ export default function SupplierSearchInput({ suppliers, value, onSelect, placeh
     const [browseQuery, setBrowseQuery] = useState('')
     const ref = useRef(null)
 
-    const filterFn = (q) => (s) => matchesSearch(s.name, q) || matchesSearch(s.phone, q) || matchesSearch(s.code, q)
-
-    const filtered = query.length > 0
-        ? suppliers.filter(filterFn(query)).slice(0, 8)
-        : []
-
-    const browseFiltered = browseQuery.length > 0
-        ? suppliers.filter(filterFn(browseQuery))
-        : suppliers
-
-    const selectedSupplier = suppliers.find(s => s.id === parseInt(value))
+    const notExcluded = s => !excludeIds.includes(s.id)
+    const search = useLookupSearch('/suppliers/lookup', query)
+    const filtered = search.results.filter(notExcluded).slice(0, 8)
+    const browse = useLookupPages('/suppliers/lookup', browseQuery, browseOpen)
+    const browseItems = browse.items.filter(notExcluded)
 
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -40,20 +36,20 @@ export default function SupplierSearchInput({ suppliers, value, onSelect, placeh
     }, [browseOpen])
 
     const handleSelect = (supplier) => {
-        onSelect(supplier.id)
+        onSelect(supplier)
         setQuery('')
         setOpen(false)
         setHighlighted(0)
     }
 
     const handleBrowseSelect = (supplier) => {
-        onSelect(supplier.id)
+        onSelect(supplier)
         setBrowseOpen(false)
         setBrowseQuery('')
     }
 
     const handleClear = () => {
-        onSelect('')
+        onSelect(null)
         setQuery('')
     }
 
@@ -67,24 +63,24 @@ export default function SupplierSearchInput({ suppliers, value, onSelect, placeh
             setHighlighted(h => Math.max(h - 1, 0))
         } else if (e.key === 'Enter' && open && filtered.length > 0) {
             e.preventDefault()
-            handleSelect(filtered[highlighted])
+            handleSelect(filtered[Math.min(highlighted, filtered.length - 1)])
         } else if (e.key === 'Escape') {
             setOpen(false)
         }
     }
 
-    if (selectedSupplier) {
+    if (selected) {
         return (
             <div className="flex items-center justify-between px-3 py-2.5 bg-gray-800 border border-gray-700 rounded-lg">
                 <div className="flex items-center gap-3 min-w-0">
                     <div className="w-8 h-8 rounded-full bg-purple-600/20 flex items-center justify-center shrink-0">
-                        <span className="text-purple-400 text-xs font-bold">{selectedSupplier.name.charAt(0)}</span>
+                        <span className="text-purple-400 text-xs font-bold">{selected.name.charAt(0)}</span>
                     </div>
                     <div className="min-w-0">
-                        <span className="text-white text-sm font-medium">{selectedSupplier.name}</span>
-                        <span className="text-gray-400 text-sm ms-2">{formatCode(selectedSupplier.phone)}</span>
-                        {selectedSupplier.code && (
-                            <span className="text-gray-500 text-xs ms-2">{formatCode(selectedSupplier.code)}</span>
+                        <span className="text-white text-sm font-medium">{selected.name}</span>
+                        <span className="text-gray-400 text-sm ms-2">{formatCode(selected.phone)}</span>
+                        {selected.code && (
+                            <span className="text-gray-500 text-xs ms-2">{formatCode(selected.code)}</span>
                         )}
                     </div>
                 </div>
@@ -98,6 +94,14 @@ export default function SupplierSearchInput({ suppliers, value, onSelect, placeh
             </div>
         )
     }
+
+    const dropdownMessage = search.failed
+        ? t('search.failed')
+        : search.searching
+            ? t('search.searching')
+            : query.trim().length > 0 && filtered.length === 0
+                ? t('search.supplier.noResults', { query })
+                : null
 
     return (
         <>
@@ -137,9 +141,9 @@ export default function SupplierSearchInput({ suppliers, value, onSelect, placeh
                         </div>
                     )}
 
-                    {open && query.length > 0 && filtered.length === 0 && (
+                    {open && filtered.length === 0 && dropdownMessage && (
                         <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl px-3 py-3 text-gray-400 text-sm">
-                            {t('search.supplier.noResults', { query })}
+                            {dropdownMessage}
                         </div>
                     )}
                 </div>
@@ -183,12 +187,12 @@ export default function SupplierSearchInput({ suppliers, value, onSelect, placeh
                                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                             />
                             <p className="text-gray-500 text-xs mt-2">
-                                {t('search.supplier.countLabel', { count: browseFiltered.length })}
+                                {browse.total !== undefined ? t('search.supplier.countLabel', { count: browse.total }) : t('search.searching')}
                             </p>
                         </div>
 
                         <div className="overflow-y-auto flex-1">
-                            {browseFiltered.map(supplier => (
+                            {browseItems.map(supplier => (
                                 <div
                                     key={supplier.id}
                                     onClick={() => handleBrowseSelect(supplier)}
@@ -208,7 +212,20 @@ export default function SupplierSearchInput({ suppliers, value, onSelect, placeh
                                     <p className="text-gray-400 text-sm">{formatCode(supplier.phone)}</p>
                                 </div>
                             ))}
-                            {browseFiltered.length === 0 && (
+                            {browse.hasMore && (
+                                <button
+                                    type="button"
+                                    onClick={() => browse.loadMore()}
+                                    disabled={browse.loadingMore}
+                                    className="w-full py-3 text-sm text-blue-400 hover:bg-gray-800 transition-colors disabled:text-gray-500"
+                                >
+                                    {browse.loadingMore ? t('search.searching') : t('search.showMore')}
+                                </button>
+                            )}
+                            {browse.failed && (
+                                <div className="text-center py-12 text-gray-500 text-sm">{t('search.failed')}</div>
+                            )}
+                            {!browse.failed && !browse.searching && browseItems.length === 0 && !browse.hasMore && (
                                 <div className="text-center py-12 text-gray-500 text-sm">{t('search.supplier.noResultsBrowse')}</div>
                             )}
                         </div>

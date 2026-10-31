@@ -12,7 +12,7 @@ import NumberInput from '../components/NumberInput'
 import { codeBoxClass, codeInput, displayIdentifier } from '../lib/identifierInput'
 
 export default function CreateProduct() {
-    const [supplierIds, setSupplierIds] = useState([])
+    const [linkedSuppliers, setLinkedSuppliers] = useState([])
     const [saving, setSaving] = useState(false)
     const [newUnit, setNewUnit] = useState('')
     const [showNewUnit, setShowNewUnit] = useState(false)
@@ -56,11 +56,6 @@ export default function CreateProduct() {
         queryKey: ['units'],
         queryFn: () => api.get('/units').then(res => res.data.data),
     })
-    const { data: suppliers = [] } = useQuery({
-        queryKey: ['suppliers', 'all'],
-        queryFn: () => api.get('/suppliers?per_page=all').then(res => res.data.data),
-    })
-
     const defaultUnitSet = useRef(false)
     useEffect(() => {
         if (units.length > 0 && !defaultUnitSet.current) {
@@ -127,7 +122,7 @@ export default function CreateProduct() {
         try {
             await api.post('/products', {
                 ...form,
-                supplier_ids: supplierIds,
+                supplier_ids: linkedSuppliers.map(s => s.id),
                 price: parseFloat(form.price),
                 cost_price: form.cost_price ? parseFloat(form.cost_price) : null,
                 stocks: stockPayload(stocks, hasSecondaryUnit),
@@ -180,9 +175,8 @@ export default function CreateProduct() {
         {t('products.form.supplier')} <span className="text-gray-600">({t('common.optional')})</span>
     </label>
     <SupplierMultiSelect
-        suppliers={suppliers}
-        value={supplierIds}
-        onChange={setSupplierIds}
+        value={linkedSuppliers}
+        onChange={setLinkedSuppliers}
         placeholder={t('products.form.supplierSearchPlaceholder')}
         allSelectedLabel={t('products.form.allSuppliersLinked')}
     />

@@ -3,52 +3,41 @@ import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatCode, formatCurrency, formatIdentifier, formatPrice } from '../lib/format'
+import { useServerSearch } from '../hooks/useLookup'
+
+const fetchSearch = (text, signal) => api.get('/search', { params: { q: text }, signal }).then(res => res.data)
 
 export default function GlobalSearch({ open, onClose }) {
     const [query, setQuery] = useState('')
-    const [results, setResults] = useState({ customers: [], products: [], orders: [], suppliers: [], purchaseOrders: [] })
-    const [loading, setLoading] = useState(false)
     const [highlighted, setHighlighted] = useState(0)
     const inputRef = useRef(null)
     const navigate = useNavigate()
     const { t, lang } = useTranslation()
 
-    useEffect(() => {
+    // Only the latest query can fill the results or the loading state (failures stay silent).
+    const search = useServerSearch(['search'], query, fetchSearch, { minLength: 2, delay: 200 })
+    const loading = search.searching
+    const results = {
+        customers:      search.data?.customers ?? [],
+        products:       search.data?.products ?? [],
+        orders:         search.data?.orders ?? [],
+        suppliers:      search.data?.suppliers ?? [],
+        purchaseOrders: search.data?.purchase_orders ?? [],
+    }
+
+    // Each opening starts with an empty box.
+    const [wasOpen, setWasOpen] = useState(open)
+    if (open !== wasOpen) {
+        setWasOpen(open)
         if (open) {
             setQuery('')
-            setResults({ customers: [], products: [], orders: [], suppliers: [], purchaseOrders: [] })
             setHighlighted(0)
-            setTimeout(() => inputRef.current?.focus(), 50)
         }
-    }, [open])
+    }
 
     useEffect(() => {
-        if (!query.trim() || query.length < 2) {
-            setResults({ customers: [], products: [], orders: [], suppliers: [], purchaseOrders: [] })
-            return
-        }
-
-        const timeout = setTimeout(async () => {
-            setLoading(true)
-            try {
-                const res = await api.get('/search', { params: { q: query } })
-                setResults({
-                    customers:      res.data.customers ?? [],
-                    products:       res.data.products ?? [],
-                    orders:         res.data.orders ?? [],
-                    suppliers:      res.data.suppliers ?? [],
-                    purchaseOrders: res.data.purchase_orders ?? [],
-                })
-                setHighlighted(0)
-            } catch {
-                // fail silently
-            } finally {
-                setLoading(false)
-            }
-        }, 200)
-
-        return () => clearTimeout(timeout)
-    }, [query])
+        if (open) setTimeout(() => inputRef.current?.focus(), 50)
+    }, [open])
 
     // Flatten all results into one list for keyboard navigation
     const flatResults = [
