@@ -5,6 +5,9 @@
 // migration status.
 export default {
     browse: 'Browse',
+    searching: 'Searching…',
+    showMore: 'Show more',
+    failed: 'Search failed, try again',
 
     product: {
         placeholder: 'Search by name or product code…',

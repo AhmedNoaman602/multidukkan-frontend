@@ -17,7 +17,7 @@ export default function EditProduct() {
     const { id } = useParams()
     const navigate = useNavigate()
     const [saving, setSaving] = useState(false)
-    const [supplierIds, setSupplierIds] = useState([])
+    const [linkedSuppliers, setLinkedSuppliers] = useState([])
     const [generatingDesc, setGeneratingDesc] = useState(false)
     const [stocks, setStocks] = useState([])
     const [form, setForm] = useState({
@@ -36,15 +36,13 @@ export default function EditProduct() {
             api.get(`/products/${id}`),
             api.get('/warehouses'),
             api.get('/units'),
-            api.get('/suppliers?per_page=all'),
             api.get(`/products/${id}/suppliers`),
             api.get('/stores'),
-        ]).then(([productRes, warehouseRes, unitRes, supplierRes, linkedRes, storeRes]) => ({
+        ]).then(([productRes, warehouseRes, unitRes, linkedRes, storeRes]) => ({
             product: productRes.data.data,
             warehouses: warehouseRes.data.data,
             units: unitRes.data.data,
-            suppliers: supplierRes.data.data,
-            linkedSupplierIds: linkedRes.data.data.map(s => s.id),
+            linkedSuppliers: linkedRes.data.data.map(({ id, code, name, phone }) => ({ id, code, name, phone })),
             stores: storeRes.data.data,
         })),
         gcTime: 0,
@@ -77,7 +75,7 @@ export default function EditProduct() {
             description_en:    p.description_en || '',
         })
 
-        setSupplierIds(data.linkedSupplierIds)
+        setLinkedSuppliers(data.linkedSuppliers)
 
         // Existing stock loads in base units; the user may re-enter it in the secondary unit.
         setStocks(p.stocks.map(s => ({
@@ -93,7 +91,6 @@ export default function EditProduct() {
 
     const warehouses = data?.warehouses || []
     const units = data?.units || []
-    const suppliers = data?.suppliers || []
     const stores = data?.stores || []
     const hasSecondaryUnit = !!form.secondary_unit && Number(form.conversion_factor) > 1
 
@@ -135,7 +132,7 @@ export default function EditProduct() {
                 price_e:           form.price_e ? parseFloat(form.price_e) : null,
                 cost_price:        form.cost_price ? parseFloat(form.cost_price) :null,
                 conversion_factor: form.conversion_factor ? parseInt(form.conversion_factor) : null,
-                supplier_ids:      supplierIds,
+                supplier_ids:      linkedSuppliers.map(s => s.id),
                 stocks:            stockPayload(stocks, hasSecondaryUnit),
             })
             showToast(t('products.edit.updated'), 'success')
@@ -184,9 +181,8 @@ export default function EditProduct() {
         {t('products.form.supplier')} <span className="text-gray-600">({t('common.optional')})</span>
     </label>
     <SupplierMultiSelect
-        suppliers={suppliers}
-        value={supplierIds}
-        onChange={setSupplierIds}
+        value={linkedSuppliers}
+        onChange={setLinkedSuppliers}
         placeholder={t('products.form.supplierSearchPlaceholder')}
         allSelectedLabel={t('products.form.allSuppliersLinked')}
     />

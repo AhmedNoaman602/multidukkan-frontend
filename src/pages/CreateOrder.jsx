@@ -38,6 +38,7 @@ export default function CreateOrder() {
 
     const [storeId, setStoreId] = useState(draft.storeId || '')
     const [customerId, setCustomerId] = useState(draft.customerId || '')
+    const [pickedCustomer, setPickedCustomer] = useState(null)
     const [items, setItems] = useState(draft.items || [])
     const [discountValue, setDiscountValue] = useState(draft.discountValue || 0)
     const [discountType, setDiscountType] = useState(draft.discountType || 'amount')
@@ -47,9 +48,11 @@ export default function CreateOrder() {
     })
 
     // Fetch data
-    const { data: customers = [], isLoading: customersLoading, isError: customersError } = useQuery({
-        queryKey: ['customers', 'all'],
-        queryFn: () => api.get('/customers').then(res => res.data.data),
+    // A restored draft only knows the customer's id, so that one customer is loaded by id.
+    const { data: draftCustomer, isError: draftCustomerError } = useQuery({
+        queryKey: ['customers', customerId],
+        queryFn: () => api.get(`/customers/${customerId}`).then(res => res.data.data),
+        enabled: !!customerId && pickedCustomer?.id !== Number(customerId),
     })
     const { data: products = [], isLoading: productsLoading, isError: productsError } = useQuery({
         queryKey: ['products', 'all'],
@@ -60,8 +63,13 @@ export default function CreateOrder() {
         queryFn: () => api.get('/stores').then(res => res.data.data),
     })
 
-    const loading = customersLoading || productsLoading || storesLoading
-    const loadError = customersError || productsError || storesError
+    const loading = productsLoading || storesLoading
+    const loadError = productsError || storesError
+
+    // The draft's customer is gone (deleted, or another tenant's id): start without one.
+    useEffect(() => {
+        if (draftCustomerError) setCustomerId('')
+    }, [draftCustomerError])
 
     // Sales come from the store's shelf; this is only a preview of what the store holds.
     const availability = useStoreAvailability(storeId, items.map(i => i.product_id))
@@ -116,7 +124,14 @@ export default function CreateOrder() {
         localStorage.setItem('default_store_id', id)
     }
 
-    const selectedCustomer = customers.find(c => c.id === parseInt(customerId))
+    const selectedCustomer = !customerId
+        ? null
+        : pickedCustomer?.id === Number(customerId) ? pickedCustomer : draftCustomer ?? null
+
+    const handleCustomerSelect = (customer) => {
+        setPickedCustomer(customer)
+        setCustomerId(customer ? String(customer.id) : '')
+    }
 
     const getPriceForCustomer = (product) => {
         if (!selectedCustomer) return product.price
@@ -449,9 +464,8 @@ export default function CreateOrder() {
                                 {t('common.customer')}
                             </p>
                             <CustomerSearchInput
-                                customers={customers}
-                                value={customerId}
-                                onSelect={setCustomerId}
+                                selected={selectedCustomer}
+                                onSelect={handleCustomerSelect}
                                 autoFocus
                             />
                         </div>

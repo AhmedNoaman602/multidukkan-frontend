@@ -1,24 +1,22 @@
 import SupplierSearchInput from './SupplierSearchInput'
+import { useLookupTotal } from '../hooks/useLookup'
 
 // Multi-supplier picker. Reuses SupplierSearchInput in permanent search mode
-// (value="" so it never collapses to a single chip) and accumulates picks into
-// an array of ids. Already-selected suppliers are removed from the search pool
-// so the same one can't be added twice.
-export default function SupplierMultiSelect({ suppliers, value = [], onChange, placeholder, allSelectedLabel }) {
+// (nothing selected, so it never collapses to a single chip) and accumulates picks.
+// `value` holds the picked supplier objects, so the chips show names without loading
+// every supplier. Already-picked suppliers are hidden from the search so the same one
+// can't be added twice; the lookup's total tells when every supplier is linked.
+export default function SupplierMultiSelect({ value = [], onChange, placeholder, allSelectedLabel }) {
     const selected = value
-        .map(id => suppliers.find(s => s.id === id))
-        .filter(Boolean)
+    const total = useLookupTotal('/suppliers/lookup')
+    const allSelected = total > 0 && selected.length >= total
 
-    const available = suppliers.filter(s => !value.includes(s.id))
-    const allSelected = suppliers.length > 0 && available.length === 0
-
-    const add = (id) => {
-        const numId = parseInt(id)
-        if (!numId || value.includes(numId)) return
-        onChange([...value, numId])
+    const add = (supplier) => {
+        if (!supplier || selected.some(s => s.id === supplier.id)) return
+        onChange([...selected, supplier])
     }
 
-    const remove = (id) => onChange(value.filter(v => v !== id))
+    const remove = (id) => onChange(selected.filter(s => s.id !== id))
 
     return (
         <div className="space-y-2">
@@ -28,9 +26,9 @@ export default function SupplierMultiSelect({ suppliers, value = [], onChange, p
                 </div>
             ) : (
                 <SupplierSearchInput
-                    suppliers={available}
-                    value=""
+                    selected={null}
                     onSelect={add}
+                    excludeIds={selected.map(s => s.id)}
                     placeholder={placeholder}
                 />
             )}
