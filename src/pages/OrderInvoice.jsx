@@ -195,7 +195,7 @@ const mergedItems = order.items?.reduce((acc, item) => {
 
                 {/* Footer */}
                 <div className="border-t border-gray-200 mt-8 pt-4 text-center">
-                    <p className="text-gray-400 text-xs">{t('orders.invoice.thankYou', { business: user.business_name })}</p>
+                    <p className="text-gray-400 text-xs">{t('orders.invoice.thankYou', { customer: order.customer_name })}</p>
                 </div>
 
             </div>

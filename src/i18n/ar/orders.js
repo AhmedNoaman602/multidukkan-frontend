@@ -106,7 +106,7 @@ export default {
         loadFailed: 'حصلت مشكلة في تحميل الفاتورة',
         notFound: 'الطلب غير موجود',
         billTo: 'فاتورة إلى',
-        thankYou: 'شكراً لتعاملك معانا — {business}',
+        thankYou: 'شكراً لتعاملك معانا يا {customer}',
     },
 
     addItemModal: {
