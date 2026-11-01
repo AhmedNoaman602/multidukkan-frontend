@@ -16,6 +16,7 @@ export default {
     login: {
         loggingIn: 'Logging in…',
         invalidCredentials: 'Incorrect email or password',
+        loggedOut: 'Please sign in again to continue.',
         noAccount: "Don't have an account?",
         createOne: 'Create one',
     },

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import api from '../api/axios'
 import { useTranslation } from '../i18n/useTranslation'
 import LanguageSwitcher from '../components/LanguageSwitcher'
@@ -12,6 +12,8 @@ export default function Login() {
     const [loading, setLoading] = useState(false)
     const navigate = useNavigate()
     const { t } = useTranslation()
+    const [searchParams] = useSearchParams()
+    const loggedOut = searchParams.has('loggedOut')
 
     const handleLogin = async (e) => {
         e.preventDefault()
@@ -87,6 +89,11 @@ export default function Login() {
                     {error && (
                         <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg mb-6 text-sm">
                             {error}
+                        </div>
+                    )}
+                    {!error && loggedOut && (
+                        <div role="status" className="bg-amber-500/10 border border-amber-500/20 text-amber-300 px-4 py-3 rounded-lg mb-6 text-sm">
+                            {t('auth.login.loggedOut')}
                         </div>
                     )}
 
