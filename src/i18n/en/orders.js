@@ -106,7 +106,7 @@ export default {
         loadFailed: 'Something went wrong loading the invoice.',
         notFound: 'Order not found',
         billTo: 'Bill to',
-        thankYou: 'Thank you for your business — {business}',
+        thankYou: 'Thank you for your business, {customer}',
     },
 
     addItemModal: {
