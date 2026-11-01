@@ -84,7 +84,8 @@ api.interceptors.response.use(
             localStorage.removeItem('default_store_id')
             sessionStorage.clear()
 
-            window.location.replace('/login')
+            // ?loggedOut tells the login page to explain why (12-hour limit or a revoked login).
+            window.location.replace('/login?loggedOut=1')
         }
 
         // Still rejected, so existing per-page error handling keeps working.

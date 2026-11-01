@@ -14,6 +14,7 @@ export default {
     login: {
         loggingIn: 'جاري تسجيل الدخول...',
         invalidCredentials: 'البريد الإلكتروني أو كلمة المرور غلط',
+        loggedOut: 'يُرجى تسجيل الدخول للمتابعة.',
         noAccount: 'معندكش حساب؟',
         createOne: 'أنشئ واحد',
     },
