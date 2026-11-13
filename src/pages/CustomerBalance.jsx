@@ -138,7 +138,7 @@ export default function CustomerBalance() {
                     <div className="flex gap-2">
                         <button onClick={() => setRefundModal(true)}
                             className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-lg transition-colors">
-                            {t('customers.balance.makeReturn')}
+                            {t('customers.balance.refundMoney')}
                         </button>
                         <button
                             onClick={() => setShowCreditModal(true)}
