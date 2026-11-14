@@ -290,7 +290,7 @@ const fetchQuickSaleData = async () => {
                 <StatBoxes stats={[
                     { label: t('orders.list.totalOrders'), value: formatNumber(stats.total_orders), color: 'white'  },
                     { label: t('orders.list.totalRevenue'), value: formatCurrency(stats.total_revenue, lang), color: 'white'  },
-                    { label: t('orders.list.paidAmount'), value: formatCurrency(stats.paid_amount, lang), color: 'green'  },
+                    { label: t('orders.list.settledAmount'), value: formatCurrency(stats.paid_amount, lang), color: 'green'  },
                     { label: t('orders.list.unpaidAmount'), value: formatCurrency(stats.unpaid_amount, lang), color: 'red'    },
                 ]} />
             )}

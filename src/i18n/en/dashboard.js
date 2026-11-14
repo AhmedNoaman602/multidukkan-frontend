@@ -36,8 +36,8 @@ export default {
     },
 
     stats: {
-        revenue: 'Revenue collected',
-        noSalesYet: 'No sales yet',
+        cashCollected: 'Cash collected',
+        noCashYet: 'No cash collected yet',
         newOrders: 'New orders',
         sales: 'Sales: {amount}',
         noOrdersYet: 'No orders yet',

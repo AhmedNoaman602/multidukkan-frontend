@@ -175,7 +175,7 @@ export default function Reports() {
       {!loading && data && (
         <>
           {/* Summary Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {[
               {
                 label: t('orders.list.totalRevenue'),
@@ -186,6 +186,21 @@ export default function Reports() {
                 label: t('reports.print.totalCollected'),
                 value: formatCurrency(data.summary.total_collected, lang),
                 color: "text-green-400",
+              },
+              data.summary.total_credit_settlements > 0 && {
+                label: t('reports.print.creditSettlements'),
+                value: formatCurrency(data.summary.total_credit_settlements, lang),
+                color: "text-sky-400",
+              },
+              data.summary.total_return_offsets > 0 && {
+                label: t('reports.print.returnOffsets'),
+                value: formatCurrency(data.summary.total_return_offsets, lang),
+                color: "text-sky-400",
+              },
+              {
+                label: t('reports.print.totalSettled'),
+                value: formatCurrency(data.summary.total_settled, lang),
+                color: "text-white",
               },
               {
                 label: t('reports.print.outstanding'),
@@ -212,7 +227,7 @@ export default function Reports() {
                 value: formatCurrency(data.summary.net_profit, lang),
                 color: data.summary.net_profit < 0 ? "text-red-400" : "text-green-400",
               },
-            ].map((stat) => (
+            ].filter(Boolean).map((stat) => (
               <div
                 key={stat.label}
                 className="bg-gray-900 border border-gray-800 rounded-xl p-4"

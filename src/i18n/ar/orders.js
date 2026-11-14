@@ -32,6 +32,7 @@ export default {
         totalOrders: 'إجمالي الطلبات',
         totalRevenue: 'إجمالي الإيرادات',
         paidAmount: 'المدفوع',
+        settledAmount: 'مسدد',
         unpaidAmount: 'غير المدفوع',
         unit: 'وحدة',
         pay: 'دفع',

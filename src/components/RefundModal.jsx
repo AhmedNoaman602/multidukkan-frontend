@@ -38,8 +38,7 @@ export default function RefundModal({
         const matchesOrder = refundForm.order_id
             ? p.order_id === parseInt(refundForm.order_id)
             : true
-         const notCredit = !p.is_auto_reversible
-        return hasBalance && matchesOrder && notCredit
+        return hasBalance && matchesOrder && p.counts_as_cash
     })
 
     const handleRefund = async (e) => {
