@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef} from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -164,7 +164,7 @@ export default function CreateOrder() {
         return { item, index, product, lineTotal }
     })
 
-    const handleProductSelect = useCallback((product) => {
+    const handleProductSelect = (product) => {
         setItems(prev => {
             const next = [...prev, {
                 product_id: String(product.id),
@@ -180,7 +180,7 @@ export default function CreateOrder() {
             }, 50)
             return next
         })
-    }, [])
+    }
 
     const removeItem = (index) => setItems(items.filter((_, i) => i !== index))
 
