@@ -46,7 +46,6 @@ export default {
         statusCredit: 'Customer has credit',
         statusSettled: 'Fully settled',
         refundMoney: '↩ Refund money',
-        addCredit: '+ Add credit',
         receivePayment: '💰 Receive payment',
         unpaidOrdersCount: 'Unpaid orders',
         totalOrdered: 'Total ordered',
@@ -75,13 +74,5 @@ export default {
         refundSuccess: 'Refund processed successfully.',
         refundFailed: 'Something went wrong processing the refund.',
         noRefundablePayments: 'No payments.',
-
-        addCreditTitle: 'Add Credit — {name}',
-        noteOptional: 'Note (optional)',
-        notePlaceholder: 'e.g. advance payment',
-        manualCreditDefault: 'Manual credit',
-        addCreditSubmit: 'Add Credit',
-        invalidAmount: 'Enter a valid amount',
-        addCreditFailed: 'Something went wrong adding the credit.',
     },
 }
