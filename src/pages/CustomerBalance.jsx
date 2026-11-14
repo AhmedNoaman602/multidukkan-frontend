@@ -7,7 +7,6 @@ import BackButton from '../components/BackButton'
 import Modal from '../components/Modal'
 import { useToast } from '../hooks/useToast'
 import RefundModal from '../components/RefundModal'
-import AddCreditModal from '../components/AddCreditModal'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatCurrency, formatDate, formatIdentifier, formatNumber } from '../lib/format'
 import NumberInput from '../components/NumberInput'
@@ -37,7 +36,6 @@ export default function CustomerBalance() {
     const [paymentModal, setPaymentModal] = useState(false)
     const [autoForm, setAutoForm] = useState({ amount: '', method: 'cash', order_id: '', payment_reference: '' })
     const [refundModal, setRefundModal] = useState(false)
-    const [showCreditModal, setShowCreditModal] = useState(false)
     const queryClient = useQueryClient()
 
     const { data, isLoading, isError } = useQuery({
@@ -139,12 +137,6 @@ export default function CustomerBalance() {
                         <button onClick={() => setRefundModal(true)}
                             className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-lg transition-colors">
                             {t('customers.balance.refundMoney')}
-                        </button>
-                        <button
-                            onClick={() => setShowCreditModal(true)}
-                            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-                        >
-                            {t('customers.balance.addCredit')}
                         </button>
                         <button onClick={() => setPaymentModal(true)}
                             className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors">
@@ -433,13 +425,6 @@ export default function CustomerBalance() {
                 customerId={id}
                 onSuccess={invalidateSummary}
             />
-            {showCreditModal && (
-                <AddCreditModal
-                    customer={data}
-                    onClose={() => setShowCreditModal(false)}
-                    onSuccess={invalidateSummary}
-                />
-            )}
 
         </div>
     )

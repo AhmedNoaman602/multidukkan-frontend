@@ -46,7 +46,6 @@ export default {
         statusCredit: 'العميل ليه رصيد',
         statusSettled: 'متسدد بالكامل',
         refundMoney: '↩ استرداد فلوس',
-        addCredit: '+ إضافة رصيد',
         receivePayment: '💰 استلام دفعة',
         unpaidOrdersCount: 'الطلبات غير المدفوعة',
         totalOrdered: 'إجمالي المطلوب',
@@ -75,13 +74,5 @@ export default {
         refundSuccess: 'تم الاسترداد بنجاح.',
         refundFailed: 'حصلت مشكلة في الاسترداد',
         noRefundablePayments: 'لا توجد دفعات.',
-
-        addCreditTitle: 'إضافة رصيد — {name}',
-        noteOptional: 'ملاحظة (اختياري)',
-        notePlaceholder: 'مثلاً: دفعة مقدمة',
-        manualCreditDefault: 'رصيد يدوي',
-        addCreditSubmit: 'إضافة الرصيد',
-        invalidAmount: 'اكتب مبلغ صحيح',
-        addCreditFailed: 'حصلت مشكلة في إضافة الرصيد',
     },
 }
