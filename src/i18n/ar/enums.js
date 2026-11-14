@@ -57,7 +57,7 @@ export default {
         REVERSAL: 'عكس قيد',
         CREDIT_APPLY: 'إضافة رصيد',
         CREDIT_CONSUMED: 'استخدام رصيد',
-        REFUND: 'مرتجع',
+        REFUND: 'استرداد فلوس',
         PURCHASE_CHARGE: 'قيد شراء',
         PURCHASE_REVERSAL: 'عكس قيد شراء',
         SUPPLIER_PAYMENT: 'دفعة لمورد',

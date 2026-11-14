@@ -64,11 +64,11 @@ export default function RefundModal({
     }
 
     return (
-        <Modal open={open} onClose={onClose} title={t('customers.balance.makeReturn')}>
+        <Modal open={open} onClose={onClose} title={t('customers.balance.refundMoney')}>
             <div className="space-y-4">
                 {orders.length === 0 ? (
                     <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-                        <p className="text-yellow-400 text-sm">{t('suppliers.balance.noPayments')}</p>
+                        <p className="text-yellow-400 text-sm">{t('customers.balance.noRefundablePayments')}</p>
                     </div>
                 ) : (
                     <form onSubmit={handleRefund} className="space-y-4">

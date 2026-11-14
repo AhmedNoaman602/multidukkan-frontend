@@ -45,7 +45,7 @@ export default {
         statusOwes: 'Customer owes money',
         statusCredit: 'Customer has credit',
         statusSettled: 'Fully settled',
-        makeReturn: '↩ Make a return',
+        refundMoney: '↩ Refund money',
         addCredit: '+ Add credit',
         receivePayment: '💰 Receive payment',
         unpaidOrdersCount: 'Unpaid orders',
@@ -74,6 +74,7 @@ export default {
         executeRefund: 'Process refund',
         refundSuccess: 'Refund processed successfully.',
         refundFailed: 'Something went wrong processing the refund.',
+        noRefundablePayments: 'No payments.',
 
         addCreditTitle: 'Add Credit — {name}',
         noteOptional: 'Note (optional)',
