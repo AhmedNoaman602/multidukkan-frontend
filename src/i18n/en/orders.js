@@ -32,6 +32,7 @@ export default {
         totalOrders: 'Total orders',
         totalRevenue: 'Total revenue',
         paidAmount: 'Paid',
+        settledAmount: 'Settled',
         unpaidAmount: 'Unpaid',
         unit: 'units',
         pay: 'Pay',

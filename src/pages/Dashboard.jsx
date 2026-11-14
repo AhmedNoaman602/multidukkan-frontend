@@ -147,6 +147,8 @@ export default function Dashboard() {
     const lowStockItems = dashboard?.low_stock || []
 
     if (isLoading) return <LoadingSpinner />
+    
+    if(isError || !dashboard) return <div className='text-center py-16 text-gray-500'>{t('dashboard.loadFailed')}</div>
 
     return (
         <div className="space-y-6">
@@ -190,12 +192,12 @@ export default function Dashboard() {
                 <div className={`grid grid-cols-2 ${canViewFinancials ? 'lg:grid-cols-4' : 'lg:grid-cols-2'} gap-3 sm:gap-4`}>
                     {canViewFinancials && (
                         <StatCard
-                            label={t('dashboard.stats.revenue')}
+                            label={t('dashboard.stats.cashCollected')}
                             value={stats.todayRevenue > 0 ? formatNumber(stats.todayRevenue) : '—'}
                             unit={stats.todayRevenue > 0 ? t('common.currency') : null}
                             sub={stats.todayRevenue > 0
                                 ? t('common.paymentsCount', { count: stats.todayPaymentsCount })
-                                : t('dashboard.stats.noSalesYet')}
+                                : t('dashboard.stats.noCashYet')}
                             icon={Banknote}
                             chip="bg-green-500/10 border-green-500/30 text-green-400"
                             onClick={user.role === 'tenant_admin' ? () => navigate('/reports') : undefined}

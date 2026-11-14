@@ -245,6 +245,7 @@ export default function CustomerBalance() {
                                     {formatDate(p.paid_at, lang)}
                                 </td>
                                 <td className='px-4 py-3 text-gray-400 text-sm'>
+                                 {p.counts_as_cash ? (
                                  <button
     onClick={() => {
         setEditPayment(true)
@@ -259,6 +260,7 @@ export default function CustomerBalance() {
 >
     {t('common.edit')}
 </button>
+                                 ) : '—'}
                                 </td>
                             </tr>
                         ))}

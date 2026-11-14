@@ -95,11 +95,16 @@ export default function ReportPrint() {
                     {[
                         { label: t('orders.list.totalRevenue'),      value: formatCurrency(data.summary.total_revenue, lang) },
                         { label: t('reports.print.totalCollected'),  value: formatCurrency(data.summary.total_collected, lang) },
+                        data.summary.total_credit_settlements > 0 &&
+                        { label: t('reports.print.creditSettlements'), value: formatCurrency(data.summary.total_credit_settlements, lang) },
+                        data.summary.total_return_offsets > 0 &&
+                        { label: t('reports.print.returnOffsets'),   value: formatCurrency(data.summary.total_return_offsets, lang) },
+                        { label: t('reports.print.totalSettled'),    value: formatCurrency(data.summary.total_settled, lang) },
                         { label: t('reports.print.outstanding'),     value: formatCurrency(data.summary.outstanding, lang) },
                         { label: t('orders.detail.totalProfit'),     value: formatCurrency(data.summary.gross_profit, lang) },
                         { label: t('reports.print.totalExpenses'),   value: formatCurrency(data.summary.total_expenses ?? 0, lang) },
                         { label: t('reports.print.netProfit'),       value: formatNetProfitPrint(data.summary.net_profit, lang) },
-                    ].map(stat => (
+                    ].filter(Boolean).map(stat => (
                         <div key={stat.label} className="border border-gray-200 rounded-lg p-3">
                             <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">{stat.label}</p>
                             <p className="text-lg font-bold text-gray-900">{stat.value}</p>

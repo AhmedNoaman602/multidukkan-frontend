@@ -37,8 +37,8 @@ export default {
     },
 
     stats: {
-        revenue: 'الإيرادات المحصلة',
-        noSalesYet: 'مفيش مبيعات لحد دلوقتي',
+        cashCollected: 'النقدية المحصلة',
+        noCashYet: 'مفيش فلوس اتحصلت لحد دلوقتي',
         newOrders: 'الطلبات الجديدة',
         sales: 'المبيعات: {amount}',
         noOrdersYet: 'مفيش طلبات لحد دلوقتي',
