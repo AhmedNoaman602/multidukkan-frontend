@@ -427,7 +427,7 @@ const displayTotal = editMode
                 </div>
             </div>
 {/* Profit */}
-{canViewCostData(user) && order.items.some(i => i.cost_price != null) && (
+{canViewCostData(user) && order.unknown_cost_lines !== undefined && (
     <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
         <p className="text-gray-400 text-xs uppercase tracking-wider mb-4">{t('orders.detail.profitSummary')}</p>
         <div className="flex gap-8">
@@ -438,12 +438,16 @@ const displayTotal = editMode
             <div>
                 <p className="text-gray-500 text-xs mb-1">{t('orders.detail.cost')}</p>
                 <p className="text-white font-semibold">
-                    {formatCurrency(order.cost, lang)}
+                    {order.cost === null ? '—' : formatCurrency(order.cost, lang)}
                 </p>
             </div>
             <div>
                 <p className="text-gray-500 text-xs mb-1">{t('orders.detail.totalProfit')}</p>
-                {(() => {
+                {order.gross_profit === null ? (
+                    <p className="font-semibold text-yellow-400">
+                        {t('orders.detail.profitUnavailable', { count: order.unknown_cost_lines })}
+                    </p>
+                ) : (() => {
                     const profit = order.gross_profit
                     const margin = order.total > 0 ? (profit / order.total) * 100 : 0
                     return (

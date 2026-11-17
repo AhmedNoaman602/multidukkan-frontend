@@ -29,7 +29,7 @@ export default function CreateProduct() {
     price_c: duplicate?.price_c || '',
     price_d: duplicate?.price_d || '',
     price_e: duplicate?.price_e || '',
-    cost_price: duplicate?.cost_price || '',
+    cost_price: duplicate?.cost_price ?? '',
     secondary_unit: duplicate?.secondary_unit || '',
     conversion_factor: duplicate?.conversion_factor || '',
     description: '',
@@ -124,7 +124,7 @@ export default function CreateProduct() {
                 ...form,
                 supplier_ids: linkedSuppliers.map(s => s.id),
                 price: parseFloat(form.price),
-                cost_price: form.cost_price ? parseFloat(form.cost_price) : null,
+                cost_price: form.cost_price !== '' ? parseFloat(form.cost_price) : null,
                 stocks: stockPayload(stocks, hasSecondaryUnit),
             })
             showToast(t('products.create.created'), 'success')
@@ -193,14 +193,16 @@ export default function CreateProduct() {
                         </div>
                          <div>
     <label className="block text-sm text-gray-400 mb-1">
-        {t('products.costPrice')} <span className="text-gray-600">({t('common.optional')})</span>
+        {t('products.costPrice')}
     </label>
     <NumberInput decimals={4}
         value={form.cost_price}
         onChange={(e) => setForm({ ...form, cost_price: e.target.value })}
         placeholder={t('products.form.costPricePlaceholder')}
+        required
         className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm placeholder-gray-600"
     />
+    <p className="text-xs text-gray-500 mt-1">{t('products.form.costPriceHint')}</p>
 </div>
                         <div>
                             <label className="block text-sm text-gray-400 mb-1">{t('products.form.unit')}</label>

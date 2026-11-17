@@ -127,7 +127,7 @@ export default function Onboarding() {
                     await api.post('/products', {
                         ...productForm,
                         price: parseFloat(productForm.price),
-                        cost_price: productForm.cost_price ? parseFloat(productForm.cost_price) : null,
+                        cost_price: productForm.cost_price !== '' ? parseFloat(productForm.cost_price) : null,
                         secondary_unit: productForm.secondary_unit || null,
                         conversion_factor: parseInt(productForm.conversion_factor) || null,
                         stocks: stockPayload(stocked, hasSecondaryUnit),
@@ -297,8 +297,9 @@ export default function Onboarding() {
                                 <NumberInput decimals={4} value={productForm.price} onChange={e => setProductForm({ ...productForm, price: e.target.value })} placeholder="0.00" className={inp} />
                             </div>
                             <div>
-                                <label className={lbl}>{t('onboarding.product.costPriceOptional')} <span className="text-gray-600">({t('common.optional')})</span></label>
-                                <NumberInput decimals={4} value={productForm.cost_price} onChange={e => setProductForm({ ...productForm, cost_price: e.target.value })} placeholder={t('onboarding.product.costPricePlaceholder')} className={inp} />
+                                <label className={lbl}>{t('onboarding.product.costPriceOptional')}</label>
+                                <NumberInput decimals={4} value={productForm.cost_price} onChange={e => setProductForm({ ...productForm, cost_price: e.target.value })} placeholder={t('onboarding.product.costPricePlaceholder')} required className={inp} />
+                                <p className="text-xs text-gray-500 mt-1">{t('products.form.costPriceHint')}</p>
                             </div>
                             <div>
                                 <label className={lbl}>{t('onboarding.product.unitRequired')}</label>

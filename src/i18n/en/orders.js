@@ -94,6 +94,7 @@ export default {
         addItem: '+ Add item',
         amountDue: 'Amount due',
         profitSummary: 'Profit summary',
+        profitUnavailable: 'Unavailable — {count} item(s) without a recorded cost',
         revenue: 'Revenue',
         cost: 'Cost',
         totalProfit: 'Total profit',

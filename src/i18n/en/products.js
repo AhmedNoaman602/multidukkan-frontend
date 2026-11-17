@@ -20,6 +20,8 @@ export default {
         supplierSearchPlaceholder: 'Search for a supplier…',
         allSuppliersLinked: 'All suppliers are linked',
         costPricePlaceholder: 'What you paid for it',
+        costPriceHint: 'Use 0 only if it truly costs nothing.',
+        costUnknownNote: 'Cost unknown. Enter its current value per piece to restock it — earlier sales keep an unknown cost.',
         unit: 'Unit',
         newUnit: '+ New',
         newUnitPlaceholder: 'e.g. box',

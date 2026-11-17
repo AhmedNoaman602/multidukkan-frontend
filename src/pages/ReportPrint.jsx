@@ -11,6 +11,8 @@ function formatNetProfitPrint(netProfit, lang) {
     return v < 0 ? `(${formatted})` : formatted
 }
 
+const noKnownCost = (s) => s.order_count > 0 && s.orders_excluded_from_profit === s.order_count
+
 export default function ReportPrint() {
     const [searchParams] = useSearchParams()
     const from = searchParams.get('from')
@@ -101,9 +103,11 @@ export default function ReportPrint() {
                         { label: t('reports.print.returnOffsets'),   value: formatCurrency(data.summary.total_return_offsets, lang) },
                         { label: t('reports.print.totalSettled'),    value: formatCurrency(data.summary.total_settled, lang) },
                         { label: t('reports.print.outstanding'),     value: formatCurrency(data.summary.outstanding, lang) },
-                        { label: t('orders.detail.totalProfit'),     value: formatCurrency(data.summary.gross_profit, lang) },
+                        { label: t('orders.detail.totalProfit'),     value: noKnownCost(data.summary) ? '—' : formatCurrency(data.summary.gross_profit, lang) },
+                        data.summary.sales_excluded_from_profit > 0 &&
+                        { label: t('reports.print.excludedFromProfit'), value: `${formatCurrency(data.summary.sales_excluded_from_profit, lang)} · ${t('reports.print.ordersShort', { count: formatNumber(data.summary.orders_excluded_from_profit) })}` },
                         { label: t('reports.print.totalExpenses'),   value: formatCurrency(data.summary.total_expenses ?? 0, lang) },
-                        { label: t('reports.print.netProfit'),       value: formatNetProfitPrint(data.summary.net_profit, lang) },
+                        { label: t('reports.print.netProfit'),       value: noKnownCost(data.summary) ? '—' : formatNetProfitPrint(data.summary.net_profit, lang) },
                     ].filter(Boolean).map(stat => (
                         <div key={stat.label} className="border border-gray-200 rounded-lg p-3">
                             <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">{stat.label}</p>
@@ -186,9 +190,9 @@ export default function ReportPrint() {
                 <td className="py-2 text-gray-500 text-sm font-mono">{formatIdentifier(o.invoice_number)}</td>
                 <td className="py-2 text-gray-900 text-sm">{o.customer_name}</td>
                 <td className="py-2 text-end text-gray-600 text-sm">{formatCurrency(o.revenue, lang)}</td>
-                <td className="py-2 text-end text-gray-600 text-sm">{formatCurrency(o.cost, lang)}</td>
-                <td className="py-2 text-end text-gray-900 text-sm font-medium">{formatCurrency(o.profit, lang)}</td>
-                <td className="py-2 text-end text-sm font-medium">{formatPercent(o.margin)}</td>
+                <td className="py-2 text-end text-gray-600 text-sm">{o.cost === null ? '—' : formatCurrency(o.cost, lang)}</td>
+                <td className="py-2 text-end text-gray-900 text-sm font-medium">{o.profit === null ? t('reports.print.noCost') : formatCurrency(o.profit, lang)}</td>
+                <td className="py-2 text-end text-sm font-medium">{o.margin === null ? '—' : formatPercent(o.margin)}</td>
             </tr>
         ))}
     </tbody>
