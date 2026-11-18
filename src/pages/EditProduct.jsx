@@ -20,6 +20,7 @@ export default function EditProduct() {
     const [linkedSuppliers, setLinkedSuppliers] = useState([])
     const [generatingDesc, setGeneratingDesc] = useState(false)
     const [stocks, setStocks] = useState([])
+    const [hadCost, setHadCost] = useState(false)
     const [form, setForm] = useState({
         name: '', sku: '', price: '', unit: '',
         price_a: '', price_b: '', price_c: '', price_d: '', price_e: '',
@@ -58,6 +59,7 @@ export default function EditProduct() {
         formInitialized.current = true
         const p = data.product
 
+        setHadCost(p.cost_price != null)
         setForm({
             name:              p.name || '',
             sku:               p.sku || '',
@@ -130,7 +132,7 @@ export default function EditProduct() {
                 price_c:           form.price_c ? parseFloat(form.price_c) : null,
                 price_d:           form.price_d ? parseFloat(form.price_d) : null,
                 price_e:           form.price_e ? parseFloat(form.price_e) : null,
-                cost_price:        form.cost_price ? parseFloat(form.cost_price) :null,
+                cost_price:        form.cost_price !== '' ? parseFloat(form.cost_price) : null,
                 conversion_factor: form.conversion_factor ? parseInt(form.conversion_factor) : null,
                 supplier_ids:      linkedSuppliers.map(s => s.id),
                 stocks:            stockPayload(stocks, hasSecondaryUnit),
@@ -199,14 +201,18 @@ export default function EditProduct() {
                     </div>
                     <div>
     <label className="block text-sm text-gray-400 mb-1">
-        {t('products.costPrice')} <span className="text-gray-600">({t('common.optional')})</span>
+        {t('products.costPrice')}
     </label>
     <NumberInput decimals={4}
         value={form.cost_price}
         onChange={(e) => setForm({ ...form, cost_price: e.target.value })}
         placeholder={t('products.form.costPricePlaceholder')}
+        required={hadCost}
         className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-sm placeholder-gray-600"
     />
+    <p className={`text-xs mt-1 ${hadCost ? 'text-gray-500' : 'text-yellow-400'}`}>
+        {hadCost ? t('products.form.costPriceHint') : t('products.form.costUnknownNote')}
+    </p>
 </div>
 
                     <div>

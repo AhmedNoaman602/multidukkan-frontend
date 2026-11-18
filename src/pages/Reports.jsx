@@ -34,6 +34,8 @@ const toLocalDateStr = (date) => {
   return `${y}-${m}-${d}`;
 };
 
+const noKnownCost = (s) => s.order_count > 0 && s.orders_excluded_from_profit === s.order_count;
+
 export default function Reports() {
   const { t, lang, dir } = useTranslation();
   const { showToast } = useToast();
@@ -209,8 +211,13 @@ export default function Reports() {
               },
               {
                 label: t('orders.detail.totalProfit'),
-                value: formatCurrency(data.summary.gross_profit, lang),
+                value: noKnownCost(data.summary) ? '—' : formatCurrency(data.summary.gross_profit, lang),
                 color: "text-blue-400",
+              },
+              data.summary.sales_excluded_from_profit > 0 && {
+                label: t('reports.print.excludedFromProfit'),
+                value: `${formatCurrency(data.summary.sales_excluded_from_profit, lang)} · ${t('reports.print.ordersShort', { count: formatNumber(data.summary.orders_excluded_from_profit) })}`,
+                color: "text-yellow-400",
               },
               {
                 label: t('reports.print.ordersCount'),
@@ -224,8 +231,8 @@ export default function Reports() {
               },
               {
                 label: t('reports.print.netProfit'),
-                value: formatCurrency(data.summary.net_profit, lang),
-                color: data.summary.net_profit < 0 ? "text-red-400" : "text-green-400",
+                value: noKnownCost(data.summary) ? '—' : formatCurrency(data.summary.net_profit, lang),
+                color: noKnownCost(data.summary) ? "text-gray-400" : data.summary.net_profit < 0 ? "text-red-400" : "text-green-400",
               },
             ].filter(Boolean).map((stat) => (
               <div
@@ -403,12 +410,13 @@ export default function Reports() {
                         {formatCurrency(o.revenue, lang)}
                       </td>
                       <td className="px-4 py-2 text-gray-400 text-sm">
-                        {formatCurrency(o.cost, lang)}
+                        {o.cost === null ? '—' : formatCurrency(o.cost, lang)}
                       </td>
                       <td className="px-4 py-2 text-green-400 text-sm font-semibold">
-                        {formatCurrency(o.profit, lang)}
+                        {o.profit === null ? <span className="text-yellow-400 font-normal">{t('reports.print.noCost')}</span> : formatCurrency(o.profit, lang)}
                       </td>
                       <td className="px-4 py-2">
+                        {o.margin === null ? '—' : (
                         <span
                           className={`px-2 py-1 rounded text-xs font-medium ${
                             o.margin >= 30
@@ -420,6 +428,7 @@ export default function Reports() {
                         >
                           {formatPercent(o.margin)}
                         </span>
+                        )}
                       </td>
                     </tr>
                   ))}

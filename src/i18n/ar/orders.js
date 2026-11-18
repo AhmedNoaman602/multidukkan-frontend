@@ -94,6 +94,7 @@ export default {
         addItem: '+ إضافة صنف',
         amountDue: 'المبلغ المستحق',
         profitSummary: 'ملخص الربح',
+        profitUnavailable: 'غير متاح — {count} صنف بدون تكلفة مسجلة',
         revenue: 'الإيرادات',
         cost: 'التكلفة',
         totalProfit: 'إجمالي الربح',

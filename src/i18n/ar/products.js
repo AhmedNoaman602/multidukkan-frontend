@@ -22,6 +22,8 @@ export default {
         allSuppliersLinked: 'تم ربط كل الموردين',
         // كانت "Opening Quantity" إنجليزي بالغلط — بقت "الكمية الافتتاحية".
         costPricePlaceholder: 'اللي دفعته فيه',
+        costPriceHint: 'اكتب 0 فقط لو المنتج فعلًا ملوش تكلفة.',
+        costUnknownNote: 'التكلفة غير معروفة. اكتب قيمته الحالية للقطعة عشان تقدر تشتري منه تاني — المبيعات اللي قبل كده هتفضل تكلفتها غير معروفة.',
         unit: 'الوحدة',
         newUnit: '+ جديدة',
         newUnitPlaceholder: 'مثال: كرتونة',
