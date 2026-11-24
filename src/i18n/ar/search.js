@@ -1,6 +1,6 @@
 // مشتركة بين ProductSearchInput وCustomerSearchInput — مكونات بحث قابلة
 // لإعادة الاستخدام، متركبة في صفحات لسه ماتترجمتش (SupplierBalance،
-// CreatePurchaseOrder، QuickSaleModal، AddItemModal)، فتصليح النص جوه
+// CreatePurchaseOrder، QuickSaleModal)، فتصليح النص جوه
 // المكونات دي آمن بغض النظر عن حالة ترجمة الصفحة اللي بتستخدمها.
 export default {
     browse: 'تصفح',

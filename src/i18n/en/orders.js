@@ -91,7 +91,6 @@ export default {
         updated: 'Order updated successfully.',
         updateFailed: 'Something went wrong updating the order.',
         orderItems: 'Order items',
-        addItem: '+ Add item',
         amountDue: 'Amount due',
         profitSummary: 'Profit summary',
         profitUnavailable: 'Unavailable — {count} item(s) without a recorded cost',
@@ -99,8 +98,6 @@ export default {
         cost: 'Cost',
         totalProfit: 'Total profit',
         notesPlaceholder: 'Add notes…',
-        itemUpdated: 'Item updated successfully.',
-        itemUpdateFailed: 'Something went wrong updating the item.',
         loadFailed: 'Something went wrong loading the order.',
     },
 
@@ -109,13 +106,5 @@ export default {
         notFound: 'Order not found',
         billTo: 'Bill to',
         thankYou: 'Thank you for your business, {customer}',
-    },
-
-    addItemModal: {
-        title: 'Add Item',
-        adding: 'Adding…',
-        submit: 'Add Item',
-        added: 'Item added successfully.',
-        addFailed: 'Something went wrong adding the item.',
     },
 }

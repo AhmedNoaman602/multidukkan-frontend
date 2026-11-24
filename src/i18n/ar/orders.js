@@ -91,7 +91,6 @@ export default {
         updated: 'تم تعديل الطلب بنجاح.',
         updateFailed: 'حصلت مشكلة في تعديل الطلب',
         orderItems: 'أصناف الطلب',
-        addItem: '+ إضافة صنف',
         amountDue: 'المبلغ المستحق',
         profitSummary: 'ملخص الربح',
         profitUnavailable: 'غير متاح — {count} صنف بدون تكلفة مسجلة',
@@ -99,8 +98,6 @@ export default {
         cost: 'التكلفة',
         totalProfit: 'إجمالي الربح',
         notesPlaceholder: 'أضف ملاحظات...',
-        itemUpdated: 'تم تعديل الصنف بنجاح.',
-        itemUpdateFailed: 'حصلت مشكلة في تعديل الصنف',
         loadFailed: 'حصلت مشكلة في تحميل الطلب',
     },
 
@@ -109,13 +106,5 @@ export default {
         notFound: 'الطلب غير موجود',
         billTo: 'فاتورة إلى',
         thankYou: 'شكراً لتعاملك معانا يا {customer}',
-    },
-
-    addItemModal: {
-        title: 'إضافة صنف',
-        adding: 'جاري الإضافة...',
-        submit: 'إضافة الصنف',
-        added: 'تم إضافة الصنف بنجاح.',
-        addFailed: 'حصلت مشكلة في إضافة الصنف',
     },
 }

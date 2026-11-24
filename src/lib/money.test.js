@@ -126,12 +126,3 @@ test('price and total formats keep Arabic digits and marks', async () => {
     assert.equal(formatNumber(roundPrice('0.0485'), PRICE_FORMAT, 'en'), '0.0485')
     assert.equal(formatNumber(roundTotal(1.005), TOTAL_FORMAT, 'en'), '1.01')
 })
-
-test('the default sale price keeps 4 decimals', async () => {
-    const { defaultSalePrice } = await import('./saleLine.js')
-    const nails = { price: '0.0485', price_a: '0.0450', conversion_factor: 1000 }
-    assert.equal(defaultSalePrice(nails, 'default', 'base'), 0.0485)
-    assert.equal(defaultSalePrice(nails, 'a', 'base'), 0.045)
-    assert.equal(defaultSalePrice(nails, 'default', 'secondary'), 48.5)
-    assert.equal(defaultSalePrice({ price: '1.2345', conversion_factor: 3 }, 'default', 'secondary'), 3.7035)
-})
