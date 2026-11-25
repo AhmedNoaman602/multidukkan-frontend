@@ -69,6 +69,7 @@ export default {
         discountAmount: '= {amount} discount',
         chooseWarehouse: 'Choose',
         unit: 'Unit',
+        priceEdited: 'Price changed by hand. Changing the unit or the customer resets it.',
         creating: 'Creating…',
         submit: 'Create order',
         loadFailed: 'Something went wrong loading the data.',

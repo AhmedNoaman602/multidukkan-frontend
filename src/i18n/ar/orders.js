@@ -69,6 +69,7 @@ export default {
         discountAmount: '= خصم {amount}',
         chooseWarehouse: 'اختر',
         unit: 'الوحدة',
+        priceEdited: 'السعر اتغير يدوي. تغيير الوحدة أو العميل بيرجّعه للسعر الأصلي.',
         creating: 'جاري الإنشاء...',
         submit: 'إنشاء الطلب',
         loadFailed: 'حصلت مشكلة في تحميل البيانات',
