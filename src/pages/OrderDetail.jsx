@@ -166,7 +166,7 @@ export default function OrderDetail() {
                     </div>
                     <div>
                         <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">{t('common.date')}</p>
-                        {editMode ? (
+                        {editMode && order.date_editable ? (
                             <input
                                 type="date"
                                 value={editForm.order_date}
