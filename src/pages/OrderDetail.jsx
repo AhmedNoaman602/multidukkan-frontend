@@ -5,7 +5,7 @@ import api from '../api/axios'
 import LoadingSpinner from '../components/LoadingSpinner'
 import BackButton from '../components/BackButton'
 import { useToast } from '../hooks/useToast'
-import DeleteModal from '../components/DeleteModal'
+import CancelOrderModal from '../components/CancelOrderModal'
 import { useTranslation } from '../i18n/useTranslation'
 import { formatCode, formatCurrency, formatDate, formatIdentifier, formatNumber, formatPercent, formatPrice } from '../lib/format'
 import { canViewCostData } from '../lib/permissions'
@@ -13,7 +13,6 @@ import { canViewCostData } from '../lib/permissions'
 export default function OrderDetail() {
     const { id } = useParams()
     const navigate = useNavigate()
-    const [cancelling, setCancelling] = useState(false)
     const [showConfirm, setShowConfirm] = useState(false)
     const [editMode, setEditMode] = useState(false)
     const [editForm, setEditForm] = useState({ order_date: '', notes: '' })
@@ -43,18 +42,11 @@ export default function OrderDetail() {
         }
     }, [order, editMode])
 
-    const handleCancel = async () => {
-        setCancelling(true)
-        try {
-            await api.delete(`/orders/${id}`)
-            navigate('/orders')
-            showToast(t('orders.detail.cancelled'), 'success')
-        } catch (err) {
-            showToast(err.response?.data?.message || t('orders.detail.cancelFailed'), 'error')
-            setShowConfirm(false)
-        } finally {
-            setCancelling(false)
-        }
+    const handleCancelled = () => {
+        navigate('/orders')
+        queryClient.invalidateQueries({ queryKey: ['orders'], refetchType: 'none' })
+        queryClient.invalidateQueries({ queryKey: ['customers'], refetchType: 'none' })
+        showToast(t('orders.detail.cancelled'), 'success')
     }
 
     const handleSave = async () => {
@@ -310,15 +302,14 @@ export default function OrderDetail() {
                 )}
             </div>
 
-            <DeleteModal
-            open={!!showConfirm}
-            onClose={() => setShowConfirm(false)}
-            onConfirm={handleCancel}
-            deleting={cancelling}
-            title={t('orders.detail.cancelOrderTitle')}
-            name={t('orders.detail.cancelOrderName', { invoice: formatIdentifier(order.invoice_number) })}
-            warning={t('orders.detail.cancelOrderWarning')}
-           />
+            {showConfirm && (
+                <CancelOrderModal
+                    orderId={id}
+                    invoice={formatIdentifier(order.invoice_number)}
+                    onClose={() => setShowConfirm(false)}
+                    onCancelled={handleCancelled}
+                />
+            )}
             
         </div>
     )

@@ -82,9 +82,6 @@ export default {
     detail: {
         invoiceButton: '🖨️ فاتورة',
         cancelOrder: 'إلغاء الطلب',
-        cancelOrderTitle: 'إلغاء الطلب',
-        cancelOrderName: 'طلب {invoice}',
-        cancelOrderWarning: 'ده هيعكس القيد في الحساب ويرجّع المخزون. مش هتقدر ترجع في الخطوة دي.',
         cancelled: 'تم إلغاء الطلب بنجاح.',
         cancelFailed: 'حصلت مشكلة في إلغاء الطلب',
         saveChanges: 'حفظ التعديلات',
@@ -99,6 +96,36 @@ export default {
         totalProfit: 'إجمالي الربح',
         notesPlaceholder: 'أضف ملاحظات...',
         loadFailed: 'حصلت مشكلة في تحميل الطلب',
+    },
+
+    cancelModal: {
+        title: 'إلغاء الطلب {invoice}',
+        loadFailed: 'حصلت مشكلة في تحميل تفاصيل الإلغاء',
+        total: 'إجمالي الفاتورة',
+        cashPaid: 'المدفوع نقدي',
+        creditPaid: 'المدفوع من رصيد العميل',
+        unpaidReversed: 'المبلغ غير المدفوع اللي هيتشال من المديونية',
+        howToReturn: 'هترجّع المدفوع ({amount}) إزاي؟',
+        options: {
+            cash: {
+                label: 'رجّعه نقدي',
+                hint: '{amount} هيطلع من الدرج.',
+            },
+            credit: {
+                label: 'سيبه رصيد للعميل',
+                hint: '{amount} هيفضل في حساب العميل يستخدمه في فواتير جاية.',
+            },
+        },
+        cashUnavailable: 'اتدفع {amount} من رصيد العميل، لكن المتاح يتصرف نقدي {available} بس، لأن على العميل فواتير تانية مش متسددة.',
+        reasons: {
+            other_unpaid_invoices: 'على العميل فواتير تانية مش متسددة، فمينفعش المبلغ يفضل رصيد.',
+            no_settlement_available: 'سدّد فواتير العميل التانية الأول، وبعدين ألغِ الفاتورة دي.',
+            return_offset: 'الفاتورة دي اتسوّت بمرتجع من العميل، فمينفعش تتلغي.',
+        },
+        warning: 'المخزون هيرجع والفاتورة هتتشال من مديونية العميل. مش هتقدر ترجع في الخطوة دي.',
+        keep: 'سيب الطلب',
+        confirm: 'إلغاء الطلب',
+        cancelling: 'جاري الإلغاء…',
     },
 
     invoice: {

@@ -82,9 +82,6 @@ export default {
     detail: {
         invoiceButton: '🖨️ Invoice',
         cancelOrder: 'Cancel order',
-        cancelOrderTitle: 'Cancel order',
-        cancelOrderName: 'Order {invoice}',
-        cancelOrderWarning: 'This will reverse the ledger entry and restore stock. This cannot be undone.',
         cancelled: 'Order cancelled successfully.',
         cancelFailed: 'Something went wrong cancelling the order.',
         saveChanges: 'Save changes',
@@ -99,6 +96,36 @@ export default {
         totalProfit: 'Total profit',
         notesPlaceholder: 'Add notes…',
         loadFailed: 'Something went wrong loading the order.',
+    },
+
+    cancelModal: {
+        title: 'Cancel order {invoice}',
+        loadFailed: 'Something went wrong loading what this cancel gives back.',
+        total: 'Invoice total',
+        cashPaid: 'Paid in cash',
+        creditPaid: 'Paid with customer credit',
+        unpaidReversed: 'Unpaid amount removed from the debt',
+        howToReturn: 'How should the {amount} paid be given back?',
+        options: {
+            cash: {
+                label: 'Refund in cash',
+                hint: '{amount} leaves the cash drawer.',
+            },
+            credit: {
+                label: 'Keep as customer credit',
+                hint: '{amount} stays on the customer\'s account for later invoices.',
+            },
+        },
+        cashUnavailable: '{amount} was paid with customer credit, but only {available} can be paid out in cash while the customer owes on other invoices.',
+        reasons: {
+            other_unpaid_invoices: 'The customer owes on other invoices, so this can\'t be kept as credit.',
+            no_settlement_available: 'Settle the customer\'s other invoices first, then cancel this one.',
+            return_offset: 'This invoice was settled by a customer return, so it can\'t be cancelled.',
+        },
+        warning: 'Stock goes back and the invoice is removed from the customer\'s debt. This can\'t be undone.',
+        keep: 'Keep the order',
+        confirm: 'Cancel order',
+        cancelling: 'Cancelling…',
     },
 
     invoice: {
