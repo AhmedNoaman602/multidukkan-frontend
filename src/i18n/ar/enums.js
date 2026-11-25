@@ -58,6 +58,7 @@ export default {
         CREDIT_APPLY: 'إضافة رصيد',
         CREDIT_CONSUMED: 'استخدام رصيد',
         REFUND: 'استرداد فلوس',
+        CREDIT_PAYOUT: 'صرف رصيد',
         PURCHASE_CHARGE: 'قيد شراء',
         PURCHASE_REVERSAL: 'عكس قيد شراء',
         SUPPLIER_PAYMENT: 'دفعة لمورد',

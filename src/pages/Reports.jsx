@@ -35,6 +35,7 @@ const toLocalDateStr = (date) => {
 };
 
 const noKnownCost = (s) => s.order_count > 0 && s.orders_excluded_from_profit === s.order_count;
+const hasCashOutflows = (s) => s.total_cash_refunded > 0 || s.total_credit_paid_out > 0;
 
 export default function Reports() {
   const { t, lang, dir } = useTranslation();
@@ -187,6 +188,21 @@ export default function Reports() {
               {
                 label: t('reports.print.totalCollected'),
                 value: formatCurrency(data.summary.total_collected, lang),
+                color: "text-green-400",
+              },
+              data.summary.total_cash_refunded > 0 && {
+                label: t('reports.print.cashRefunded'),
+                value: formatCurrency(data.summary.total_cash_refunded, lang),
+                color: "text-orange-400",
+              },
+              data.summary.total_credit_paid_out > 0 && {
+                label: t('reports.print.creditPaidOut'),
+                value: formatCurrency(data.summary.total_credit_paid_out, lang),
+                color: "text-orange-400",
+              },
+              hasCashOutflows(data.summary) && {
+                label: t('reports.print.netCollected'),
+                value: formatCurrency(data.summary.net_cash, lang),
                 color: "text-green-400",
               },
               data.summary.total_credit_settlements > 0 && {
