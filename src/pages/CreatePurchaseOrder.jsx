@@ -177,11 +177,11 @@ const supplierChanged = items.length > 0 && supplierId !== pricedForSupplier
 
 
     // ---- Persist draft on every change ----
-  useEffect(() => {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
-        storeId, supplierId, items, orderDate
-    }))
-}, [storeId, supplierId, items, orderDate])
+    useEffect(() => {
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
+            storeId, supplierId, items, orderDate
+        }))
+    }, [storeId, supplierId, items, orderDate])
 
     // ---- Flash new item highlight ----
     useEffect(() => {
@@ -204,16 +204,16 @@ const supplierChanged = items.length > 0 && supplierId !== pricedForSupplier
     }
 
 
-const getCostPrice = (product) => {
-    const supplierProduct = supplierProducts.find(sp => sp.id === product.id)
-    const supplierCost = supplierProduct?.cost_price ?? supplierProduct?.last_purchase_price
-    return supplierCost ?? product.cost_price ?? product.price ?? 0
-}
+    const getCostPrice = (product) => {
+        const supplierProduct = supplierProducts.find(sp => sp.id === product.id)
+        const supplierCost = supplierProduct?.cost_price ?? supplierProduct?.last_purchase_price
+        return supplierCost ?? product.cost_price ?? product.price ?? 0
+    }
 
     const subtotal = items.reduce((total, item) => {
         const product = products.find(p => p.id === parseInt(item.product_id))
         if (!product || !item.quantity) return total
-return total + (parseFloat(item.unit_price) || 0) * item.quantity
+        return total + (parseFloat(item.unit_price) || 0) * item.quantity
     }, 0)
 
   const grandTotal = moneyTotal(subtotal)

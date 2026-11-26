@@ -8,6 +8,7 @@ export const typeStyles = {
   CREDIT_APPLY: 'bg-blue-500/20 text-blue-400',
   CREDIT_CONSUMED: 'bg-purple-500/20 text-purple-400',
   REFUND: 'bg-orange-500/20 text-orange-400',
+  CREDIT_PAYOUT: 'bg-orange-500/20 text-orange-400',
   PURCHASE_CHARGE: 'bg-red-500/20 text-red-400',
   PURCHASE_REVERSAL: 'bg-yellow-500/20 text-yellow-400',
   SUPPLIER_PAYMENT: 'bg-green-500/20 text-green-400',

@@ -18,6 +18,7 @@ const typeStyles = {
         CREDIT_APPLY:    'bg-blue-500/20 text-blue-400',
         CREDIT_CONSUMED: 'bg-purple-500/20 text-purple-400',
         REFUND:          'bg-orange-500/20 text-orange-400',
+        CREDIT_PAYOUT:   'bg-orange-500/20 text-orange-400',
     }
 
 const PAYMENT_METHODS = ['cash', 'bank_transfer', 'instapay', 'vodafone_cash', 'orange_cash', 'check']

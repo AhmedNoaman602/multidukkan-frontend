@@ -128,30 +128,50 @@ export default function CreateOrder() {
         ? null
         : pickedCustomer?.id === Number(customerId) ? pickedCustomer : draftCustomer ?? null
 
-    const handleCustomerSelect = (customer) => {
-        setPickedCustomer(customer)
-        setCustomerId(customer ? String(customer.id) : '')
-    }
+    const canOverridePrice = user.role === 'tenant_admin' || user.role === 'store_manager'
 
-    const getPriceForCustomer = (product) => {
-        if (!selectedCustomer) return product.price
-        const tier = selectedCustomer.price_tier
-        return (tier !== 'default' && product[`price_${tier}`])
+    const tierPrice = (product, customer) => {
+        const tier = customer?.price_tier
+        return (tier && tier !== 'default' && product[`price_${tier}`])
             ? product[`price_${tier}`]
             : product.price
     }
 
-    const getUnitPrice = (product, unitType) => {
-        const base = getPriceForCustomer(product)
+    const unitPriceFor = (product, unitType, customer) => {
+        const base = tierPrice(product, customer)
         return unitType === 'secondary' && product.conversion_factor
             ? base * product.conversion_factor
             : base
     }
 
+    const getPriceForCustomer = (product) => tierPrice(product, selectedCustomer)
+    const getUnitPrice = (product, unitType) => unitPriceFor(product, unitType, selectedCustomer)
+
+    const typedPrice = (item) => {
+        if (!canOverridePrice || !item.price_edited) return null
+        return parseNumber(item.unit_price)
+    }
+
+    const linePrice = (item, product) => {
+        const typed = typedPrice(item)
+        return typed === null || Number.isNaN(typed) ? getUnitPrice(product, item.unit_type) : typed
+    }
+
+    const handleCustomerSelect = (customer) => {
+        setPickedCustomer(customer)
+        setCustomerId(customer ? String(customer.id) : '')
+        setItems(prev => prev.map(item => {
+            const product = products.find(p => p.id === parseInt(item.product_id))
+            return product
+                ? { ...item, unit_price: priceText(unitPriceFor(product, item.unit_type, customer)), price_edited: false }
+                : item
+        }))
+    }
+
     const lineSum = items.reduce((total, item) => {
         const product = products.find(p => p.id === parseInt(item.product_id))
         if (!product || !item.quantity) return total
-        return total + getUnitPrice(product, item.unit_type) * item.quantity
+        return total + linePrice(item, product) * item.quantity
     }, 0)
 
     const { subtotal, discount: discountAmount, total: grandTotal } = orderTotals(lineSum, discountType, discountValue)
@@ -159,7 +179,7 @@ export default function CreateOrder() {
     const itemsWithTotals = items.map((item, index) => {
         const product = products.find(p => p.id === parseInt(item.product_id))
         const lineTotal = product
-            ? getUnitPrice(product, item.unit_type) * (parseInt(item.quantity) || 0)
+            ? linePrice(item, product) * (parseInt(item.quantity) || 0)
             : 0
         return { item, index, product, lineTotal }
     })
@@ -170,7 +190,8 @@ export default function CreateOrder() {
                 product_id: String(product.id),
                 quantity: 1,
                 unit_type: 'base',
-                unit_price: priceText(getPriceForCustomer(product))
+                unit_price: priceText(getPriceForCustomer(product)),
+                price_edited: false,
             }]
             setFlashIndex(next.length - 1)
             // Focus the qty input of the new row after render
@@ -191,6 +212,14 @@ export default function CreateOrder() {
         setItems(updated)
     }
 
+    const editPrice = (index, value) => setItems(prev => prev.map((item, i) =>
+        i === index ? { ...item, unit_price: value, price_edited: true } : item))
+
+    const changeUnit = (index, product, unitType) => setItems(prev => prev.map((item, i) =>
+        i === index
+            ? { ...item, unit_type: unitType, unit_price: priceText(getUnitPrice(product, unitType)), price_edited: false }
+            : item))
+
     // Enter on qty → back to product search
     const handleQtyKeyDown = (e) => {
         if (e.key === 'Enter') {
@@ -206,6 +235,7 @@ export default function CreateOrder() {
         if (!customerId) { showToast(t('orders.create.customerRequired'), 'error'); return }
         const discount = parseNumber(discountValue)
         if (Number.isNaN(discount)) { showToast(t('common.numberInput.invalid'), 'error'); return }
+        if (items.some(item => Number.isNaN(typedPrice(item)))) { showToast(t('common.numberInput.invalid'), 'error'); return }
         setSaving(true)
         try {
             await api.post('/orders', {
@@ -214,11 +244,15 @@ export default function CreateOrder() {
                 discount: discount ?? 0,
                 discount_type: discountType,
                 order_date:orderDate,
-                items: items.map(item => ({
-                    product_id: parseInt(item.product_id),
-                    quantity: parseInt(item.quantity),
-                    unit_type: item.unit_type ?? 'base',
-                }))
+                items: items.map(item => {
+                    const price = typedPrice(item)
+                    return {
+                        product_id: parseInt(item.product_id),
+                        quantity: parseInt(item.quantity),
+                        unit_type: item.unit_type ?? 'base',
+                        ...(price !== null && { unit_price: price }),
+                    }
+                })
             })
             sessionStorage.removeItem(STORAGE_KEY)
             showToast(t('orders.create.created'), 'success')
@@ -338,13 +372,20 @@ export default function CreateOrder() {
                                                     />
                                                 </td>
                                                 <td className="px-2.5 py-1.5">
-    <NumberInput decimals={4}
-        min="0"
-           value={item.unit_price}
-           onChange={e => updateItem(index, 'unit_price', e.target.value)}
-          className="w-20 px-1.5 py-1 bg-gray-800 border border-gray-700 text-white rounded text-sm text-center focus:outline-none focus:border-blue-500"
-    />
-</td>
+                                                    {canOverridePrice ? (
+                                                        <NumberInput decimals={4}
+                                                            min="0"
+                                                            value={item.unit_price}
+                                                            onChange={e => editPrice(index, e.target.value)}
+                                                            title={item.price_edited ? t('orders.create.priceEdited') : undefined}
+                                                            className={`w-20 px-1.5 py-1 bg-gray-800 border text-white rounded text-sm text-center focus:outline-none focus:border-blue-500 ${
+                                                                item.price_edited ? 'border-amber-500/70' : 'border-gray-700'
+                                                            }`}
+                                                        />
+                                                    ) : (
+                                                        <span className="text-gray-300 text-sm">{item.unit_price}</span>
+                                                    )}
+                                                </td>
                                                 <td className="px-2.5 py-1.5">
                                                     {product?.secondary_unit ? (
                                                         <div className="flex gap-0.5">
@@ -352,10 +393,7 @@ export default function CreateOrder() {
                                                                 <button
                                                                     key={u}
                                                                     type="button"
-                                                                    onClick={() => {
-                                                                        updateItem(index, 'unit_type', u)
-                                                                        updateItem(index, 'unit_price', priceText(getUnitPrice(product, u)))
-                                                                    }}
+                                                                    onClick={() => changeUnit(index, product, u)}
                                                                     className={`px-1.5 py-0.5 rounded text-[11px] font-medium transition-colors ${
                                                                         item.unit_type === u ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400'
                                                                     }`}
@@ -426,10 +464,7 @@ export default function CreateOrder() {
                                                             <button
                                                                 key={u}
                                                                 type="button"
-                                                                onClick={() => {
-                                                                    updateItem(index, 'unit_type', u)
-                                                                    updateItem(index, 'unit_price', priceText(getUnitPrice(product, u)))
-                                                                }}
+                                                                onClick={() => changeUnit(index, product, u)}
                                                                 className={`px-1.5 py-1 rounded text-[11px] font-medium transition-colors ${
                                                                     item.unit_type === u ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400'
                                                                 }`}

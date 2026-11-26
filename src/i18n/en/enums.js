@@ -58,6 +58,7 @@ export default {
         CREDIT_APPLY: 'Credit Added',
         CREDIT_CONSUMED: 'Credit Used',
         REFUND: 'Refund',
+        CREDIT_PAYOUT: 'Credit Paid Out',
         PURCHASE_CHARGE: 'Purchase Charge',
         PURCHASE_REVERSAL: 'Purchase Reversal',
         SUPPLIER_PAYMENT: 'Supplier Payment',

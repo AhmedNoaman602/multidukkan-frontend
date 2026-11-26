@@ -69,6 +69,7 @@ export default {
         discountAmount: '= {amount} discount',
         chooseWarehouse: 'Choose',
         unit: 'Unit',
+        priceEdited: 'Price changed by hand. Changing the unit or the customer resets it.',
         creating: 'Creating…',
         submit: 'Create order',
         loadFailed: 'Something went wrong loading the data.',
@@ -82,16 +83,12 @@ export default {
     detail: {
         invoiceButton: '🖨️ Invoice',
         cancelOrder: 'Cancel order',
-        cancelOrderTitle: 'Cancel order',
-        cancelOrderName: 'Order {invoice}',
-        cancelOrderWarning: 'This will reverse the ledger entry and restore stock. This cannot be undone.',
         cancelled: 'Order cancelled successfully.',
         cancelFailed: 'Something went wrong cancelling the order.',
         saveChanges: 'Save changes',
         updated: 'Order updated successfully.',
         updateFailed: 'Something went wrong updating the order.',
         orderItems: 'Order items',
-        addItem: '+ Add item',
         amountDue: 'Amount due',
         profitSummary: 'Profit summary',
         profitUnavailable: 'Unavailable — {count} item(s) without a recorded cost',
@@ -99,9 +96,37 @@ export default {
         cost: 'Cost',
         totalProfit: 'Total profit',
         notesPlaceholder: 'Add notes…',
-        itemUpdated: 'Item updated successfully.',
-        itemUpdateFailed: 'Something went wrong updating the item.',
         loadFailed: 'Something went wrong loading the order.',
+    },
+
+    cancelModal: {
+        title: 'Cancel order {invoice}',
+        loadFailed: 'Something went wrong loading what this cancel gives back.',
+        total: 'Invoice total',
+        cashPaid: 'Paid in cash',
+        creditPaid: 'Paid with customer credit',
+        unpaidReversed: 'Unpaid amount removed from the debt',
+        howToReturn: 'How should the {amount} paid be given back?',
+        options: {
+            cash: {
+                label: 'Refund in cash',
+                hint: '{amount} leaves the cash drawer.',
+            },
+            credit: {
+                label: 'Keep as customer credit',
+                hint: '{amount} stays on the customer\'s account for later invoices.',
+            },
+        },
+        cashUnavailable: '{amount} was paid with customer credit, but only {available} can be paid out in cash while the customer owes on other invoices.',
+        reasons: {
+            other_unpaid_invoices: 'The customer owes on other invoices, so this can\'t be kept as credit.',
+            no_settlement_available: 'Settle the customer\'s other invoices first, then cancel this one.',
+            return_offset: 'This invoice was settled by a customer return, so it can\'t be cancelled.',
+        },
+        warning: 'Stock goes back and the invoice is removed from the customer\'s debt. This can\'t be undone.',
+        keep: 'Keep the order',
+        confirm: 'Cancel order',
+        cancelling: 'Cancelling…',
     },
 
     invoice: {
@@ -109,13 +134,5 @@ export default {
         notFound: 'Order not found',
         billTo: 'Bill to',
         thankYou: 'Thank you for your business, {customer}',
-    },
-
-    addItemModal: {
-        title: 'Add Item',
-        adding: 'Adding…',
-        submit: 'Add Item',
-        added: 'Item added successfully.',
-        addFailed: 'Something went wrong adding the item.',
     },
 }

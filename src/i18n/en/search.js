@@ -1,6 +1,6 @@
 // Shared by ProductSearchInput and CustomerSearchInput — reusable typeahead
 // components mounted on several unmigrated pages (SupplierBalance,
-// CreatePurchaseOrder, QuickSaleModal, AddItemModal), so fixing the text
+// CreatePurchaseOrder, QuickSaleModal), so fixing the text
 // inside these components is safe regardless of the calling page's
 // migration status.
 export default {
